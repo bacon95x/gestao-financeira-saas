@@ -2560,146 +2560,8 @@
          * diaFechamentoFatura = dia do fechamento (>0). Crédito: colunas da grade são o MÊS DO VENCIMENTO da fatura
          * (ciclo do dia F do mês anterior ao dia F−1 do mês do fechamento → vence no mês seguinte ao fechamento).
          */
-        const CONTAS_PAGAR_ITEMS_DEFAULT = [
-          { id: "cpp-do-it", nome: "do it", matches: [], diaVencimento: 20 },
-          {
-            id: "cpp-annual-do-it",
-            nome: "annual do it",
-            matches: [],
-            vencimentoAnual: { mes: 5, dia: 10 },
-          },
-          {
-            id: "cpp-picpay-keit",
-            nome: "cartão pic pay keit",
-            matches: ["pic pay keit"],
-            diaVencimento: 20,
-            diaFechamentoFatura: 14,
-          },
-          {
-            id: "cpp-nubank",
-            nome: "cartão nubank",
-            matches: ["nubank"],
-            diaVencimento: 1,
-            diaFechamentoFatura: 27,
-          },
-          {
-            id: "cpp-caixa",
-            nome: "cartao caixa",
-            matches: ["caixa"],
-            diaVencimento: 8,
-            diaFechamentoFatura: 24,
-          },
-          {
-            id: "cpp-riachuelo",
-            nome: "cartao riachuelo/midway",
-            matches: ["riachuelo/midway"],
-            diaVencimento: 23,
-            diaFechamentoFatura: 15,
-          },
-          {
-            id: "cpp-vest-credz",
-            nome: "cartao vest casa/credz",
-            matches: ["vest casa/credz"],
-            diaVencimento: 15,
-            diaFechamentoFatura: 7,
-          },
-          {
-            id: "cpp-mp-keit",
-            nome: "cartao mp keit",
-            matches: ["mp keit"],
-            diaVencimento: 10,
-            diaFechamentoFatura: 6,
-          },
-          { id: "cpp-emp-mp-keit", nome: "emprestimo mp keit", matches: [], diaVencimento: null },
-          { id: "cpp-emp-picpay-keit", nome: "emprestimo picpay keit", matches: [], diaVencimento: null },
-          { id: "cpp-emp-nubank", nome: "emprestimo nubank", matches: [], diaVencimento: null },
-          { id: "cpp-emp-mp-alan", nome: "emprestimo mp alan", matches: [], diaVencimento: null },
-          { id: "cpp-emp-pj-mp-keit", nome: "emprestimo pj mp keit", matches: [], diaVencimento: null },
-          { id: "cpp-emp-agil", nome: "emprestimo agil", matches: [], diaVencimento: null },
-          {
-            id: "cpp-mp-alan",
-            nome: "cartão mp alan",
-            matches: ["mp alan"],
-            diaVencimento: 1,
-            diaFechamentoFatura: 27,
-          },
-          {
-            id: "cpp-pagseguro",
-            nome: "cartão pag seguro",
-            matches: ["pag seguro"],
-            diaVencimento: 1,
-            diaFechamentoFatura: 27,
-          },
-          {
-            id: "cpp-inter",
-            nome: "cartão inter",
-            matches: ["inter"],
-            diaVencimento: 1,
-            diaFechamentoFatura: 27,
-          },
-          {
-            id: "cpp-itau",
-            nome: "cartão itau",
-            matches: ["itau"],
-            diaVencimento: 1,
-            diaFechamentoFatura: 27,
-          },
-          {
-            id: "cpp-picpay-alan",
-            nome: "cartão pic pay alan",
-            matches: ["pic pay alan"],
-            diaVencimento: 10,
-            diaFechamentoFatura: 7,
-          },
-          {
-            id: "cpp-atacadao",
-            nome: "cartão atacadão",
-            matches: ["atacadão"],
-            diaVencimento: 15,
-            diaFechamentoFatura: 7,
-          },
-          {
-            id: "cpp-magalu",
-            nome: "cartão magalu",
-            matches: ["magalu"],
-            diaVencimento: 20,
-            diaFechamentoFatura: 12,
-          },
-          {
-            id: "cpp-afins",
-            nome: "cartao afins",
-            matches: ["afins"],
-            diaVencimento: 18,
-            diaFechamentoFatura: 10,
-          },
-          { id: "cpp-ingles-bacon", nome: "ingles bacon", matches: [], diaVencimento: 10 },
-          { id: "cpp-tim", nome: "tim internet", matches: [], diaVencimento: 16 },
-          { id: "cpp-enel", nome: "enel l/3", matches: [], diaVencimento: 23 },
-          { id: "cpp-sabesp", nome: "sabesp", matches: [], diaVencimento: 2 },
-          { id: "cpp-acad-alan", nome: "academia alan", matches: [], diaVencimento: 2 },
-          { id: "cpp-acad-keit", nome: "academia keit", matches: [], diaVencimento: 16 },
-          { id: "cpp-futebol-bacon", nome: "Futebol bacon", matches: [], diaVencimento: 25 },
-          { id: "cpp-netflix", nome: "assinatura netflix", matches: [], diaVencimento: 22 },
-          { id: "cpp-lobo-cripto", nome: "assinatura lobo cripto", matches: [], diaVencimento: null },
-          { id: "cpp-canva", nome: "assinatura canva", matches: [], diaVencimento: null },
-          { id: "cpp-google-cloud", nome: "assinatura nuvem google", matches: [], diaVencimento: null },
-          { id: "cpp-apple-cloud", nome: "assinatura apple nuvem", matches: [], diaVencimento: 3 },
-          { id: "cpp-uber-one", nome: "assinatura uber one", matches: [], diaVencimento: 12 },
-          { id: "cpp-yt-premium", nome: "assinatura youtube premium", matches: [], diaVencimento: 18 },
-          { id: "cpp-krator", nome: "assinatura krator", matches: [], diaVencimento: null },
-          { id: "cpp-krator-pai", nome: "assinatura krator pai", matches: [], diaVencimento: 15 },
-          { id: "cpp-tradingview", nome: "assinatura trading view", matches: [], diaVencimento: null },
-          { id: "cpp-jeitto", nome: "emprestimo jeitto", matches: [], diaVencimento: null },
-          { id: "cpp-brasilcard-keit", nome: "cartão brasil card keit", matches: [], diaVencimento: null },
-          {
-            id: "cpp-remedios",
-            nome: "Remédios",
-            matches: [],
-            matchCategorias: ["Remédios"],
-            diaVencimento: 8,
-          },
-          { id: "cpp-pix-parc-picpay", nome: "pix parcela picpay keit", matches: [], diaVencimento: 9 },
-        ];
+        /** Versão SaaS: sem contas pré-cadastradas — cliente adiciona as suas. */
+        const CONTAS_PAGAR_ITEMS_DEFAULT = [];
 
         /** Catálogo editável (espelho persistido de CONTAS_PAGAR_ITEMS_DEFAULT na 1ª carga). */
         let contasPagarItems = [];
@@ -2732,25 +2594,10 @@
         ];
 
         /** Linhas mínimas (em branco) na tabela Juros/taxas do calendário, por mês. */
-        const MIN_LINHAS_JUROS_TAXAS = 15;
+        const MIN_LINHAS_JUROS_TAXAS = 5;
 
         /** Origens fixas do app (ordem); no carregamento são sempre mantidas; depois vêm as adicionadas por você. */
-        const ORIGEM_ITEMS_DEFAULT = [
-          "pic pay keit",
-          "nubank",
-          "caixa",
-          "riachuelo/midway",
-          "vest casa/credz",
-          "mp keit",
-          "mp alan",
-          "pag seguro",
-          "inter",
-          "itau",
-          "pic pay alan",
-          "atacadão",
-          "magalu",
-          "afins",
-        ];
+        const ORIGEM_ITEMS_DEFAULT = [];
 
         let listaOrigens = [];
 
@@ -2876,14 +2723,9 @@
         const TEXTO_RENDA_OCULTA = "R$ ★★★★★★★★";
 
         const SALDO_PARTES_TEMPLATE = [
-          { id: "sal-alan-15", label: "Salário Alan dia 15", valor: 0 },
-          { id: "sal-alan-fim", label: "Salário Alan dia 30/31", valor: 0 },
-          { id: "div", label: "Dividentos", valor: 0 },
-          { id: "vale", label: "Vale", valor: 0 },
-          { id: "aux-keit", label: "Aux keit", valor: 0 },
-          { id: "aux-mae", label: "Aux mãe", valor: 0 },
+          { id: "renda-1", label: "", valor: 0 },
+          { id: "renda-2", label: "", valor: 0 },
           { id: "outros-a", label: "", valor: 0 },
-          { id: "outros-b", label: "", valor: 0 },
         ];
 
         /** @type {{ id: string, label: string, valor: number }[]} */
@@ -4638,10 +4480,10 @@
           inicialBRL: "",
           aporteUSD: "",
           aporteBRL: "",
-          lucroMensalPct: "0.8",
+          lucroMensalPct: "",
           inflacaoAnualAtiva: false,
-          inflacaoAnualPct: "4.5",
-          cotacaoManual: "5.9",
+          inflacaoAnualPct: "",
+          cotacaoManual: "",
           cotacaoAuto: false,
           simulacaoEmUSD: false,
         };
