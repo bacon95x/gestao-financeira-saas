@@ -1,3 +1,7 @@
 // Preencha com os dados do seu projeto Supabase (Settings → API).
 window.GFP_SUPABASE_URL = "https://rghwbjysexlhroidtelx.supabase.co";
-window.GFP_SUPABASE_ANON_KEY = "sb_publishable_vVMZInEBwUmvMwZW7w240Q_CxhutxEy";// Preencha com os dados do seu projeto Supabase (Settings → API).
+window.GFP_SUPABASE_ANON_KEY = "sb_publishable_vVMZInEBwUmvMwZW7w240Q_CxhutxEy";
+
+// Stripe (modo teste) — link de pagamento da assinatura R$ 29,90/mês
+window.GFP_STRIPE_PAYMENT_LINK = "https://buy.stripe.com/test_4gM9AU5qe4Pq4bafc85gc00";
+window.GFP_STRIPE_PRICE_ID = "price_1Tf4NdIW1rzzRy9NMLXoZokk";
