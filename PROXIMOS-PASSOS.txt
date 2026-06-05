@@ -1,0 +1,64 @@
+ETAPA 1 — O QUE FAZER AGORA (você)
+==================================
+
+1) SUPABASE — criar projeto
+   - Acesse https://supabase.com/dashboard
+   - New project → escolha nome, senha do banco e região (South America se disponível)
+   - Aguarde o projeto ficar pronto (~2 min)
+
+2) SUPABASE — copiar chaves para config.js
+   - Settings → API
+   - Project URL → cole em GFP_SUPABASE_URL
+   - anon public key → cole em GFP_SUPABASE_ANON_KEY
+   - Arquivo: gestao-financeira-saas/config.js
+
+3) SUPABASE — autenticação por e-mail
+   - Authentication → Providers → Email → habilitado (ON)
+   - Authentication → URL Configuration (depois do deploy na Vercel):
+     Site URL: https://SEU-PROJETO.vercel.app
+     Redirect URLs: https://SEU-PROJETO.vercel.app/**
+
+4) GITHUB — novo repositório
+   - https://github.com/new
+   - Nome sugerido: gestao-financeira-saas
+   - Público ou privado (privado recomendado)
+   - NÃO marque README/license (pasta já tem arquivos)
+
+5) GITHUB — enviar só a pasta gestao-financeira-saas
+   No PowerShell, dentro da pasta gestao-financeira-saas:
+
+   git init
+   git add .
+   git commit -m "Etapa 1: login Supabase e dashboard online"
+   git branch -M main
+   git remote add origin https://github.com/SEU_USUARIO/gestao-financeira-saas.git
+   git push -u origin main
+
+6) VERCEL — publicar
+   - https://vercel.com/new
+   - Import Git Repository → escolha gestao-financeira-saas
+   - Framework Preset: Other
+   - Deploy
+   - Anote a URL: https://algo.vercel.app
+
+7) SUPABASE — atualizar URLs (passo 3) com a URL real da Vercel
+
+8) TESTAR
+   - Abra https://SEU-PROJETO.vercel.app
+   - Criar conta de teste → entrar → dashboard
+   - Botão Sair → volta para login
+   - Abrir dashboard.html sem login → redireciona para login
+
+STRIPE — preparar para Etapa 2 (pode fazer em paralelo)
+========================================================
+   - https://dashboard.stripe.com
+   - Ative a conta (dados da empresa/pessoa)
+   - Products → Add product → Recurring → preço mensal em BRL
+   - Anote o Price ID (price_...) para a Etapa 2
+
+IMPORTANTE
+==========
+- Seu dashboard original (pasta pai) NÃO foi alterado.
+- Toda a versão online está em gestao-financeira-saas/
+- Arquivo principal do app: dashboard.html
+- Página de entrada: index.html

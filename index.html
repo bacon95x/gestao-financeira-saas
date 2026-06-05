@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="violet" data-appearance="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Entrar · Gestão Financeira</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: { sans: ["DM Sans", "system-ui", "sans-serif"] },
+            colors: {
+              bank: {
+                bg: "#0c0c14",
+                card: "#14141f",
+                border: "rgba(255,255,255,0.08)",
+                muted: "#9ca3af",
+              },
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      body {
+        font-family: "DM Sans", system-ui, sans-serif;
+        background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(124, 58, 237, 0.22), transparent),
+          #0c0c14;
+      }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+  </head>
+  <body class="min-h-screen text-zinc-100 antialiased">
+    <main class="mx-auto flex min-h-screen max-w-md flex-col justify-center px-4 py-10">
+      <div class="mb-8 text-center">
+        <div
+          class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-violet-600/20 ring-1 ring-violet-500/30"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-violet-400"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg>
+        </div>
+        <h1 class="text-2xl font-semibold text-white">Gestão Financeira</h1>
+        <p class="mt-2 text-sm text-bank-muted">Acesse sua conta para usar o dashboard</p>
+      </div>
+
+      <div class="rounded-2xl border border-bank-border bg-bank-card p-6 shadow-xl">
+        <p id="login-erro" class="mb-4 hidden rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200"></p>
+        <p id="login-ok" class="mb-4 hidden rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200"></p>
+
+        <form id="form-login" class="space-y-4">
+          <div>
+            <label for="login-email" class="block text-xs font-medium text-zinc-400">E-mail</label>
+            <input
+              id="login-email"
+              type="email"
+              required
+              autocomplete="email"
+              class="mt-1.5 w-full rounded-xl border border-bank-border bg-[#0c0c14] px-4 py-2.5 text-sm text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
+              placeholder="seu@email.com"
+            />
+          </div>
+          <div>
+            <label for="login-senha" class="block text-xs font-medium text-zinc-400">Senha</label>
+            <input
+              id="login-senha"
+              type="password"
+              required
+              autocomplete="current-password"
+              minlength="6"
+              class="mt-1.5 w-full rounded-xl border border-bank-border bg-[#0c0c14] px-4 py-2.5 text-sm text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
+              placeholder="••••••••"
+            />
+          </div>
+          <button
+            type="submit"
+            id="btn-login"
+            class="w-full rounded-xl bg-violet-600 py-2.5 text-sm font-semibold text-white transition hover:bg-violet-500 disabled:opacity-60"
+          >
+            Entrar
+          </button>
+        </form>
+
+        <div class="mt-6 border-t border-bank-border pt-6">
+          <p class="text-center text-xs text-bank-muted">Primeiro acesso? (fase de testes)</p>
+          <button
+            type="button"
+            id="btn-mostrar-cadastro"
+            class="mt-2 w-full rounded-xl border border-bank-border py-2.5 text-sm font-medium text-zinc-300 transition hover:bg-white/5"
+          >
+            Criar conta de teste
+          </button>
+        </div>
+
+        <form id="form-cadastro" class="mt-4 hidden space-y-4">
+          <p class="text-xs leading-relaxed text-bank-muted">
+            Na versão comercial, contas serão criadas automaticamente após o pagamento. Por agora você pode criar uma conta para testar.
+          </p>
+          <div>
+            <label for="cadastro-email" class="block text-xs font-medium text-zinc-400">E-mail</label>
+            <input
+              id="cadastro-email"
+              type="email"
+              required
+              autocomplete="email"
+              class="mt-1.5 w-full rounded-xl border border-bank-border bg-[#0c0c14] px-4 py-2.5 text-sm text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
+            />
+          </div>
+          <div>
+            <label for="cadastro-senha" class="block text-xs font-medium text-zinc-400">Senha (mín. 6 caracteres)</label>
+            <input
+              id="cadastro-senha"
+              type="password"
+              required
+              minlength="6"
+              autocomplete="new-password"
+              class="mt-1.5 w-full rounded-xl border border-bank-border bg-[#0c0c14] px-4 py-2.5 text-sm text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
+            />
+          </div>
+          <button
+            type="submit"
+            id="btn-cadastro"
+            class="w-full rounded-xl border border-violet-500/40 bg-violet-600/20 py-2.5 text-sm font-semibold text-violet-200 transition hover:bg-violet-600/30 disabled:opacity-60"
+          >
+            Criar conta
+          </button>
+        </form>
+      </div>
+
+      <p class="mt-8 text-center text-xs text-zinc-600">Versão online · Etapa 1 (login)</p>
+    </main>
+
+    <script>
+      (function () {
+        var params = new URLSearchParams(window.location.search);
+        var erroEl = document.getElementById("login-erro");
+        var okEl = document.getElementById("login-ok");
+
+        function showErro(msg) {
+          erroEl.textContent = msg;
+          erroEl.classList.remove("hidden");
+          okEl.classList.add("hidden");
+        }
+
+        if (params.get("erro") === "config") {
+          showErro("Configure o arquivo config.js com a URL e a chave do Supabase antes de publicar.");
+        } else if (params.get("erro")) {
+          showErro("Não foi possível verificar o acesso. Tente entrar novamente.");
+        }
+
+        if (
+          !window.GFP_SUPABASE_URL ||
+          !window.GFP_SUPABASE_ANON_KEY ||
+          window.GFP_SUPABASE_URL.indexOf("SEU_PROJETO") !== -1
+        ) {
+          showErro("Edite config.js com os dados do Supabase (Settings → API).");
+          return;
+        }
+
+        var sb = window.supabase.createClient(window.GFP_SUPABASE_URL, window.GFP_SUPABASE_ANON_KEY);
+
+        sb.auth.getSession().then(function (res) {
+          if (res.data && res.data.session) {
+            window.location.replace("dashboard.html");
+          }
+        });
+
+        document.getElementById("btn-mostrar-cadastro").addEventListener("click", function () {
+          document.getElementById("form-cadastro").classList.toggle("hidden");
+        });
+
+        document.getElementById("form-login").addEventListener("submit", async function (e) {
+          e.preventDefault();
+          var btn = document.getElementById("btn-login");
+          btn.disabled = true;
+          erroEl.classList.add("hidden");
+          var email = document.getElementById("login-email").value.trim();
+          var senha = document.getElementById("login-senha").value;
+          var result = await sb.auth.signInWithPassword({ email: email, password: senha });
+          btn.disabled = false;
+          if (result.error) {
+            showErro(result.error.message === "Invalid login credentials"
+              ? "E-mail ou senha incorretos."
+              : result.error.message);
+            return;
+          }
+          window.location.replace("dashboard.html");
+        });
+
+        document.getElementById("form-cadastro").addEventListener("submit", async function (e) {
+          e.preventDefault();
+          var btn = document.getElementById("btn-cadastro");
+          btn.disabled = true;
+          erroEl.classList.add("hidden");
+          var email = document.getElementById("cadastro-email").value.trim();
+          var senha = document.getElementById("cadastro-senha").value;
+          var result = await sb.auth.signUp({ email: email, password: senha });
+          btn.disabled = false;
+          if (result.error) {
+            showErro(result.error.message);
+            return;
+          }
+          if (result.data && result.data.session) {
+            window.location.replace("dashboard.html");
+            return;
+          }
+          okEl.textContent = "Conta criada! Se o Supabase exigir confirmação por e-mail, confira sua caixa de entrada e depois entre.";
+          okEl.classList.remove("hidden");
+        });
+      })();
+    </script>
+  </body>
+</html>
