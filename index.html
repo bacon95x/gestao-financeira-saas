@@ -70,8 +70,48 @@
         </a>
       </div>
 
+      <div
+        id="bloco-pos-pagamento"
+        class="mb-4 hidden rounded-2xl border border-violet-500/30 bg-violet-600/10 p-6 shadow-xl"
+      >
+        <p class="text-center text-sm font-semibold text-violet-200">Pagamento confirmado</p>
+        <p class="mt-2 text-center text-xs leading-relaxed text-bank-muted">
+          Crie sua senha com o <strong class="text-zinc-300">mesmo e-mail</strong> usado no Stripe.
+        </p>
+        <form id="form-criar-senha" class="mt-4 space-y-4">
+          <div>
+            <label for="senha-email" class="block text-xs font-medium text-zinc-400">E-mail do pagamento</label>
+            <input
+              id="senha-email"
+              type="email"
+              required
+              autocomplete="email"
+              class="mt-1.5 w-full rounded-xl border border-bank-border bg-[#0c0c14] px-4 py-2.5 text-sm text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
+            />
+          </div>
+          <div>
+            <label for="senha-nova" class="block text-xs font-medium text-zinc-400">Nova senha (mín. 6)</label>
+            <input
+              id="senha-nova"
+              type="password"
+              required
+              minlength="6"
+              autocomplete="new-password"
+              class="mt-1.5 w-full rounded-xl border border-bank-border bg-[#0c0c14] px-4 py-2.5 text-sm text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
+            />
+          </div>
+          <button
+            type="submit"
+            id="btn-criar-senha"
+            class="w-full rounded-xl bg-violet-600 py-2.5 text-sm font-semibold text-white transition hover:bg-violet-500 disabled:opacity-60"
+          >
+            Criar senha e entrar
+          </button>
+        </form>
+      </div>
+
       <div class="rounded-2xl border border-bank-border bg-bank-card p-6 shadow-xl">
-        <p class="mb-4 text-center text-xs font-medium uppercase tracking-wide text-zinc-500">Já assinou? Entre</p>
+        <p class="mb-4 text-center text-xs font-medium uppercase tracking-wide text-zinc-500">Já tem senha? Entre</p>
         <p id="login-erro" class="mb-4 hidden rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200"></p>
         <p id="login-ok" class="mb-4 hidden rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200"></p>
 
@@ -108,7 +148,7 @@
           </button>
         </form>
 
-        <div class="mt-6 border-t border-bank-border pt-6">
+        <div id="bloco-teste-signup" class="mt-6 hidden border-t border-bank-border pt-6">
           <p class="text-center text-xs text-bank-muted">Primeiro acesso? (fase de testes)</p>
           <button
             type="button"
@@ -117,44 +157,40 @@
           >
             Criar conta de teste
           </button>
+          <form id="form-cadastro" class="mt-4 hidden space-y-4">
+            <div>
+              <label for="cadastro-email" class="block text-xs font-medium text-zinc-400">E-mail</label>
+              <input
+                id="cadastro-email"
+                type="email"
+                required
+                autocomplete="email"
+                class="mt-1.5 w-full rounded-xl border border-bank-border bg-[#0c0c14] px-4 py-2.5 text-sm text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
+              />
+            </div>
+            <div>
+              <label for="cadastro-senha" class="block text-xs font-medium text-zinc-400">Senha (mín. 6)</label>
+              <input
+                id="cadastro-senha"
+                type="password"
+                required
+                minlength="6"
+                autocomplete="new-password"
+                class="mt-1.5 w-full rounded-xl border border-bank-border bg-[#0c0c14] px-4 py-2.5 text-sm text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
+              />
+            </div>
+            <button
+              type="submit"
+              id="btn-cadastro"
+              class="w-full rounded-xl border border-violet-500/40 bg-violet-600/20 py-2.5 text-sm font-semibold text-violet-200 transition hover:bg-violet-600/30 disabled:opacity-60"
+            >
+              Criar conta
+            </button>
+          </form>
         </div>
-
-        <form id="form-cadastro" class="mt-4 hidden space-y-4">
-          <p class="text-xs leading-relaxed text-bank-muted">
-            Na versão comercial, contas serão criadas automaticamente após o pagamento. Por agora você pode criar uma conta para testar.
-          </p>
-          <div>
-            <label for="cadastro-email" class="block text-xs font-medium text-zinc-400">E-mail</label>
-            <input
-              id="cadastro-email"
-              type="email"
-              required
-              autocomplete="email"
-              class="mt-1.5 w-full rounded-xl border border-bank-border bg-[#0c0c14] px-4 py-2.5 text-sm text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
-            />
-          </div>
-          <div>
-            <label for="cadastro-senha" class="block text-xs font-medium text-zinc-400">Senha (mín. 6 caracteres)</label>
-            <input
-              id="cadastro-senha"
-              type="password"
-              required
-              minlength="6"
-              autocomplete="new-password"
-              class="mt-1.5 w-full rounded-xl border border-bank-border bg-[#0c0c14] px-4 py-2.5 text-sm text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
-            />
-          </div>
-          <button
-            type="submit"
-            id="btn-cadastro"
-            class="w-full rounded-xl border border-violet-500/40 bg-violet-600/20 py-2.5 text-sm font-semibold text-violet-200 transition hover:bg-violet-600/30 disabled:opacity-60"
-          >
-            Criar conta
-          </button>
-        </form>
       </div>
 
-      <p class="mt-8 text-center text-xs text-zinc-600">Versão online · Etapa 2 (assinatura em teste)</p>
+      <p class="mt-8 text-center text-xs text-zinc-600">Versão online · Etapa 2 — Passo 3 (senha após pagar)</p>
     </main>
 
     <script>
@@ -171,6 +207,8 @@
 
         if (params.get("erro") === "config") {
           showErro("Configure o arquivo config.js com a URL e a chave do Supabase antes de publicar.");
+        } else if (params.get("erro") === "assinatura") {
+          showErro("Assinatura inativa ou não encontrada. Use Assinar agora ou o mesmo e-mail do pagamento.");
         } else if (params.get("erro")) {
           showErro("Não foi possível verificar o acesso. Tente entrar novamente.");
         }
@@ -192,7 +230,23 @@
           return;
         }
 
+        function gfpFnUrl(name) {
+          var base = window.GFP_SUPABASE_URL.replace(/\/$/, "");
+          return base + "/functions/v1/" + name;
+        }
+
         var sb = window.supabase.createClient(window.GFP_SUPABASE_URL, window.GFP_SUPABASE_ANON_KEY);
+
+        if (params.get("checkout") === "success") {
+          document.getElementById("bloco-pos-pagamento").classList.remove("hidden");
+          okEl.textContent =
+            "Pagamento recebido! Aguarde alguns segundos e crie sua senha abaixo com o mesmo e-mail do Stripe.";
+          okEl.classList.remove("hidden");
+        }
+
+        if (window.GFP_ALLOW_TEST_SIGNUP === true) {
+          document.getElementById("bloco-teste-signup").classList.remove("hidden");
+        }
 
         sb.auth.getSession().then(function (res) {
           if (res.data && res.data.session) {
@@ -200,8 +254,46 @@
           }
         });
 
-        document.getElementById("btn-mostrar-cadastro").addEventListener("click", function () {
-          document.getElementById("form-cadastro").classList.toggle("hidden");
+        var btnMostrarCad = document.getElementById("btn-mostrar-cadastro");
+        if (btnMostrarCad) {
+          btnMostrarCad.addEventListener("click", function () {
+            document.getElementById("form-cadastro").classList.toggle("hidden");
+          });
+        }
+
+        document.getElementById("form-criar-senha").addEventListener("submit", async function (e) {
+          e.preventDefault();
+          var btn = document.getElementById("btn-criar-senha");
+          btn.disabled = true;
+          erroEl.classList.add("hidden");
+          var email = document.getElementById("senha-email").value.trim();
+          var senha = document.getElementById("senha-nova").value;
+          try {
+            var res = await fetch(gfpFnUrl("criar-senha-assinante"), {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: "Bearer " + window.GFP_SUPABASE_ANON_KEY,
+              },
+              body: JSON.stringify({ email: email, password: senha }),
+            });
+            var data = await res.json();
+            if (!res.ok) {
+              showErro(data.error || "Não foi possível criar a senha.");
+              btn.disabled = false;
+              return;
+            }
+            var login = await sb.auth.signInWithPassword({ email: email, password: senha });
+            btn.disabled = false;
+            if (login.error) {
+              showErro("Senha criada. Entre manualmente com e-mail e senha.");
+              return;
+            }
+            window.location.replace("dashboard.html");
+          } catch (err) {
+            btn.disabled = false;
+            showErro("Serviço indisponível. Confira se as Edge Functions foram publicadas no Supabase.");
+          }
         });
 
         document.getElementById("form-login").addEventListener("submit", async function (e) {
@@ -222,7 +314,8 @@
           window.location.replace("dashboard.html");
         });
 
-        document.getElementById("form-cadastro").addEventListener("submit", async function (e) {
+        var formCadastro = document.getElementById("form-cadastro");
+        if (formCadastro) formCadastro.addEventListener("submit", async function (e) {
           e.preventDefault();
           var btn = document.getElementById("btn-cadastro");
           btn.disabled = true;
