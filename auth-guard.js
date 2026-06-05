@@ -27,6 +27,28 @@
         return;
       }
       window.gfpUser = session.user;
+      var email = (session.user.email || "").trim().toLowerCase();
+      var admins = Array.isArray(window.GFP_ADMIN_EMAILS) ? window.GFP_ADMIN_EMAILS : [];
+      var isAdmin = admins.some(function (a) {
+        return String(a || "").trim().toLowerCase() === email;
+      });
+      if (!isAdmin && email) {
+        var base = window.GFP_SUPABASE_URL.replace(/\/$/, "");
+        var vRes = await fetch(base + "/functions/v1/verificar-assinatura", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + window.GFP_SUPABASE_ANON_KEY,
+          },
+          body: JSON.stringify({ email: email }),
+        });
+        var vData = await vRes.json();
+        if (!vData || !vData.active) {
+          await sb.auth.signOut();
+          fail("index.html?erro=assinatura");
+          return;
+        }
+      }
       sb.auth.onAuthStateChange(function (event, newSession) {
         if (event === "SIGNED_OUT" || !newSession) {
           window.location.replace("index.html");
