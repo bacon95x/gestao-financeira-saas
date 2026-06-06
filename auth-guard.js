@@ -39,6 +39,7 @@
           headers: {
             "Content-Type": "application/json",
             Authorization: "Bearer " + window.GFP_SUPABASE_ANON_KEY,
+            apikey: window.GFP_SUPABASE_ANON_KEY,
           },
           body: JSON.stringify({ email: email }),
         });
@@ -70,6 +71,9 @@
 
   window.gfpLogout = async function gfpLogout() {
     try {
+      if (typeof window.gfpClearLocalFinancialDataIfCloud === "function") {
+        window.gfpClearLocalFinancialDataIfCloud();
+      }
       if (window.gfpSupabase) await window.gfpSupabase.auth.signOut();
     } catch (e) {
       console.warn("Logout:", e);
