@@ -1,5 +1,5 @@
 (function () {
-  var SYNC_INTERVAL_MS = 45000;
+  var SYNC_INTERVAL_MS = 15000;
   var STORAGE_SYNCED_AT = "gfp_cloud_synced_at";
   var lastCloudHash = "";
   var autoTimer = null;
@@ -85,6 +85,15 @@
     } catch (e) {
       return "";
     }
+  }
+
+  function gfpFormatTime() {
+    var d = new Date();
+    return (
+      String(d.getHours()).padStart(2, "0") +
+      ":" +
+      String(d.getMinutes()).padStart(2, "0")
+    );
   }
 
   function gfpSetCloudStatus(text, tone) {
@@ -193,7 +202,8 @@
     return true;
   }
 
-  async function gfpCloudSaveNow() {
+  async function gfpCloudSaveNow(opts) {
+    opts = opts || {};
     var mode = gfpCloudMode();
     if (mode === "local") {
       return { ok: false, reason: "Modo local — nuvem desligada no config.js" };
@@ -213,7 +223,7 @@
       data: snap,
     };
 
-    gfpSetCloudStatus("Salvando na nuvem…", "warn");
+    gfpSetCloudStatus(opts.auto ? "Salvando automaticamente…" : "Salvando na nuvem…", "warn");
 
     var res = await sb.from("gfp_dados").upsert(
       {
@@ -235,8 +245,28 @@
     } catch (e) {}
 
     lastCloudHash = gfpHashSnapshot(snap);
-    gfpSetCloudStatus("Nuvem sincronizada", "ok");
+    var stamp = gfpFormatTime();
+    if (opts.auto) {
+      gfpSetCloudStatus("Salvo automaticamente · " + stamp, "ok");
+    } else {
+      gfpSetCloudStatus("Salvo na nuvem · " + stamp, "ok");
+    }
     return { ok: true };
+  }
+
+  function gfpClearLocalFinancialDataIfCloud() {
+    if (gfpCloudMode() !== "cloud") return;
+    var keys = [];
+    try {
+      for (var i = 0; i < localStorage.length; i++) {
+        var k = localStorage.key(i);
+        if (!k || !k.startsWith("gfp_") || gfpIsMetaKey(k) || gfpIsPreferenceKey(k)) continue;
+        keys.push(k);
+      }
+      keys.forEach(function (k) {
+        localStorage.removeItem(k);
+      });
+    } catch (e) {}
   }
 
   function gfpStartAutoCloudSave() {
@@ -246,7 +276,7 @@
       var snap = gfpSnapshotForCloud();
       var h = gfpHashSnapshot(snap);
       if (!h || h === lastCloudHash) return;
-      gfpCloudSaveNow().catch(function (e) {
+      gfpCloudSaveNow({ auto: true }).catch(function (e) {
         console.warn("Auto cloud save:", e);
       });
     }, SYNC_INTERVAL_MS);
@@ -256,6 +286,15 @@
     var mode = gfpCloudMode();
     var wrap = document.getElementById("gfp-cloud-controls");
     if (wrap) wrap.classList.toggle("hidden", mode === "local");
+
+    if (mode === "cloud") {
+      ["btn-backup-exportar", "btn-backup-importar"].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) el.classList.add("hidden");
+      });
+      var backupLabel = document.querySelector('[aria-label="Backup dos dados salvos"] span');
+      if (backupLabel) backupLabel.textContent = "Conta";
+    }
 
     var btn = document.getElementById("btn-cloud-sync");
     if (btn) {
@@ -274,9 +313,9 @@
     if (mode !== "local") {
       gfpStartAutoCloudSave();
       if (mode === "cloud") {
-        gfpSetCloudStatus("Modo só nuvem", "ok");
+        gfpSetCloudStatus("Modo só nuvem · auto-save 15s", "ok");
       } else {
-        gfpSetCloudStatus("Nuvem + navegador (both)", "ok");
+        gfpSetCloudStatus("Nuvem + navegador · auto-save 15s", "ok");
       }
     }
   }
@@ -286,4 +325,5 @@
   window.gfpCloudSaveNow = gfpCloudSaveNow;
   window.gfpInitCloudControls = gfpInitCloudControls;
   window.gfpCloudMode = gfpCloudMode;
+  window.gfpClearLocalFinancialDataIfCloud = gfpClearLocalFinancialDataIfCloud;
 })();
