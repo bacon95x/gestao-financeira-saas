@@ -273,7 +273,11 @@
 
     if (mode !== "local") {
       gfpStartAutoCloudSave();
-      gfpSetCloudStatus("Nuvem ativa (" + mode + ")", "ok");
+      if (mode === "cloud") {
+        gfpSetCloudStatus("Modo só nuvem", "ok");
+      } else {
+        gfpSetCloudStatus("Nuvem + navegador (both)", "ok");
+      }
     }
   }
 
