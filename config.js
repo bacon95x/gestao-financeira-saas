@@ -15,4 +15,4 @@ window.GFP_ALLOW_TEST_SIGNUP = false;
 // "local" = só navegador (como hoje)
 // "cloud" = só Supabase
 // "both"  = navegador + nuvem (transição / teste)
-window.GFP_STORAGE_MODE = "both";
+window.GFP_STORAGE_MODE = "cloud";
