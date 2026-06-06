@@ -100,6 +100,7 @@
         var aguardeEl = document.getElementById("reset-aguarde");
         var formEl = document.getElementById("form-nova-senha");
         var invalidoEl = document.getElementById("reset-link-invalido");
+        var recoveryReady = false;
 
         function showErro(msg) {
           erroEl.textContent = msg;
@@ -116,20 +117,30 @@
           invalidoEl.classList.remove("hidden");
         }
 
-        function hashErrorMessage() {
+        function showForm() {
+          aguardeEl.classList.add("hidden");
+          invalidoEl.classList.add("hidden");
+          formEl.classList.remove("hidden");
+          recoveryReady = true;
+        }
+
+        function hashParams() {
           var hash = (window.location.hash || "").replace(/^#/, "");
-          if (!hash) return null;
-          var params = new URLSearchParams(hash);
+          return hash ? new URLSearchParams(hash) : new URLSearchParams();
+        }
+
+        function hashErrorMessage(params) {
           if (params.get("error_code") === "otp_expired") {
-            return "Este link expirou (válido por cerca de 1 hora). Volte ao login e clique em «Esqueci minha senha» para receber outro.";
+            return "Este link expirou. Volte ao login e clique em «Esqueci minha senha» para receber outro.";
           }
           if (params.get("error")) {
-            return "Link inválido ou já usado. Volte ao login e solicite um novo link em «Esqueci minha senha».";
+            return "Link inválido ou já usado. Volte ao login e solicite um novo em «Esqueci minha senha».";
           }
           return null;
         }
 
-        var hashErr = hashErrorMessage();
+        var params = hashParams();
+        var hashErr = hashErrorMessage(params);
         if (hashErr) {
           showInvalido(hashErr);
           return;
@@ -140,45 +151,54 @@
           !window.GFP_SUPABASE_ANON_KEY ||
           window.GFP_SUPABASE_URL.indexOf("SEU_PROJETO") !== -1
         ) {
-          showInvalido(null);
+          showInvalido("Configuração do site incompleta.");
           return;
         }
 
-        var sb = window.supabase.createClient(window.GFP_SUPABASE_URL, window.GFP_SUPABASE_ANON_KEY);
-        var recoveryReady = false;
+        var sb = window.supabase.createClient(window.GFP_SUPABASE_URL, window.GFP_SUPABASE_ANON_KEY, {
+          auth: {
+            detectSessionInUrl: true,
+            persistSession: true,
+          },
+        });
 
-        function showForm() {
-          aguardeEl.classList.add("hidden");
-          invalidoEl.classList.add("hidden");
-          formEl.classList.remove("hidden");
-          recoveryReady = true;
+        async function tryActivateRecovery() {
+          var accessToken = params.get("access_token");
+          var refreshToken = params.get("refresh_token");
+          if (accessToken && refreshToken) {
+            var setRes = await sb.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken,
+            });
+            if (!setRes.error && setRes.data.session) {
+              showForm();
+              return true;
+            }
+          }
+          var sessionRes = await sb.auth.getSession();
+          if (sessionRes.data && sessionRes.data.session) {
+            showForm();
+            return true;
+          }
+          return false;
         }
 
         sb.auth.onAuthStateChange(function (event) {
-          if (event === "PASSWORD_RECOVERY") {
+          if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") {
             showForm();
           }
         });
 
-        sb.auth.getSession().then(function (res) {
-          if (res.data && res.data.session) {
-            showForm();
+        tryActivateRecovery().then(function (ok) {
+          if (ok) return;
+          if (params.get("access_token") || params.get("type") === "recovery") {
+            showInvalido("Não foi possível validar o link. Solicite um novo em «Esqueci minha senha».");
             return;
           }
-          var hash = window.location.hash || "";
-          if (hash.indexOf("type=recovery") !== -1 || hash.indexOf("access_token=") !== -1) {
-            setTimeout(function () {
-              sb.auth.getSession().then(function (r2) {
-                if (r2.data && r2.data.session) {
-                  showForm();
-                } else {
-                  showInvalido("Não foi possível validar o link. Solicite um novo em «Esqueci minha senha».");
-                }
-              });
-            }, 800);
-            return;
-          }
-          showInvalido("Abra o link mais recente do e-mail ou solicite um novo em «Esqueci minha senha».");
+          showInvalido(
+            "Abra o link que enviamos por e-mail (não digite o endereço manualmente). Se expirou, solicite outro em «Esqueci minha senha»."
+          );
+        });
 
         document.getElementById("form-nova-senha").addEventListener("submit", async function (e) {
           e.preventDefault();
