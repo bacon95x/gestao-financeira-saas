@@ -1,12 +1,24 @@
 (function () {
   var SYNC_INTERVAL_MS = 45000;
+  var STORAGE_SYNCED_AT = "gfp_cloud_synced_at";
   var lastCloudHash = "";
   var autoTimer = null;
-  var cloudStatus = "idle";
 
   function gfpCloudMode() {
     var m = (window.GFP_STORAGE_MODE || "local").toLowerCase();
     return m === "cloud" || m === "both" ? m : "local";
+  }
+
+  function gfpIsMetaKey(k) {
+    return k === STORAGE_SYNCED_AT;
+  }
+
+  function gfpIsPreferenceKey(k) {
+    return (
+      k.indexOf("theme") !== -1 ||
+      k.indexOf("appearance") !== -1 ||
+      k.indexOf("iluminacao") !== -1
+    );
   }
 
   function gfpSnapshotFromLocalStorage() {
@@ -20,12 +32,26 @@
     return out;
   }
 
+  function gfpSnapshotForCloud() {
+    var snap = gfpSnapshotFromLocalStorage();
+    Object.keys(snap).forEach(function (k) {
+      if (gfpIsMetaKey(k)) delete snap[k];
+    });
+    return snap;
+  }
+
+  function gfpFinancialKeyCount(snap) {
+    return Object.keys(snap).filter(function (k) {
+      return k.startsWith("gfp_") && !gfpIsMetaKey(k) && !gfpIsPreferenceKey(k);
+    }).length;
+  }
+
   function gfpClearLocalStorageGfp() {
     var keys = [];
     try {
       for (var i = 0; i < localStorage.length; i++) {
         var k = localStorage.key(i);
-        if (k && k.startsWith("gfp_")) keys.push(k);
+        if (k && k.startsWith("gfp_") && !gfpIsMetaKey(k)) keys.push(k);
       }
       keys.forEach(function (k) {
         localStorage.removeItem(k);
@@ -33,10 +59,10 @@
     } catch (e) {}
   }
 
-  function gfpApplySnapshotToLocalStorage(bag) {
+  function gfpApplySnapshotToLocalStorage(bag, cloudUpdatedAt) {
     if (!bag || typeof bag !== "object") return;
     var keys = Object.keys(bag).filter(function (k) {
-      return k.startsWith("gfp_");
+      return k.startsWith("gfp_") && !gfpIsMetaKey(k);
     });
     if (!keys.length) return;
     gfpClearLocalStorageGfp();
@@ -46,6 +72,11 @@
         localStorage.setItem(k, v == null ? "" : String(v));
       } catch (e) {}
     });
+    if (cloudUpdatedAt) {
+      try {
+        localStorage.setItem(STORAGE_SYNCED_AT, String(cloudUpdatedAt));
+      } catch (e) {}
+    }
   }
 
   function gfpHashSnapshot(snap) {
@@ -57,7 +88,6 @@
   }
 
   function gfpSetCloudStatus(text, tone) {
-    cloudStatus = text;
     var el = document.getElementById("gfp-cloud-status");
     if (!el) return;
     el.textContent = text;
@@ -91,6 +121,21 @@
     });
   }
 
+  function gfpShouldLoadCloudOverLocal(mode, localSnap, cloudUpdatedAt) {
+    if (mode === "cloud") return true;
+    if (gfpFinancialKeyCount(localSnap) === 0) return true;
+    if (!cloudUpdatedAt) return false;
+
+    var localSyncedAt = localSnap[STORAGE_SYNCED_AT] || null;
+    if (!localSyncedAt) return true;
+
+    try {
+      return new Date(cloudUpdatedAt).getTime() > new Date(localSyncedAt).getTime();
+    } catch (e) {
+      return false;
+    }
+  }
+
   async function gfpCloudLoadIfEnabled() {
     var mode = gfpCloudMode();
     if (mode === "local") return false;
@@ -115,6 +160,7 @@
 
     if (!res.data || !res.data.payload) {
       gfpSetCloudStatus("Nuvem vazia (primeiro acesso)", "warn");
+      lastCloudHash = gfpHashSnapshot(gfpSnapshotForCloud());
       return false;
     }
 
@@ -130,23 +176,19 @@
     }
 
     var local = gfpSnapshotFromLocalStorage();
-    var localKeys = Object.keys(local).filter(function (k) {
-      return (
-        k.indexOf("theme") === -1 &&
-        k.indexOf("appearance") === -1 &&
-        k.indexOf("iluminacao") === -1
-      );
-    });
+    var cloudUpdatedAt = res.data.updated_at;
 
-    var shouldApply = mode === "cloud" || localKeys.length === 0;
-    if (!shouldApply) {
-      gfpSetCloudStatus("Local + nuvem (local mantido)", "ok");
-      lastCloudHash = gfpHashSnapshot(local);
+    if (!gfpShouldLoadCloudOverLocal(mode, local, cloudUpdatedAt)) {
+      gfpSetCloudStatus("Navegador mais recente — salvando na nuvem…", "warn");
+      lastCloudHash = gfpHashSnapshot(gfpSnapshotForCloud());
+      gfpCloudSaveNow().catch(function (e) {
+        console.warn("Sync local → nuvem:", e);
+      });
       return false;
     }
 
-    gfpApplySnapshotToLocalStorage(bag);
-    lastCloudHash = gfpHashSnapshot(bag);
+    gfpApplySnapshotToLocalStorage(bag, cloudUpdatedAt);
+    lastCloudHash = gfpHashSnapshot(gfpSnapshotForCloud());
     gfpSetCloudStatus("Carregado da nuvem", "ok");
     return true;
   }
@@ -163,10 +205,11 @@
       return { ok: false, reason: "Sessão não encontrada." };
     }
 
-    var snap = gfpSnapshotFromLocalStorage();
+    var now = new Date().toISOString();
+    var snap = gfpSnapshotForCloud();
     var payload = {
       version: 1,
-      exportedAt: new Date().toISOString(),
+      exportedAt: now,
       data: snap,
     };
 
@@ -176,7 +219,7 @@
       {
         user_id: uid,
         payload: payload,
-        updated_at: new Date().toISOString(),
+        updated_at: now,
       },
       { onConflict: "user_id" }
     );
@@ -187,6 +230,10 @@
       return { ok: false, reason: res.error.message || "Erro ao salvar." };
     }
 
+    try {
+      localStorage.setItem(STORAGE_SYNCED_AT, now);
+    } catch (e) {}
+
     lastCloudHash = gfpHashSnapshot(snap);
     gfpSetCloudStatus("Nuvem sincronizada", "ok");
     return { ok: true };
@@ -196,20 +243,13 @@
     if (gfpCloudMode() === "local") return;
     if (autoTimer) clearInterval(autoTimer);
     autoTimer = setInterval(function () {
-      var snap = gfpSnapshotFromLocalStorage();
+      var snap = gfpSnapshotForCloud();
       var h = gfpHashSnapshot(snap);
       if (!h || h === lastCloudHash) return;
       gfpCloudSaveNow().catch(function (e) {
         console.warn("Auto cloud save:", e);
       });
     }, SYNC_INTERVAL_MS);
-    window.addEventListener("beforeunload", function () {
-      var snap = gfpSnapshotFromLocalStorage();
-      var h = gfpHashSnapshot(snap);
-      if (h && h !== lastCloudHash && navigator.sendBeacon && window.gfpSupabase) {
-        /* sendBeacon não suporta Supabase auth facilmente — save síncrono leve */
-      }
-    });
   }
 
   function gfpInitCloudControls() {
