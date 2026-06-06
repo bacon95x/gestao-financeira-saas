@@ -8,4 +8,11 @@ window.GFP_STRIPE_PRICE_ID = "price_1Tf4NdIW1rzzRy9NMLXoZokk";
 
 // E-mails com acesso sem assinatura (admin / dono). Coloque o seu:
 window.GFP_ADMIN_EMAILS = ["baconx95@gmail.com"];
+// false = remove "Criar conta de teste" (produção)
 window.GFP_ALLOW_TEST_SIGNUP = false;
+
+// Etapa 3 — onde salvar os dados do dashboard:
+// "local" = só navegador (como hoje)
+// "cloud" = só Supabase
+// "both"  = navegador + nuvem (transição / teste)
+window.GFP_STORAGE_MODE = "both";
