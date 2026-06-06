@@ -1,608 +1,422 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard Adega</title>
-
-  <!--
-    =============================================================================
-    TAILWIND CSS (CDN)
-    - Carrega o framework de utilitários para layout, cores, tipografia etc.
-    - Para personalizar tema ou usar @apply, você precisaria do build local;
-      aqui usamos classes direto no HTML.
-    =============================================================================
-  -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    /* Config extra do Tailwind: cores da marca da adega (ajuste aqui o visual global) */
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            adega: {
-              dark: '#1a0f14',
-              panel: '#251821',
-              accent: '#c9a227',
-              wine: '#722f37',
-              muted: '#9ca3af'
-            }
+<html lang="pt-BR" data-theme="violet" data-appearance="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Entrar · Gestão Financeira</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: { sans: ["DM Sans", "system-ui", "sans-serif"] },
+            colors: {
+              bank: {
+                bg: "#0c0c14",
+                card: "#14141f",
+                border: "rgba(255,255,255,0.08)",
+                muted: "#9ca3af",
+              },
+            },
           },
-          fontFamily: {
-            display: ['Georgia', 'Cambria', 'serif'],
-            sans: ['system-ui', 'Segoe UI', 'sans-serif']
-          }
-        }
+        },
+      };
+    </script>
+    <style>
+      body {
+        font-family: "DM Sans", system-ui, sans-serif;
+        background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(124, 58, 237, 0.22), transparent),
+          #0c0c14;
       }
-    };
-  </script>
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+  </head>
+  <body class="min-h-screen text-zinc-100 antialiased">
+    <main class="mx-auto flex min-h-screen max-w-md flex-col justify-center px-4 py-10">
+      <div class="mb-8 text-center">
+        <div
+          class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-violet-600/20 ring-1 ring-violet-500/30"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-violet-400"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg>
+        </div>
+        <h1 class="text-2xl font-semibold text-white">Gestão Financeira</h1>
+        <p class="mt-2 text-sm text-bank-muted">Acesse sua conta para usar o dashboard</p>
+      </div>
 
-  <!--
-    =============================================================================
-    ESTILOS LOCAIS (pequenos ajustes que o CDN não cobre sozinho)
-    =============================================================================
-  -->
-  <style>
-    /* Esconde abas inativas — o JS alterna a classe .tab-active */
-    .tab-panel { display: none; }
-    .tab-panel.tab-active { display: block; }
-    /* Botão da sidebar ativo */
-    .nav-btn.nav-active {
-      background: linear-gradient(90deg, rgba(201, 162, 39, 0.2), transparent);
-      border-left: 3px solid #c9a227;
-      color: #f5f0e8;
-    }
-  </style>
-</head>
+      <div
+        id="bloco-assinatura"
+        class="mb-4 rounded-2xl border border-emerald-500/25 bg-emerald-600/10 p-5 text-center shadow-xl"
+      >
+        <p class="text-sm font-medium text-emerald-200">Assinatura mensal</p>
+        <p class="mt-1 text-2xl font-bold text-white">R$ 29,90<span class="text-sm font-normal text-zinc-400">/mês</span></p>
+        <p class="mt-2 text-xs leading-relaxed text-bank-muted">
+          Acesso ao dashboard financeiro completo. Pagamento seguro pelo Stripe.
+        </p>
+        <a
+          id="btn-assinar-stripe"
+          href="#"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="mt-4 inline-flex w-full items-center justify-center rounded-xl bg-emerald-600 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-500"
+        >
+          Assinar agora
+        </a>
+      </div>
 
-<body class="min-h-screen bg-adega-dark text-stone-200 antialiased">
-
-  <!--
-    =============================================================================
-    LAYOUT PRINCIPAL: sidebar fixa + área de conteúdo
-    =============================================================================
-  -->
-  <div class="flex min-h-screen">
-
-    <!--
-      ---------------------------------------------------------------------------
-      SIDEBAR — botões que disparam a troca de abas (data-tab = id do painel)
-      Para adicionar uma nova aba: copie um <button>, mude data-tab e crie
-      a <section> correspondente com o mesmo id.
-      ---------------------------------------------------------------------------
-    -->
-    <aside class="w-56 shrink-0 border-r border-stone-800 bg-adega-panel flex flex-col">
-      <div class="p-6 border-b border-stone-800">
-        <div class="flex items-center gap-3">
-          <span class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-adega-wine/30 text-adega-accent">
-            <i data-lucide="wine" class="h-5 w-5"></i>
-          </span>
+      <div
+        id="bloco-pos-pagamento"
+        class="mb-4 hidden rounded-2xl border border-violet-500/30 bg-violet-600/10 p-6 shadow-xl"
+      >
+        <p class="text-center text-sm font-semibold text-violet-200">Pagamento confirmado</p>
+        <p class="mt-2 text-center text-xs leading-relaxed text-bank-muted">
+          Crie sua senha com o <strong class="text-zinc-300">mesmo e-mail</strong> que você usou para o pagamento.
+        </p>
+        <form id="form-criar-senha" class="mt-4 space-y-4">
           <div>
-            <h1 class="font-display text-lg text-stone-100 tracking-wide">Adega</h1>
-            <p class="text-xs text-adega-muted">Painel interno</p>
+            <label for="senha-email" class="block text-xs font-medium text-zinc-400">E-mail do pagamento</label>
+            <input
+              id="senha-email"
+              type="email"
+              required
+              autocomplete="email"
+              class="mt-1.5 w-full rounded-xl border border-bank-border bg-[#0c0c14] px-4 py-2.5 text-sm text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
+            />
           </div>
+          <div>
+            <label for="senha-nova" class="block text-xs font-medium text-zinc-400">Nova senha (mín. 6)</label>
+            <input
+              id="senha-nova"
+              type="password"
+              required
+              minlength="6"
+              autocomplete="new-password"
+              class="mt-1.5 w-full rounded-xl border border-bank-border bg-[#0c0c14] px-4 py-2.5 text-sm text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
+            />
+          </div>
+          <button
+            type="submit"
+            id="btn-criar-senha"
+            class="w-full rounded-xl bg-violet-600 py-2.5 text-sm font-semibold text-white transition hover:bg-violet-500 disabled:opacity-60"
+          >
+            Criar senha e entrar
+          </button>
+        </form>
+      </div>
+
+      <div class="rounded-2xl border border-bank-border bg-bank-card p-6 shadow-xl">
+        <p class="mb-4 text-center text-xs font-medium uppercase tracking-wide text-zinc-500">Já tem senha? Entre</p>
+        <p id="login-erro" class="mb-4 hidden rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200"></p>
+        <p id="login-ok" class="mb-4 hidden rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200"></p>
+
+        <form id="form-login" class="space-y-4">
+          <div>
+            <label for="login-email" class="block text-xs font-medium text-zinc-400">E-mail</label>
+            <input
+              id="login-email"
+              type="email"
+              required
+              autocomplete="email"
+              class="mt-1.5 w-full rounded-xl border border-bank-border bg-[#0c0c14] px-4 py-2.5 text-sm text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
+              placeholder="seu@email.com"
+            />
+          </div>
+          <div>
+            <label for="login-senha" class="block text-xs font-medium text-zinc-400">Senha</label>
+            <input
+              id="login-senha"
+              type="password"
+              required
+              autocomplete="current-password"
+              minlength="6"
+              class="mt-1.5 w-full rounded-xl border border-bank-border bg-[#0c0c14] px-4 py-2.5 text-sm text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
+              placeholder="••••••••"
+            />
+          </div>
+          <button
+            type="submit"
+            id="btn-login"
+            class="w-full rounded-xl bg-violet-600 py-2.5 text-sm font-semibold text-white transition hover:bg-violet-500 disabled:opacity-60"
+          >
+            Entrar
+          </button>
+        </form>
+
+        <div class="mt-4 flex flex-col items-center gap-2 text-center text-xs">
+          <button
+            type="button"
+            id="btn-mostrar-esqueci"
+            class="text-violet-400 transition hover:text-violet-300"
+          >
+            Esqueci minha senha
+          </button>
+          <button
+            type="button"
+            id="btn-mostrar-criar-senha"
+            class="text-zinc-500 transition hover:text-zinc-400"
+          >
+            Acabei de pagar · criar minha senha
+          </button>
+        </div>
+
+        <form id="form-esqueci-senha" class="mt-4 hidden space-y-3 border-t border-bank-border pt-4">
+          <p class="text-center text-xs text-bank-muted">
+            Enviaremos um link para redefinir a senha no e-mail da sua conta.
+          </p>
+          <div>
+            <label for="reset-email" class="block text-xs font-medium text-zinc-400">E-mail da conta</label>
+            <input
+              id="reset-email"
+              type="email"
+              required
+              autocomplete="email"
+              class="mt-1.5 w-full rounded-xl border border-bank-border bg-[#0c0c14] px-4 py-2.5 text-sm text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
+              placeholder="seu@email.com"
+            />
+          </div>
+          <button
+            type="submit"
+            id="btn-enviar-reset"
+            class="w-full rounded-xl border border-violet-500/40 bg-violet-600/20 py-2.5 text-sm font-semibold text-violet-200 transition hover:bg-violet-600/30 disabled:opacity-60"
+          >
+            Enviar link de redefinição
+          </button>
+        </form>
+
+        <div id="bloco-teste-signup" class="mt-6 hidden border-t border-bank-border pt-6">
+          <p class="text-center text-xs text-bank-muted">Primeiro acesso? (fase de testes)</p>
+          <button
+            type="button"
+            id="btn-mostrar-cadastro"
+            class="mt-2 w-full rounded-xl border border-bank-border py-2.5 text-sm font-medium text-zinc-300 transition hover:bg-white/5"
+          >
+            Criar conta de teste
+          </button>
+          <form id="form-cadastro" class="mt-4 hidden space-y-4">
+            <div>
+              <label for="cadastro-email" class="block text-xs font-medium text-zinc-400">E-mail</label>
+              <input
+                id="cadastro-email"
+                type="email"
+                required
+                autocomplete="email"
+                class="mt-1.5 w-full rounded-xl border border-bank-border bg-[#0c0c14] px-4 py-2.5 text-sm text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
+              />
+            </div>
+            <div>
+              <label for="cadastro-senha" class="block text-xs font-medium text-zinc-400">Senha (mín. 6)</label>
+              <input
+                id="cadastro-senha"
+                type="password"
+                required
+                minlength="6"
+                autocomplete="new-password"
+                class="mt-1.5 w-full rounded-xl border border-bank-border bg-[#0c0c14] px-4 py-2.5 text-sm text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
+              />
+            </div>
+            <button
+              type="submit"
+              id="btn-cadastro"
+              class="w-full rounded-xl border border-violet-500/40 bg-violet-600/20 py-2.5 text-sm font-semibold text-violet-200 transition hover:bg-violet-600/30 disabled:opacity-60"
+            >
+              Criar conta
+            </button>
+          </form>
         </div>
       </div>
 
-      <nav class="flex flex-col gap-1 p-3 flex-1" id="sidebar-nav" aria-label="Navegação principal">
-        <button type="button" class="nav-btn nav-active flex items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-stone-400 hover:bg-stone-800/60 hover:text-stone-200 transition-colors" data-tab="tab-resumo">
-          <i data-lucide="layout-dashboard" class="h-4 w-4 shrink-0"></i>
-          Resumo
-        </button>
-        <button type="button" class="nav-btn flex items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-stone-400 hover:bg-stone-800/60 hover:text-stone-200 transition-colors" data-tab="tab-vendas-zap">
-          <i data-lucide="message-circle" class="h-4 w-4 shrink-0"></i>
-          Vendas Zap
-        </button>
-        <button type="button" class="nav-btn flex items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-stone-400 hover:bg-stone-800/60 hover:text-stone-200 transition-colors" data-tab="tab-estoque">
-          <i data-lucide="package" class="h-4 w-4 shrink-0"></i>
-          Estoque
-        </button>
-        <button type="button" class="nav-btn flex items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-stone-400 hover:bg-stone-800/60 hover:text-stone-200 transition-colors" data-tab="tab-config">
-          <i data-lucide="settings" class="h-4 w-4 shrink-0"></i>
-          Configurações
-        </button>
-      </nav>
-
-      <div class="p-4 border-t border-stone-800 text-xs text-adega-muted">
-        <p>Substitua os dados de exemplo pelos seus endpoints (n8n, API, etc.).</p>
-      </div>
-    </aside>
-
-    <!--
-      ---------------------------------------------------------------------------
-      CONTEÚDO CENTRAL — cada <section> é uma "aba"; só uma tem .tab-active
-      ---------------------------------------------------------------------------
-    -->
-    <main class="flex-1 overflow-auto">
-      <div class="max-w-6xl mx-auto p-6 lg:p-10">
-
-        <!-- ========== ABA: RESUMO ========== -->
-        <section id="tab-resumo" class="tab-panel tab-active" role="tabpanel" aria-labelledby="nav-resumo">
-          <header class="mb-8">
-            <h2 class="font-display text-2xl text-stone-100">Resumo</h2>
-            <p class="text-sm text-adega-muted mt-1">Visão geral rápida do negócio — ligue estes números à sua API depois.</p>
-          </header>
-
-          <!--
-            Grid de 3 cartões de destaque.
-            Para mudar valores: edite o texto dentro de <p class="text-3xl...">
-            Ou use JavaScript para preencher a partir de JSON.
-          -->
-          <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <!--
-              Cartão Total de Vendas: botão da sacola abre painel com tabela de meses +
-              setas mês anterior / mês seguinte (dados demo em valorDemo no script).
-            -->
-            <article class="relative rounded-xl border border-stone-800 bg-adega-panel/80 p-6 shadow-lg shadow-black/20">
-              <div class="flex items-start justify-between">
-                <div class="min-w-0 flex-1 pr-2">
-                  <p class="text-xs font-medium uppercase tracking-wider text-adega-muted">Total de Vendas</p>
-                  <p id="vendas-ref-mes" class="text-[11px] text-stone-500 capitalize mt-1">—</p>
-                  <p id="vendas-total" class="mt-2 text-3xl font-semibold text-stone-100 tabular-nums">R$ —</p>
-                  <p id="vendas-trend" class="mt-2 text-sm flex items-center gap-1 text-emerald-400/90">
-                    <span id="vendas-trend-icon-wrap" class="inline-flex shrink-0">
-                      <i data-lucide="trending-up" class="h-4 w-4"></i>
-                    </span>
-                    <span id="vendas-trend-text">—</span>
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  id="btn-vendas-mes-picker"
-                  class="rounded-lg bg-adega-accent/15 p-2 text-adega-accent hover:bg-adega-accent/25 transition-colors focus:outline-none focus:ring-2 focus:ring-adega-accent/50 shrink-0"
-                  title="Escolher mês (tabela e navegação)"
-                  aria-label="Abrir seleção de mês para total de vendas"
-                  aria-expanded="false"
-                  aria-haspopup="dialog"
-                >
-                  <i data-lucide="shopping-bag" class="h-6 w-6"></i>
-                </button>
-              </div>
-
-              <!-- Painel: mês a mês + tabela (atual + meses anteriores) -->
-              <div
-                id="vendas-mes-popover"
-                class="hidden absolute right-0 top-full z-50 mt-2 w-[min(100%,20rem)] rounded-xl border border-stone-700 bg-adega-panel shadow-2xl shadow-black/50"
-                role="dialog"
-                aria-label="Selecionar mês de vendas"
-              >
-                <div class="border-b border-stone-800 p-3">
-                  <p class="text-[10px] uppercase tracking-wider text-adega-muted mb-2">Navegar mês a mês</p>
-                  <div class="flex items-center justify-between gap-2">
-                    <button
-                      type="button"
-                      id="vendas-mes-prev"
-                      class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-stone-700 bg-stone-900/60 text-stone-200 hover:bg-stone-800 hover:border-stone-600 disabled:opacity-35 disabled:pointer-events-none"
-                      title="Mês anterior"
-                      aria-label="Mês anterior"
-                    >
-                      <i data-lucide="chevron-left" class="h-5 w-5"></i>
-                    </button>
-                    <p id="vendas-popover-mes-destaque" class="flex-1 text-center text-sm font-medium text-stone-100 capitalize truncate px-1">—</p>
-                    <button
-                      type="button"
-                      id="vendas-mes-next"
-                      class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-stone-700 bg-stone-900/60 text-stone-200 hover:bg-stone-800 hover:border-stone-600 disabled:opacity-35 disabled:pointer-events-none"
-                      title="Mês seguinte"
-                      aria-label="Mês seguinte"
-                    >
-                      <i data-lucide="chevron-right" class="h-5 w-5"></i>
-                    </button>
-                  </div>
-                </div>
-                <div class="max-h-64 overflow-y-auto">
-                  <table class="w-full text-left text-xs">
-                    <thead class="sticky top-0 bg-stone-900/95 border-b border-stone-800 text-adega-muted uppercase tracking-wider">
-                      <tr>
-                        <th class="px-3 py-2 font-medium">Mês</th>
-                        <th class="px-3 py-2 font-medium text-right">Total</th>
-                        <th class="px-3 py-2 w-14"></th>
-                      </tr>
-                    </thead>
-                    <tbody id="vendas-mes-tbody" class="divide-y divide-stone-800/80"></tbody>
-                  </table>
-                </div>
-                <p class="px-3 py-2 text-[10px] text-adega-muted border-t border-stone-800">Clique na linha para fixar o mês no cartão.</p>
-              </div>
-            </article>
-
-            <article class="rounded-xl border border-stone-800 bg-adega-panel/80 p-6 shadow-lg shadow-black/20">
-              <div class="flex items-start justify-between">
-                <div>
-                  <p class="text-xs font-medium uppercase tracking-wider text-adega-muted">Novos Clientes</p>
-                  <p class="mt-3 text-3xl font-semibold text-stone-100 tabular-nums">127</p>
-                  <p class="mt-2 text-sm text-stone-500">Neste mês</p>
-                </div>
-                <span class="rounded-lg bg-blue-500/15 p-2 text-blue-400">
-                  <i data-lucide="users" class="h-6 w-6"></i>
-                </span>
-              </div>
-            </article>
-
-            <article class="rounded-xl border border-stone-800 bg-adega-panel/80 p-6 shadow-lg shadow-black/20 sm:col-span-2 lg:col-span-1">
-              <div class="flex items-start justify-between">
-                <div>
-                  <p class="text-xs font-medium uppercase tracking-wider text-adega-muted">Mensagens Pendentes</p>
-                  <p class="mt-3 text-3xl font-semibold text-stone-100 tabular-nums">8</p>
-                  <p class="mt-2 text-sm text-amber-400/90 flex items-center gap-1">
-                    <i data-lucide="clock" class="h-4 w-4"></i>
-                    Aguardando resposta
-                  </p>
-                </div>
-                <span class="rounded-lg bg-amber-500/15 p-2 text-amber-400">
-                  <i data-lucide="inbox" class="h-6 w-6"></i>
-                </span>
-              </div>
-            </article>
-          </div>
-        </section>
-
-        <!-- ========== ABA: VENDAS ZAP (mensagens n8n) ========== -->
-        <section id="tab-vendas-zap" class="tab-panel" role="tabpanel" hidden>
-          <header class="mb-8">
-            <h2 class="font-display text-2xl text-stone-100">Vendas Zap</h2>
-            <p class="text-sm text-adega-muted mt-1">Últimas mensagens recebidas do fluxo n8n (WhatsApp / webhook). Substitua as linhas da tabela pelos dados reais.</p>
-          </header>
-
-          <!--
-            TABELA — estrutura pronta para você popular via fetch() no n8n.
-            Colunas sugeridas: data/hora, cliente, telefone, trecho da mensagem, status.
-          -->
-          <div class="rounded-xl border border-stone-800 bg-adega-panel/60 overflow-hidden shadow-xl shadow-black/25">
-            <div class="overflow-x-auto">
-              <table class="w-full text-left text-sm">
-                <thead>
-                  <tr class="border-b border-stone-800 bg-stone-900/50 text-xs uppercase tracking-wider text-adega-muted">
-                    <th class="px-5 py-4 font-medium">Recebido</th>
-                    <th class="px-5 py-4 font-medium">Cliente</th>
-                    <th class="px-5 py-4 font-medium">Contato</th>
-                    <th class="px-5 py-4 font-medium">Mensagem</th>
-                    <th class="px-5 py-4 font-medium">Status</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-stone-800/80">
-                  <!-- Linhas de exemplo — troque por loop JS ou servidor -->
-                  <tr class="hover:bg-stone-800/40 transition-colors">
-                    <td class="px-5 py-4 text-adega-muted tabular-nums whitespace-nowrap">05/04 14:32</td>
-                    <td class="px-5 py-4 font-medium text-stone-100">Marina Costa</td>
-                    <td class="px-5 py-4 text-stone-400">(11) 98877-6655</td>
-                    <td class="px-5 py-4 text-stone-300 max-w-xs truncate" title="Queria reservar 2 garrafas do Malbec 2021 para sexta.">Queria reservar 2 garrafas do Malbec 2021 para sexta.</td>
-                    <td class="px-5 py-4"><span class="inline-flex items-center rounded-full bg-amber-500/15 px-2.5 py-0.5 text-xs font-medium text-amber-400">Pendente</span></td>
-                  </tr>
-                  <tr class="hover:bg-stone-800/40 transition-colors">
-                    <td class="px-5 py-4 text-adega-muted tabular-nums whitespace-nowrap">05/04 11:05</td>
-                    <td class="px-5 py-4 font-medium text-stone-100">Pedro Alves</td>
-                    <td class="px-5 py-4 text-stone-400">(21) 97700-1122</td>
-                    <td class="px-5 py-4 text-stone-300 max-w-xs truncate" title="Tem entrega hoje para Zona Sul?">Tem entrega hoje para Zona Sul?</td>
-                    <td class="px-5 py-4"><span class="inline-flex items-center rounded-full bg-emerald-500/15 px-2.5 py-0.5 text-xs font-medium text-emerald-400">Respondido</span></td>
-                  </tr>
-                  <tr class="hover:bg-stone-800/40 transition-colors">
-                    <td class="px-5 py-4 text-adega-muted tabular-nums whitespace-nowrap">04/04 18:47</td>
-                    <td class="px-5 py-4 font-medium text-stone-100">Ana Ribeiro</td>
-                    <td class="px-5 py-4 text-stone-400">(31) 99912-3344</td>
-                    <td class="px-5 py-4 text-stone-300 max-w-xs truncate" title="Catálogo de espumantes até R$ 150?">Catálogo de espumantes até R$ 150?</td>
-                    <td class="px-5 py-4"><span class="inline-flex items-center rounded-full bg-emerald-500/15 px-2.5 py-0.5 text-xs font-medium text-emerald-400">Respondido</span></td>
-                  </tr>
-                  <tr class="hover:bg-stone-800/40 transition-colors">
-                    <td class="px-5 py-4 text-adega-muted tabular-nums whitespace-nowrap">04/04 09:12</td>
-                    <td class="px-5 py-4 font-medium text-stone-100">Lucas Mendes</td>
-                    <td class="px-5 py-4 text-stone-400">(47) 98456-7788</td>
-                    <td class="px-5 py-4 text-stone-300 max-w-xs truncate" title="Pedido #8821 — confirmar pagamento PIX.">Pedido #8821 — confirmar pagamento PIX.</td>
-                    <td class="px-5 py-4"><span class="inline-flex items-center rounded-full bg-sky-500/15 px-2.5 py-0.5 text-xs font-medium text-sky-400">Em análise</span></td>
-                  </tr>
-                  <tr class="hover:bg-stone-800/40 transition-colors">
-                    <td class="px-5 py-4 text-adega-muted tabular-nums whitespace-nowrap">03/04 16:20</td>
-                    <td class="px-5 py-4 font-medium text-stone-100">Juliana Freitas</td>
-                    <td class="px-5 py-4 text-stone-400">(61) 99123-4567</td>
-                    <td class="px-5 py-4 text-stone-300 max-w-xs truncate" title="Evento sábado — preciso de 6 garrafas de branco seco.">Evento sábado — preciso de 6 garrafas de branco seco.</td>
-                    <td class="px-5 py-4"><span class="inline-flex items-center rounded-full bg-amber-500/15 px-2.5 py-0.5 text-xs font-medium text-amber-400">Pendente</span></td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            <div class="border-t border-stone-800 px-5 py-3 flex items-center justify-between text-xs text-adega-muted">
-              <span>Mostrando 5 registros de exemplo</span>
-              <button type="button" class="text-adega-accent hover:underline">Atualizar lista</button>
-            </div>
-          </div>
-        </section>
-
-        <!-- ========== ABA: ESTOQUE (placeholder editável) ========== -->
-        <section id="tab-estoque" class="tab-panel" role="tabpanel" hidden>
-          <header class="mb-8">
-            <h2 class="font-display text-2xl text-stone-100">Estoque</h2>
-            <p class="text-sm text-adega-muted mt-1">Área reservada para lista de produtos, alertas de baixa, etc.</p>
-          </header>
-          <div class="rounded-xl border border-dashed border-stone-700 bg-adega-panel/40 p-12 text-center">
-            <i data-lucide="package-search" class="h-12 w-12 mx-auto text-stone-600 mb-4"></i>
-            <p class="text-stone-400 max-w-md mx-auto">Adicione aqui sua grade de estoque, gráficos ou integração com planilha/API.</p>
-          </div>
-        </section>
-
-        <!-- ========== ABA: CONFIGURAÇÕES ========== -->
-        <section id="tab-config" class="tab-panel" role="tabpanel" hidden>
-          <header class="mb-8">
-            <h2 class="font-display text-2xl text-stone-100">Configurações</h2>
-            <p class="text-sm text-adega-muted mt-1">Preferências da adega e URLs de webhook (ex.: n8n).</p>
-          </header>
-          <div class="max-w-xl space-y-6 rounded-xl border border-stone-800 bg-adega-panel/60 p-6">
-            <div>
-              <label class="block text-sm font-medium text-stone-300 mb-2">URL do webhook n8n (exemplo)</label>
-              <input type="url" readonly class="w-full rounded-lg border border-stone-700 bg-stone-900/50 px-3 py-2 text-sm text-stone-400" value="https://seu-n8n.com/webhook/..." />
-              <p class="mt-1 text-xs text-adega-muted">Remova readonly e conecte ao seu fluxo quando for usar de verdade.</p>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-stone-300 mb-2">Nome da adega</label>
-              <input type="text" class="w-full rounded-lg border border-stone-700 bg-stone-900/50 px-3 py-2 text-sm text-stone-200" placeholder="Adega do Centro" />
-            </div>
-            <button type="button" class="rounded-lg bg-adega-accent px-4 py-2 text-sm font-medium text-adega-dark hover:brightness-110 transition-all">
-              Salvar (demo)
-            </button>
-          </div>
-        </section>
-
-      </div>
+      <p class="mt-8 text-center text-xs text-zinc-600">Versão online · Etapa 2 — Passo 3 (senha após pagar)</p>
     </main>
-  </div>
 
-  <!--
-    =============================================================================
-    LUCIDE ICONS (CDN)
-    - Após carregar o script, lucide.createIcons() substitui <i data-lucide="nome">
-    - Lista de ícones: https://lucide.dev/icons/
-    =============================================================================
-  -->
-  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script>
+      (function () {
+        var params = new URLSearchParams(window.location.search);
+        var erroEl = document.getElementById("login-erro");
+        var okEl = document.getElementById("login-ok");
 
-  <!--
-    =============================================================================
-    JAVASCRIPT — troca de abas sem recarregar a página
-    - Cada botão .nav-btn tem data-tab="id-da-section"
-    - Ao clicar: remove .tab-active de todos os painéis e botões; aplica no alvo
-    - hidden + aria: melhora leitores de tela (opcional mas recomendado)
-    =============================================================================
-  -->
-  <script>
-    (function () {
-      var navButtons = document.querySelectorAll('.nav-btn');
-      var panels = document.querySelectorAll('.tab-panel');
-
-      function showTab(tabId) {
-        panels.forEach(function (panel) {
-          var isActive = panel.id === tabId;
-          panel.classList.toggle('tab-active', isActive);
-          panel.hidden = !isActive;
-        });
-        navButtons.forEach(function (btn) {
-          btn.classList.toggle('nav-active', btn.getAttribute('data-tab') === tabId);
-        });
-        /* Fecha o seletor de mês (Total de Vendas) ao mudar de aba */
-        var popVendas = document.getElementById('vendas-mes-popover');
-        var btnVendas = document.getElementById('btn-vendas-mes-picker');
-        if (popVendas) popVendas.classList.add('hidden');
-        if (btnVendas) btnVendas.setAttribute('aria-expanded', 'false');
-        if (window.lucide) lucide.createIcons();
-      }
-
-      navButtons.forEach(function (btn) {
-        btn.addEventListener('click', function () {
-          var tabId = btn.getAttribute('data-tab');
-          if (tabId) showTab(tabId);
-        });
-      });
-
-      // Garante estado inicial coerente (primeira aba visível)
-      var first = document.querySelector('.nav-btn.nav-active') || navButtons[0];
-      if (first) showTab(first.getAttribute('data-tab'));
-
-      // Primeira renderização dos ícones Lucide
-      if (window.lucide) lucide.createIcons();
-    })();
-
-    /*
-     * -------------------------------------------------------------------------
-     * TOTAL DE VENDAS — painel ao clicar na sacola
-     * - Setas: um mês antes / um mês depois (até o mês calendário atual).
-     * - Tabela: mês atual + anteriores (últimos 24); clique na linha = mesmo efeito.
-     * - valorDemo(date): troque por dados da sua API.
-     * -------------------------------------------------------------------------
-     */
-    (function () {
-      var btn = document.getElementById('btn-vendas-mes-picker');
-      var popover = document.getElementById('vendas-mes-popover');
-      var btnPrev = document.getElementById('vendas-mes-prev');
-      var btnNext = document.getElementById('vendas-mes-next');
-      var elDestaque = document.getElementById('vendas-popover-mes-destaque');
-      var tbody = document.getElementById('vendas-mes-tbody');
-      var elMes = document.getElementById('vendas-ref-mes');
-      var elTotal = document.getElementById('vendas-total');
-      var elTrend = document.getElementById('vendas-trend');
-      var elTrendText = document.getElementById('vendas-trend-text');
-      var wrapIcon = document.getElementById('vendas-trend-icon-wrap');
-      if (!btn || !popover || !btnPrev || !btnNext || !elDestaque || !tbody || !elMes || !elTotal || !elTrend || !elTrendText || !wrapIcon) return;
-
-      var MESES_HISTORICO = 24;
-      var hojePrimeiro = new Date();
-      hojePrimeiro.setDate(1);
-      hojePrimeiro.setHours(0, 0, 0, 0);
-
-      var maisAntigo = new Date(hojePrimeiro);
-      maisAntigo.setMonth(maisAntigo.getMonth() - (MESES_HISTORICO - 1));
-
-      var cursor = new Date(hojePrimeiro);
-
-      function valorDemo(d) {
-        var n = d.getFullYear() * 12 + d.getMonth();
-        return 35000 + (n * 1379 % 22000);
-      }
-
-      function fmtMes(d) {
-        return d.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
-      }
-
-      function mesmoMes(a, b) {
-        return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth();
-      }
-
-      function mesChave(d) {
-        return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
-      }
-
-      /** Lista do mais recente (mês atual) para o mais antigo permitido */
-      function listaMeses() {
-        var out = [];
-        var d = new Date(hojePrimeiro);
-        for (var i = 0; i < MESES_HISTORICO; i++) {
-          out.push(new Date(d));
-          d.setMonth(d.getMonth() - 1);
+        function showErro(msg) {
+          erroEl.textContent = msg;
+          erroEl.classList.remove("hidden");
+          okEl.classList.add("hidden");
         }
-        return out;
-      }
 
-      function renderCartao() {
-        elMes.textContent = fmtMes(cursor);
-        var v = valorDemo(cursor);
-        elTotal.textContent =
-          'R$ ' +
-          v.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+        if (params.get("erro") === "config") {
+          showErro("Configure o arquivo config.js com a URL e a chave do Supabase antes de publicar.");
+        } else if (params.get("erro") === "assinatura") {
+          showErro("Assinatura inativa ou não encontrada. Use Assinar agora ou o mesmo e-mail do pagamento.");
+        } else if (params.get("erro")) {
+          showErro("Não foi possível verificar o acesso. Tente entrar novamente.");
+        }
 
-        var prev = new Date(cursor);
-        prev.setMonth(prev.getMonth() - 1);
-        var vp = valorDemo(prev);
-        var pct = vp ? Math.round(((v - vp) / vp) * 100) : 0;
-        var up = pct >= 0;
-        elTrendText.textContent =
-          (up ? '+' : '') + pct + '% vs. mês anterior';
-        elTrend.classList.toggle('text-emerald-400/90', up);
-        elTrend.classList.toggle('text-rose-400/90', !up);
-        wrapIcon.innerHTML =
-          '<i data-lucide="' +
-          (up ? 'trending-up' : 'trending-down') +
-          '" class="h-4 w-4"></i>';
-        if (window.lucide) lucide.createIcons();
-      }
+        var linkAssinar = document.getElementById("btn-assinar-stripe");
+        if (linkAssinar && window.GFP_STRIPE_PAYMENT_LINK && window.GFP_STRIPE_PAYMENT_LINK.indexOf("stripe.com") !== -1) {
+          linkAssinar.href = window.GFP_STRIPE_PAYMENT_LINK;
+        } else if (linkAssinar) {
+          linkAssinar.classList.add("pointer-events-none", "opacity-50");
+          linkAssinar.textContent = "Link de pagamento não configurado";
+        }
 
-      function podeAnterior() {
-        return (
-          cursor.getFullYear() > maisAntigo.getFullYear() ||
-          (cursor.getFullYear() === maisAntigo.getFullYear() && cursor.getMonth() > maisAntigo.getMonth())
-        );
-      }
+        if (
+          !window.GFP_SUPABASE_URL ||
+          !window.GFP_SUPABASE_ANON_KEY ||
+          window.GFP_SUPABASE_URL.indexOf("SEU_PROJETO") !== -1
+        ) {
+          showErro("Edite config.js com os dados do Supabase (Settings → API).");
+          return;
+        }
 
-      function podeSeguinte() {
-        return !mesmoMes(cursor, hojePrimeiro);
-      }
+        function gfpFnUrl(name) {
+          var base = window.GFP_SUPABASE_URL.replace(/\/$/, "");
+          return base + "/functions/v1/" + name;
+        }
 
-      function renderPopoverInterno() {
-        elDestaque.textContent = fmtMes(cursor);
-        btnPrev.disabled = !podeAnterior();
-        btnNext.disabled = !podeSeguinte();
+        var sb = window.supabase.createClient(window.GFP_SUPABASE_URL, window.GFP_SUPABASE_ANON_KEY);
 
-        tbody.innerHTML = '';
-        listaMeses().forEach(function (m) {
-          var tr = document.createElement('tr');
-          tr.className =
-            'cursor-pointer transition-colors hover:bg-stone-800/50 ' +
-            (mesmoMes(m, cursor) ? 'bg-adega-accent/10 ring-1 ring-inset ring-adega-accent/30' : '');
-          tr.setAttribute('data-mes', mesChave(m));
-          tr.setAttribute('role', 'button');
-          tr.setAttribute('tabindex', '0');
-
-          var tdMes = document.createElement('td');
-          tdMes.className = 'px-3 py-2.5 text-stone-200 capitalize';
-          tdMes.textContent = fmtMes(m);
-
-          var tdVal = document.createElement('td');
-          tdVal.className = 'px-3 py-2.5 text-right tabular-nums text-stone-300';
-          tdVal.textContent =
-            'R$ ' +
-            valorDemo(m).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-
-          var tdTag = document.createElement('td');
-          tdTag.className = 'px-3 py-2.5 text-right';
-          if (mesmoMes(m, hojePrimeiro)) {
-            var span = document.createElement('span');
-            span.className =
-              'inline-block rounded px-1.5 py-0.5 text-[10px] font-medium bg-emerald-500/20 text-emerald-400';
-            span.textContent = 'Atual';
-            tdTag.appendChild(span);
+        function showBlocoPosPagamento(msg) {
+          document.getElementById("bloco-pos-pagamento").classList.remove("hidden");
+          document.getElementById("bloco-pos-pagamento").scrollIntoView({ behavior: "smooth", block: "start" });
+          if (msg) {
+            okEl.textContent = msg;
+            okEl.classList.remove("hidden");
           }
+        }
 
-          tr.appendChild(tdMes);
-          tr.appendChild(tdVal);
-          tr.appendChild(tdTag);
+        if (params.get("checkout") === "success") {
+          showBlocoPosPagamento(
+            "Pagamento recebido! Aguarde alguns segundos e crie sua senha acima com o mesmo e-mail que você usou para o pagamento."
+          );
+        }
 
-          function aplicarMes() {
-            cursor.setFullYear(m.getFullYear(), m.getMonth(), 1);
-            renderCartao();
-            renderPopoverInterno();
-            if (window.lucide) lucide.createIcons();
-          }
-          tr.addEventListener('click', function (e) {
-            e.stopPropagation();
-            aplicarMes();
-          });
-          tr.addEventListener('keydown', function (e) {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              aplicarMes();
-            }
-          });
-
-          tbody.appendChild(tr);
+        document.getElementById("btn-mostrar-criar-senha").addEventListener("click", function () {
+          showBlocoPosPagamento(
+            "Use o mesmo e-mail do pagamento. Se acabou de pagar, aguarde alguns segundos antes de criar a senha."
+          );
         });
-      }
 
-      function popoverAberto() {
-        return !popover.classList.contains('hidden');
-      }
+        document.getElementById("btn-mostrar-esqueci").addEventListener("click", function () {
+          document.getElementById("form-esqueci-senha").classList.toggle("hidden");
+        });
 
-      function fecharPopover() {
-        popover.classList.add('hidden');
-        btn.setAttribute('aria-expanded', 'false');
-      }
+        document.getElementById("form-esqueci-senha").addEventListener("submit", async function (e) {
+          e.preventDefault();
+          var btn = document.getElementById("btn-enviar-reset");
+          btn.disabled = true;
+          erroEl.classList.add("hidden");
+          var email = document.getElementById("reset-email").value.trim();
+          var redirectTo = new URL("redefinir-senha.html", window.location.href).href;
+          var result = await sb.auth.resetPasswordForEmail(email, { redirectTo: redirectTo });
+          btn.disabled = false;
+          if (result.error) {
+            showErro(result.error.message || "Não foi possível enviar o e-mail.");
+            return;
+          }
+          okEl.textContent =
+            "Se existir uma conta com esse e-mail, enviamos um link para redefinir a senha. Confira também a caixa de spam.";
+          okEl.classList.remove("hidden");
+          document.getElementById("form-esqueci-senha").classList.add("hidden");
+        });
 
-      function abrirPopover() {
-        popover.classList.remove('hidden');
-        btn.setAttribute('aria-expanded', 'true');
-        renderPopoverInterno();
-        if (window.lucide) lucide.createIcons();
-      }
+        if (window.GFP_ALLOW_TEST_SIGNUP === true) {
+          document.getElementById("bloco-teste-signup").classList.remove("hidden");
+        }
 
-      btn.addEventListener('click', function () {
-        if (popoverAberto()) fecharPopover();
-        else abrirPopover();
-      });
+        sb.auth.getSession().then(function (res) {
+          if (res.data && res.data.session) {
+            window.location.replace("dashboard.html");
+          }
+        });
 
-      btnPrev.addEventListener('click', function () {
-        if (!podeAnterior()) return;
-        cursor.setMonth(cursor.getMonth() - 1);
-        renderCartao();
-        renderPopoverInterno();
-        if (window.lucide) lucide.createIcons();
-      });
+        var btnMostrarCad = document.getElementById("btn-mostrar-cadastro");
+        if (btnMostrarCad) {
+          btnMostrarCad.addEventListener("click", function () {
+            document.getElementById("form-cadastro").classList.toggle("hidden");
+          });
+        }
 
-      btnNext.addEventListener('click', function () {
-        if (!podeSeguinte()) return;
-        cursor.setMonth(cursor.getMonth() + 1);
-        renderCartao();
-        renderPopoverInterno();
-        if (window.lucide) lucide.createIcons();
-      });
+        document.getElementById("form-criar-senha").addEventListener("submit", async function (e) {
+          e.preventDefault();
+          var btn = document.getElementById("btn-criar-senha");
+          btn.disabled = true;
+          erroEl.classList.add("hidden");
+          var email = document.getElementById("senha-email").value.trim();
+          var senha = document.getElementById("senha-nova").value;
+          try {
+            var res = await fetch(gfpFnUrl("criar-senha-assinante"), {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: "Bearer " + window.GFP_SUPABASE_ANON_KEY,
+                apikey: window.GFP_SUPABASE_ANON_KEY,
+              },
+              body: JSON.stringify({ email: email, password: senha }),
+            });
+            var data = await res.json();
+            if (!res.ok) {
+              showErro(data.error || data.message || "Não foi possível criar a senha.");
+              btn.disabled = false;
+              return;
+            }
+            var login = await sb.auth.signInWithPassword({ email: email, password: senha });
+            btn.disabled = false;
+            if (login.error) {
+              showErro("Senha criada. Entre manualmente com e-mail e senha.");
+              return;
+            }
+            window.location.replace("dashboard.html");
+          } catch (err) {
+            btn.disabled = false;
+            showErro("Serviço indisponível. Confira se as Edge Functions foram publicadas no Supabase.");
+          }
+        });
 
-      document.addEventListener('click', function (e) {
-        if (!popoverAberto()) return;
-        var t = e.target;
-        if (btn.contains(t) || popover.contains(t)) return;
-        fecharPopover();
-      });
+        document.getElementById("form-login").addEventListener("submit", async function (e) {
+          e.preventDefault();
+          var btn = document.getElementById("btn-login");
+          btn.disabled = true;
+          erroEl.classList.add("hidden");
+          var email = document.getElementById("login-email").value.trim();
+          var senha = document.getElementById("login-senha").value;
+          var result = await sb.auth.signInWithPassword({ email: email, password: senha });
+          btn.disabled = false;
+          if (result.error) {
+            showErro(
+              result.error.message === "Invalid login credentials"
+                ? "E-mail ou senha incorretos. Se acabou de pagar, use «Acabei de pagar · criar minha senha». Se já tinha conta, use «Esqueci minha senha»."
+                : result.error.message
+            );
+            return;
+          }
+          window.location.replace("dashboard.html");
+        });
 
-      document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape' && popoverAberto()) fecharPopover();
-      });
-
-      renderCartao();
-    })();
-  </script>
-</body>
+        var formCadastro = document.getElementById("form-cadastro");
+        if (formCadastro) formCadastro.addEventListener("submit", async function (e) {
+          e.preventDefault();
+          var btn = document.getElementById("btn-cadastro");
+          btn.disabled = true;
+          erroEl.classList.add("hidden");
+          var email = document.getElementById("cadastro-email").value.trim();
+          var senha = document.getElementById("cadastro-senha").value;
+          var result = await sb.auth.signUp({ email: email, password: senha });
+          btn.disabled = false;
+          if (result.error) {
+            showErro(result.error.message);
+            return;
+          }
+          if (result.data && result.data.session) {
+            window.location.replace("dashboard.html");
+            return;
+          }
+          okEl.textContent = "Conta criada! Se o Supabase exigir confirmação por e-mail, confira sua caixa de entrada e depois entre.";
+          okEl.classList.remove("hidden");
+        });
+      })();
+    </script>
+  </body>
 </html>
