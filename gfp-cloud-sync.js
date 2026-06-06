@@ -318,6 +318,17 @@
         gfpSetCloudStatus("Nuvem + navegador · auto-save 15s", "ok");
       }
     }
+
+    var patBadge = document.getElementById("gfp-patrimonio-storage-badge");
+    if (patBadge) {
+      if (mode === "cloud") {
+        patBadge.textContent = "Dados salvos na nuvem com segurança";
+      } else if (mode === "both") {
+        patBadge.textContent = "Dados salvos na nuvem e no navegador";
+      } else {
+        patBadge.textContent = "Dados guardados só no seu navegador";
+      }
+    }
   }
 
   window.gfpWaitForAuth = gfpWaitForAuth;
