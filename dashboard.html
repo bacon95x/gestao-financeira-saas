@@ -809,6 +809,14 @@
             <span class="pl-1 text-xs font-medium text-bank-muted">Backup</span>
             <button
               type="button"
+              id="btn-gerenciar-assinatura"
+              class="hidden rounded-lg border border-violet-500/35 bg-violet-600/15 px-2.5 py-1.5 text-xs font-semibold text-violet-200 transition hover:bg-violet-600/25 disabled:opacity-60"
+              title="Cancelar ou gerenciar assinatura"
+            >
+              Assinatura
+            </button>
+            <button
+              type="button"
               id="btn-logout"
               class="rounded-lg border border-zinc-500/35 bg-zinc-600/15 px-2.5 py-1.5 text-xs font-semibold text-zinc-200 transition hover:bg-zinc-600/25"
               title="Sair da conta"
@@ -2542,7 +2550,7 @@
       </section>
 
       <footer class="mt-12 border-t border-bank-border pt-6 text-center text-xs text-zinc-600">
-        Versão nuvem (Etapa 3) · login obrigatório · GFP_STORAGE_MODE no config.js
+        Versão nuvem (Etapa 3) · dados na nuvem · GFP_STORAGE_MODE no config.js
       </footer>
     </div>
 
@@ -9276,6 +9284,61 @@
           }
         }
 
+        function gfpIsAdminUser() {
+          const email = (window.gfpUser && window.gfpUser.email ? window.gfpUser.email : "")
+            .trim()
+            .toLowerCase();
+          const admins = Array.isArray(window.GFP_ADMIN_EMAILS) ? window.GFP_ADMIN_EMAILS : [];
+          return admins.some(function (a) {
+            return String(a || "").trim().toLowerCase() === email;
+          });
+        }
+
+        function initAssinaturaControl() {
+          const btn = document.getElementById("btn-gerenciar-assinatura");
+          if (!btn || gfpIsAdminUser()) return;
+          btn.classList.remove("hidden");
+          btn.addEventListener("click", async function () {
+            if (!window.gfpSupabase) {
+              alert("Sessão indisponível. Recarregue a página.");
+              return;
+            }
+            btn.disabled = true;
+            try {
+              const sessionRes = await window.gfpSupabase.auth.getSession();
+              const token = sessionRes.data && sessionRes.data.session
+                ? sessionRes.data.session.access_token
+                : null;
+              if (!token) {
+                alert("Sessão expirada. Entre novamente.");
+                return;
+              }
+              const base = String(window.GFP_SUPABASE_URL || "").replace(/\/$/, "");
+              const res = await fetch(base + "/functions/v1/portal-assinatura", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: "Bearer " + token,
+                  apikey: window.GFP_SUPABASE_ANON_KEY,
+                },
+                body: JSON.stringify({
+                  return_url: window.location.origin + "/dashboard.html",
+                }),
+              });
+              const data = await res.json();
+              if (!res.ok || !data.url) {
+                alert(data.error || "Não foi possível abrir o portal da assinatura.");
+                return;
+              }
+              window.location.href = data.url;
+            } catch (e) {
+              alert("Serviço indisponível. Confira se a função portal-assinatura foi publicada.");
+            } finally {
+              btn.disabled = false;
+            }
+          });
+        }
+
         function initBackupControls() {
           const btnExp = document.getElementById("btn-backup-exportar");
           const btnImp = document.getElementById("btn-backup-importar");
@@ -9340,6 +9403,7 @@
           load();
 
           initLogoutControl();
+          initAssinaturaControl();
           initBackupControls();
           if (typeof window.gfpInitCloudControls === "function") window.gfpInitCloudControls();
           initThemeFundoPicker();
