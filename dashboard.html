@@ -5732,7 +5732,7 @@
           if (!p.aportes || !Array.isArray(p.aportes)) return 0;
           return p.aportes.reduce((s, a) => {
             const v = Number(a.valor);
-            return s + (Number.isFinite(v) && v > 0 ? v : 0);
+            return s + (Number.isFinite(v) ? v : 0);
           }, 0);
         }
 
@@ -5758,7 +5758,7 @@
               const valor = Number(a.valor);
               const data = String(a.data || "").trim();
               if (!/^\d{4}-\d{2}-\d{2}$/.test(data)) return;
-              if (!Number.isFinite(valor) || valor < 0) return;
+              if (!Number.isFinite(valor) || valor === 0) return;
               aportes.push({ id: aid, valor, data });
             });
             return {
@@ -5770,7 +5770,7 @@
           }
           const valor = Number(x.valor);
           const data = String(x.data || "").trim();
-          if (!Number.isFinite(valor) || valor <= 0 || !/^\d{4}-\d{2}-\d{2}$/.test(data)) return null;
+          if (!Number.isFinite(valor) || valor === 0 || !/^\d{4}-\d{2}-\d{2}$/.test(data)) return null;
           return {
             id,
             descricao,
@@ -5836,9 +5836,9 @@
           if (!p) return false;
           const valor = parseValorMonetarioLancamento(String(valorRaw || "").trim());
           const data = String(dataIso || "").trim();
-          if (!Number.isFinite(valor) || valor <= 0) {
+          if (!Number.isFinite(valor) || valor === 0) {
             if (errEl) {
-              errEl.textContent = "Informe um valor maior que zero para o aporte.";
+              errEl.textContent = "Informe um valor diferente de zero para o aporte.";
               errEl.classList.remove("hidden");
             }
             return false;
@@ -5941,12 +5941,12 @@
               futuroBadge +
               "</p>" +
               '<p class="mt-1 text-xs text-bank-muted">' +
-              (tPos > 0
+              (it.aportes && it.aportes.length
                 ? "Total nesta posição: " +
                   escapeHtml(formatMoney(tPos)) +
-                  " · " +
-                  pct +
-                  "% do patrimônio listado"
+                  (totalGeral !== 0
+                    ? " · " + pct + "% do patrimônio listado"
+                    : "")
                 : "Sem valor ainda — registre um aporte abaixo.") +
               "</p>" +
               (it.aportes && it.aportes.length
@@ -6004,7 +6004,7 @@
               const data = String(a.data || "").trim();
               if (!/^\d{4}-\d{2}-\d{2}$/.test(data)) return;
               const valor = Number(a.valor);
-              if (!Number.isFinite(valor) || valor <= 0) return;
+              if (!Number.isFinite(valor) || valor === 0) return;
               out.push({ data, valor });
             });
           });
@@ -6262,22 +6262,22 @@
                 return;
               }
               if (!futuro) {
-                if (!Number.isFinite(valor) || valor <= 0) {
+                if (!Number.isFinite(valor) || valor === 0) {
                   if (err) {
-                    err.textContent = "Informe um valor maior que zero (use vírgula ou ponto nos centavos).";
+                    err.textContent = "Informe um valor diferente de zero (use vírgula ou ponto nos centavos).";
                     err.classList.remove("hidden");
                   }
                   return;
                 }
               } else {
-                if (String(document.getElementById("patrimonio-valor").value || "").trim() !== "" && (!Number.isFinite(valor) || valor < 0)) {
+                if (String(document.getElementById("patrimonio-valor").value || "").trim() !== "" && !Number.isFinite(valor)) {
                   if (err) {
                     err.textContent = "Valor inválido. Deixe em branco ou zero para só planejar, ou informe um valor.";
                     err.classList.remove("hidden");
                   }
                   return;
                 }
-                if (Number.isFinite(valor) && valor > 0 && !/^\d{4}-\d{2}-\d{2}$/.test(data)) {
+                if (Number.isFinite(valor) && valor !== 0 && !/^\d{4}-\d{2}-\d{2}$/.test(data)) {
                   if (err) {
                     err.textContent = "Selecione a data do primeiro aporte.";
                     err.classList.remove("hidden");
@@ -6302,9 +6302,9 @@
                 }
                 return;
               }
-              if (!Number.isFinite(valor) || valor <= 0) {
+              if (!Number.isFinite(valor) || valor === 0) {
                 if (err) {
-                  err.textContent = "Informe um valor maior que zero (use vírgula ou ponto nos centavos).";
+                  err.textContent = "Informe um valor diferente de zero (use vírgula ou ponto nos centavos).";
                   err.classList.remove("hidden");
                 }
                 return;
