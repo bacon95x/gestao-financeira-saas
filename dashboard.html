@@ -21,7 +21,7 @@
     </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Gestão Financeira Pessoal · Online</title>
+    <title>Capital Novo · Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
     <script src="auth-guard.js"></script>
@@ -1294,7 +1294,7 @@
               id="chart-origem-meio-empty"
               class="hidden py-10 text-center text-sm text-bank-muted"
             >
-              Nenhum gasto neste mês para este meio e origem.
+              Nenhum gasto neste mês para este meio de pagamento.
             </p>
           </div>
           <div
@@ -6582,13 +6582,23 @@
           return { labels, data, cores };
         }
 
+        function rotuloFatiaGastosPorMeio(g, meio) {
+          const o = origemDoGasto(g);
+          if (o) return o;
+          if (meio === "Crédito") return "Sem origem";
+          const cat = categoriaDoGasto(g);
+          if (cat) return cat;
+          const desc = (g.descricao || "").trim();
+          if (desc) return desc;
+          return "Sem classificação";
+        }
+
         function agregadoPorOrigemMesNoMeio(meio) {
           const map = {};
           gastos.filter(isGastoInDashboardMonth).forEach((g) => {
             if (meioPagamentoEfetivo(g) !== meio) return;
-            const o = origemDoGasto(g);
-            if (!o) return;
-            map[o] = (map[o] || 0) + valorGastoParaMesDashboard(g);
+            const rotulo = rotuloFatiaGastosPorMeio(g, meio);
+            map[rotulo] = (map[rotulo] || 0) + valorGastoParaMesDashboard(g);
           });
           return map;
         }
