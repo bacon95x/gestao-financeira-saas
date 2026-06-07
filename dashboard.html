@@ -1274,7 +1274,14 @@
               <select
                 id="dashboard-pizza-meio"
                 class="mt-1.5 w-full rounded-xl border border-bank-border bg-bank-bg px-3 py-2 text-sm font-medium text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
-              ></select>
+              >
+                <option value="Dinheiro">Dinheiro</option>
+                <option value="Pix">Pix</option>
+                <option value="Crédito" selected>Crédito</option>
+                <option value="Débito">Débito</option>
+                <option value="Vale alimentação">Vale alimentação</option>
+                <option value="outros">outros</option>
+              </select>
             </div>
             <div class="mx-auto max-w-md">
               <canvas
@@ -7001,6 +7008,19 @@
           });
         }
 
+        function fillDashboardPizzaMeios(selectEl) {
+          if (!selectEl) return;
+          const prev = selectEl.value;
+          selectEl.innerHTML = "";
+          MEIOS_PAGAMENTO.forEach((nome) => {
+            const o = document.createElement("option");
+            o.value = nome;
+            o.textContent = nome;
+            selectEl.appendChild(o);
+          });
+          selectEl.value = MEIOS_PAGAMENTO.includes(prev) ? prev : "Crédito";
+        }
+
         function setSelectOptionsComTodos(selectEl, labelTodos, values, selectedValue) {
           if (!selectEl) return;
           const unicos = Array.from(new Set((values || []).filter((v) => String(v || "").trim())));
@@ -7301,7 +7321,7 @@
           const form = document.getElementById("gasto-meio");
           if (!dash || !form) return;
           const v = form.value;
-          if (v === "Crédito" || v === "Débito" || v === "Pix") dash.value = v;
+          if (MEIOS_PAGAMENTO.includes(v)) dash.value = v;
         }
 
         function syncFormMeioFromDashboard() {
@@ -9410,6 +9430,7 @@
           initBitcoin();
 
           fillSelectMeios(document.getElementById("gasto-meio"));
+          fillDashboardPizzaMeios(document.getElementById("dashboard-pizza-meio"));
           initFiltrosLancamentos();
           syncDashboardPizzaMeioFromForm();
           montarBotoesCategoria();
