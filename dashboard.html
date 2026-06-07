@@ -1263,8 +1263,8 @@
             <div class="mb-4 flex flex-col gap-1">
               <h2 class="text-lg font-semibold text-white">Gastos por origem</h2>
               <p class="text-sm text-bank-muted">
-                Escolha o meio (ligado ao campo «Meio de pagamento» em Lançamentos). Mostra a divisão por origem
-                só naquele meio.
+                Escolha o meio de pagamento (o mesmo de Lançamentos). No crédito, divide por origem; nos
+                demais meios, por categoria.
               </p>
             </div>
             <div class="mb-4">
@@ -9459,6 +9459,8 @@
         }
 
         gfpBootstrapDashboard();
+
+        fillDashboardPizzaMeios(document.getElementById("dashboard-pizza-meio"));
       })();
     </script>
   </body>
