@@ -130,8 +130,14 @@
     });
   }
 
-  function gfpShouldLoadCloudOverLocal(mode, localSnap, cloudUpdatedAt) {
-    if (mode === "cloud") return true;
+  function gfpShouldLoadCloudOverLocal(mode, localSnap, cloudUpdatedAt, cloudBag) {
+    if (mode === "cloud") {
+      var localCount = gfpFinancialKeyCount(localSnap);
+      var cloudCount =
+        cloudBag && typeof cloudBag === "object" ? gfpFinancialKeyCount(cloudBag) : 0;
+      if (localCount > cloudCount) return false;
+      return true;
+    }
     if (gfpFinancialKeyCount(localSnap) === 0) return true;
     if (!cloudUpdatedAt) return false;
 
@@ -187,7 +193,7 @@
     var local = gfpSnapshotFromLocalStorage();
     var cloudUpdatedAt = res.data.updated_at;
 
-    if (!gfpShouldLoadCloudOverLocal(mode, local, cloudUpdatedAt)) {
+    if (!gfpShouldLoadCloudOverLocal(mode, local, cloudUpdatedAt, bag)) {
       gfpSetCloudStatus("Navegador mais recente — salvando na nuvem…", "warn");
       lastCloudHash = gfpHashSnapshot(gfpSnapshotForCloud());
       gfpCloudSaveNow().catch(function (e) {
