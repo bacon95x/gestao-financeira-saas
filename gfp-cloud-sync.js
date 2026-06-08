@@ -282,18 +282,29 @@
     }, SYNC_INTERVAL_MS);
   }
 
+  function gfpIsAdminUser() {
+    var email = (window.gfpUser && window.gfpUser.email ? window.gfpUser.email : "")
+      .trim()
+      .toLowerCase();
+    var admins = Array.isArray(window.GFP_ADMIN_EMAILS) ? window.GFP_ADMIN_EMAILS : [];
+    return admins.some(function (a) {
+      return String(a || "").trim().toLowerCase() === email;
+    });
+  }
+
   function gfpInitCloudControls() {
     var mode = gfpCloudMode();
     var wrap = document.getElementById("gfp-cloud-controls");
     if (wrap) wrap.classList.toggle("hidden", mode === "local");
 
     if (mode === "cloud") {
+      var isAdmin = gfpIsAdminUser();
       ["btn-backup-exportar", "btn-backup-importar"].forEach(function (id) {
         var el = document.getElementById(id);
-        if (el) el.classList.add("hidden");
+        if (el) el.classList.toggle("hidden", !isAdmin);
       });
       var backupLabel = document.querySelector('[aria-label="Backup dos dados salvos"] span');
-      if (backupLabel) backupLabel.textContent = "Conta";
+      if (backupLabel) backupLabel.textContent = isAdmin ? "Backup" : "Conta";
     }
 
     var btn = document.getElementById("btn-cloud-sync");
