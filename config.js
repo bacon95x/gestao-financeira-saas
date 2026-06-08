@@ -7,7 +7,7 @@ window.GFP_STRIPE_PAYMENT_LINK = "https://buy.stripe.com/14A3cv6LcgILgxe34Y1Nu01
 window.GFP_STRIPE_PRICE_ID = "price_1TfP4hEYrZTD5Sl51ggP3EiW";
 
 // E-mails com acesso sem assinatura (admin / dono). Coloque o seu:
-window.GFP_ADMIN_EMAILS = ["baconx95@gmail.com"];
+window.GFP_ADMIN_EMAILS = ["baconx95@gmail.com", "anbtunado@gmail.com"];
 // false = remove "Criar conta de teste" (produção)
 window.GFP_ALLOW_TEST_SIGNUP = false;
 
