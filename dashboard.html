@@ -682,7 +682,7 @@
           </div>
           <div>
             <h1 class="text-xl font-semibold tracking-tight text-white sm:text-2xl">
-              Gestão Financeira
+              Capital Novo
             </h1>
             <p class="text-sm text-bank-muted">Seus gastos e investimentos em um só lugar</p>
           </div>
@@ -2553,7 +2553,7 @@
       </section>
 
       <footer class="mt-12 border-t border-bank-border pt-6 text-center text-xs leading-relaxed text-zinc-500">
-        Site seguro · Dados na nuvem · Pagamento protegido
+        © 2026 Capital Novo · Site seguro · Dados na nuvem · Pagamento protegido
       </footer>
     </div>
 
@@ -9294,7 +9294,25 @@
               const v = bag[k];
               localStorage.setItem(k, v == null ? "" : String(v));
             });
-            alert("Backup importado. A página será recarregada.");
+
+            const usaNuvem =
+              typeof window.gfpCloudMode === "function" && window.gfpCloudMode() !== "local";
+            if (usaNuvem && typeof window.gfpCloudSaveNow === "function") {
+              if (typeof window.gfpWaitForAuth === "function") {
+                await window.gfpWaitForAuth(8000);
+              }
+              const r = await window.gfpCloudSaveNow();
+              if (!r || !r.ok) {
+                alert(
+                  "Backup importado no navegador. Não foi possível salvar na nuvem agora; " +
+                    "a página vai recarregar e você pode usar «Salvar na nuvem» em seguida."
+                );
+              } else {
+                alert("Backup importado e salvo na nuvem. A página será recarregada.");
+              }
+            } else {
+              alert("Backup importado. A página será recarregada.");
+            }
             location.reload();
           } catch (e) {
             alert("Arquivo inválido ou incompatível para restauração.");
