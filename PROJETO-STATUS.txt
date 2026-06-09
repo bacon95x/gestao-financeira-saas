@@ -1,0 +1,195 @@
+CAPITAL NOVO — STATUS DO PROJETO
+==================================
+Última atualização: 09/06/2026
+
+Este arquivo resume o que foi feito na conversa longa de maio/junho 2026.
+Use-o para retomar o trabalho: abra no Cursor e diga "leia PROJETO-STATUS.txt e continue".
+
+
+SITE E INFRAESTRUTURA
+---------------------
+Produto:        Capital Novo — dashboard financeiro pessoal (SaaS)
+Site principal: https://www.capitalnovo.com.br
+Apex (sem www): https://capitalnovo.com.br → redireciona 308 para www (Vercel)
+Vercel backup:  https://gestao-financeira-saas.vercel.app
+GitHub:         bacon95x/gestao-financeira-saas
+Pasta de edição: gestao-financeira-saas/
+Espelho local:  gestao-financeira-saas-nuvem/ (NÃO é o que vai pro GitHub)
+
+vercel.json:    { "cleanUrls": true } — SEM redirect manual (evita loop www/apex)
+config.js:      Supabase + Stripe LIVE — precisa estar no GitHub para o site funcionar
+
+
+LANDING PAGE (index.html) — PUBLICADA
+-------------------------------------
+Base: Opção 9 (Nubank bold) dos previews em previews-landing/
+
+Conteúdo:
+  - Hero + mockup CSS + login no canto direito
+  - Antes/Depois, 6 pilares, depoimentos, FAQ, oferta R$ 29,90
+  - Título: "Organize hoje. Construa o capital de amanhã."
+  - Oferta: "7 DIAS PARA TESTAR" (sem "cancele quando quiser" no card)
+  - Antes: "Planilhas e cadernos que trazem dor de cabeça..."
+  - Depoimentos: Ricardo A., Marina S., Lucas F. (sem aviso de fictícios)
+  - Título seção: "Depoimentos" em branco
+  - Rodapé: Privacidade · Termos · Contato
+
+Funcional (preservado do index antigo):
+  - Login Supabase, esqueci senha, criar senha pós-pagamento
+  - Link Stripe (btn-assinar-stripe), bloco ?checkout=success
+  - GFP_ALLOW_TEST_SIGNUP = false em produção
+
+
+DASHBOARD (dashboard.html) — ALTERAÇÕES RECENTES
+------------------------------------------------
+  - Aba "Calendário de Contas" → "Juros/taxas"
+  - Título seção investimentos → "Simulador de Juros compostos"
+  - Texto Juros/taxas: "Área personalizada destinada a taxas, multas,
+    anuidades de cartões e juros bancários."
+  (Subir no GitHub se ainda não publicou estas mudanças.)
+
+
+TERMOS, CONTATO, PRIVACIDADE
+----------------------------
+termos.html:
+  - Seção 3: garantia de 7 dias, sem fidelidade
+  - Seção 8: cancelamento e reembolso integral nos primeiros 7 dias
+  - Link contato para pedir reembolso
+
+contato.html:
+  - Instrução de reembolso nos 7 dias + link para Termos seção 8
+
+privacidade.html:
+  - Link do site: www.capitalnovo.com.br
+
+REEMBOLSO-7-DIAS.txt:
+  - Procedimento interno manual no Stripe (refund + cancelar assinatura)
+
+
+DOMÍNIO E DNS (Registro.br)
+---------------------------
+Provedor DNS: Registro.br (zona DNS do capitalnovo.com.br)
+
+Configuração atual recomendada pela Vercel (atualizar se ainda não fez):
+  A     capitalnovo.com.br  →  216.198.79.1
+  CNAME www                 →  5100d895fbff3b9e.vercel-dns-017.com
+
+Configuração anterior (ainda funcionava, Vercel pedia atualizar):
+  A     capitalnovo.com.br  →  76.76.21.21
+  CNAME www                 →  cname.vercel-dns.com
+
+NÃO recriar CNAME www → capitalnovo.com.br (causava problema)
+
+E-mail (manter, não apagar):
+  TXT  resend._domainkey...
+  MX   send → feedback-smtp.sa-east-1.amazonses.com
+  TXT  send → SPF amazonses
+
+Google Search Console (manter):
+  TXT  google-site-verification=...  (nome vazio ou capitalnovo.com.br, NÃO usar @)
+
+PROBLEMA RESOLVIDO (jun/2026):
+  Loop de redirect entre www e apex causado por vercel.json + Vercel domains.
+  Solução: remover redirects do vercel.json; deixar Vercel gerenciar apex→www.
+
+
+SUPABASE
+--------
+Projeto: rghwbjysexlhroidtelx.supabase.co
+
+Authentication → URL Configuration:
+  Site URL:       https://www.capitalnovo.com.br
+  Redirect URLs:  https://www.capitalnovo.com.br/**
+                  (pode manter capitalnovo.com.br/** também)
+
+Edge Functions usadas:
+  verificar-assinatura, criar-senha-assinante, stripe-webhook, portal-assinatura
+
+portal-assinatura: fallback return = https://www.capitalnovo.com.br/dashboard
+  (Republicar no Supabase só se botão Assinatura no dashboard quebrar;
+   em uso normal o dashboard envia window.location.origin + /dashboard)
+
+
+STRIPE
+------
+Payment Link LIVE em config.js (GFP_STRIPE_PAYMENT_LINK)
+Preço: R$ 29,90/mês
+
+Após pagamento (Payment Link → configuração):
+  https://www.capitalnovo.com.br/?checkout=success
+
+Portal do cliente: ativo — botão "Assinatura" no dashboard
+
+
+GOOGLE / SEO
+------------
+Search Console: propriedade Domain "capitalnovo.com.br" — VERIFICADA (TXT DNS)
+Sitemap enviado: https://www.capitalnovo.com.br/sitemap.xml
+robots.txt:      https://www.capitalnovo.com.br/robots.txt
+
+Arquivos no repo:
+  sitemap.xml  — /, /privacidade, /termos, /contato
+  robots.txt   — aponta para sitemap
+
+Status inicial Search Console (09/06/2026):
+  - Pages: "Processing data, check again in a day or so" (normal)
+  - Sitemap: pode mostrar "Couldn't fetch" nas primeiras 24–48h; reenviar se persistir
+  - Solicitar indexação manual da home ajuda a acelerar
+
+NÃO apagar: TXT google-site-verification no Registro.br
+
+
+FLUXO DO CLIENTE (referência rápida)
+------------------------------------
+1. Acessa www.capitalnovo.com.br
+2. Clica Assinar agora → Stripe paga R$ 29,90
+3. Volta para /?checkout=success → cria senha (mesmo e-mail do pagamento)
+4. Entra no dashboard
+5. Cancelar: botão Assinatura no dashboard → portal Stripe
+6. Reembolso 7 dias: contato@capitalnovo.com.br → ver REEMBOLSO-7-DIAS.txt
+
+
+O QUE SUBIR NO GITHUB (gestao-financeira-saas)
+----------------------------------------------
+Sempre editar e publicar desta pasta. Commit manual pelo site github.com ou git.
+
+Já publicados / em uso:
+  index.html, termos.html, contato.html, privacidade.html
+  config.js, vercel.json (sem redirect)
+  sitemap.xml, robots.txt
+
+Verificar se já subiu:
+  dashboard.html (renomeações Juros/taxas, Simulador, texto área)
+
+NÃO precisa publicar:
+  previews-landing/ (só referência interna)
+  gestao-financeira-saas-nuvem/
+  PROJETO-STATUS.txt, REEMBOLSO-7-DIAS.txt, *.txt de guia (opcional no repo)
+
+
+PENDÊNCIAS OPCIONAIS (não bloqueiam venda)
+------------------------------------------
+[ ] Vercel Domains: Valid Configuration (sem aviso laranja) após DNS novo
+[ ] Search Console: sitemap Status → Success; páginas indexadas (2–7 dias)
+[ ] Limpar Redirect URLs antigas no Supabase (vidafinanceira, vercel.app)
+[ ] Depoimentos reais quando tiver clientes
+[ ] Google Analytics (opcional)
+[ ] Republicar portal-assinatura no Supabase (só se necessário)
+
+
+COMO RETOMAR NO CURSOR
+----------------------
+1. Abrir pasta: meu dashboard by\gestao-financeira-saas
+2. Nova mensagem: "Leia PROJETO-STATUS.txt e me diga o que falta"
+3. Histórico do chat: painel Chat → ícone de histórico (mesma pasta)
+4. Não depender só do histórico — este arquivo é a fonte de verdade
+
+
+ARQUIVOS DE REFERÊNCIA NO PROJETO
+---------------------------------
+PROJETO-STATUS.txt      ← este arquivo
+REEMBOLSO-7-DIAS.txt    ← reembolso manual Stripe
+ETAPA4-CONFIGURAR.txt   ← Stripe live
+PASTAS.txt              ← estrutura de pastas
+supabase/PORTAL-ASSINATURA.txt
+previews-landing/       ← opções de landing (Opção 9 = base da publicada)
