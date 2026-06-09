@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Entrar · Capital Novo</title>
+    <title>Capital Novo · Organize hoje. Construa o capital de amanhã.</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -29,228 +29,424 @@
       };
     </script>
     <style>
-      body {
-        font-family: "DM Sans", system-ui, sans-serif;
-        background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(124, 58, 237, 0.22), transparent),
-          #0c0c14;
+      body { font-family: "DM Sans", system-ui, sans-serif; background: #0a0612; }
+      .hero-bg { background: linear-gradient(160deg, #1a0a2e 0%, #0a0612 45%, #0d1520 100%); }
+      .glow-btn { box-shadow: 0 0 40px -8px rgba(16,185,129,.55); }
+      .device {
+        box-shadow:
+          0 0 0 1px rgba(255,255,255,.07),
+          0 28px 70px -24px rgba(124,58,237,.45),
+          0 12px 40px -16px rgba(0,0,0,.7);
       }
+      .gfp-bar {
+        animation: gfp-grow 1.4s ease-out forwards;
+        transform-origin: bottom;
+        transform: scaleY(0);
+      }
+      @keyframes gfp-grow { to { transform: scaleY(1); } }
+      .gfp-bar:nth-child(1) { animation-delay: 0.15s; }
+      .gfp-bar:nth-child(2) { animation-delay: 0.3s; }
+      .gfp-bar:nth-child(3) { animation-delay: 0.45s; }
+      .gfp-bar:nth-child(4) { animation-delay: 0.6s; }
+      details summary { cursor: pointer; list-style: none; }
+      details summary::-webkit-details-marker { display: none; }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
   </head>
-  <body class="min-h-screen text-zinc-100 antialiased">
-    <main class="mx-auto flex min-h-screen max-w-md flex-col justify-center px-4 py-10">
-      <div class="mb-8 text-center">
-        <div
-          class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-violet-600/20 ring-1 ring-violet-500/30"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-violet-400"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg>
-        </div>
-        <h1 class="text-2xl font-semibold text-white">Capital Novo</h1>
-        <p class="mt-2 text-sm leading-relaxed text-violet-200/90">Organize hoje. Construa o capital de amanhã.</p>
-        <p class="mt-1 text-xs text-bank-muted">Acesse sua conta para usar o dashboard</p>
-      </div>
-
-      <div
-        id="bloco-assinatura"
-        class="mb-4 rounded-2xl border border-emerald-500/25 bg-emerald-600/10 p-5 text-center shadow-xl"
-      >
-        <p class="text-sm font-medium text-emerald-200">Assinatura mensal</p>
-        <p class="mt-1 text-2xl font-bold text-white">R$ 29,90<span class="text-sm font-normal text-zinc-400">/mês</span></p>
-        <p class="mt-2 text-xs leading-relaxed text-bank-muted">
-          Acesso ao dashboard financeiro completo. Pagamento processado por provedor de cobrança certificado.
-        </p>
-        <a
-          id="btn-assinar-stripe"
-          href="#"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="mt-4 inline-flex w-full items-center justify-center rounded-xl bg-emerald-600 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-500"
-        >
-          Assinar agora
-        </a>
-      </div>
-
-      <div
-        id="bloco-pos-pagamento"
-        class="mb-4 hidden rounded-2xl border border-violet-500/30 bg-violet-600/10 p-6 shadow-xl"
-      >
-        <p class="text-center text-sm font-semibold text-violet-200">Pagamento confirmado</p>
-        <p class="mt-2 text-center text-xs leading-relaxed text-bank-muted">
-          Crie sua senha com o <strong class="text-zinc-300">mesmo e-mail</strong> que você usou para o pagamento.
-        </p>
-        <p
-          id="pos-pagamento-ok"
-          class="mt-3 hidden rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-xs leading-relaxed text-emerald-200"
-        ></p>
-        <form id="form-criar-senha" class="mt-4 space-y-4">
+  <body class="text-zinc-100 antialiased">
+    <!-- HERO -->
+    <section class="hero-bg relative overflow-hidden">
+      <div class="pointer-events-none absolute -left-32 top-20 h-96 w-96 rounded-full bg-violet-600/20 blur-[100px]"></div>
+      <div class="pointer-events-none absolute -right-20 bottom-0 h-80 w-80 rounded-full bg-emerald-500/10 blur-[80px]"></div>
+      <div class="relative mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:py-20">
+        <div class="grid gap-10 lg:grid-cols-[1fr_320px] lg:items-start">
           <div>
-            <label for="senha-email" class="block text-xs font-medium text-zinc-400">E-mail do pagamento</label>
-            <input
-              id="senha-email"
-              type="email"
-              required
-              autocomplete="email"
-              class="mt-1.5 w-full rounded-xl border border-bank-border bg-[#0c0c14] px-4 py-2.5 text-sm text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
-            />
+            <p class="text-xs uppercase tracking-[0.25em] text-zinc-600">Dashboard financeiro inteligente</p>
+            <h1 class="mt-4 text-4xl font-bold leading-[1.08] tracking-tight sm:text-5xl lg:text-6xl">
+              Organize hoje.<br />
+              Construa o capital<br />
+              <span class="text-zinc-500">de amanhã.</span>
+            </h1>
+            <p class="mt-5 max-w-lg text-base leading-relaxed text-zinc-400 sm:text-lg">
+              O Capital Novo reúne gastos, contas e investimentos em um painel elegante — para você ter controle da sua vida financeira com visão de longo prazo para seu patrimônio.
+            </p>
+            <a href="#oferta" class="glow-btn mt-8 inline-flex rounded-2xl bg-emerald-500 px-8 py-4 text-base font-bold text-black transition hover:bg-emerald-400">
+              Começar por R$ 29,90/mês
+            </a>
           </div>
-          <div>
-            <label for="senha-nova" class="block text-xs font-medium text-zinc-400">Nova senha (mín. 6)</label>
-            <input
-              id="senha-nova"
-              type="password"
-              required
-              minlength="6"
-              autocomplete="new-password"
-              class="mt-1.5 w-full rounded-xl border border-bank-border bg-[#0c0c14] px-4 py-2.5 text-sm text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
-            />
-          </div>
-          <button
-            type="submit"
-            id="btn-criar-senha"
-            class="w-full rounded-xl bg-violet-600 py-2.5 text-sm font-semibold text-white transition hover:bg-violet-500 disabled:opacity-60"
-          >
-            Criar senha e entrar
-          </button>
-        </form>
-      </div>
 
-      <div class="rounded-2xl border border-bank-border bg-bank-card p-6 shadow-xl">
-        <p class="mb-4 text-center text-xs font-medium uppercase tracking-wide text-zinc-500">Já tem senha? Entre</p>
-        <p id="login-erro" class="mb-4 hidden rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200"></p>
-        <p id="login-ok" class="mb-4 hidden rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200"></p>
-
-        <form id="form-login" class="space-y-4">
-          <div>
-            <label for="login-email" class="block text-xs font-medium text-zinc-400">E-mail</label>
-            <input
-              id="login-email"
-              type="email"
-              required
-              autocomplete="email"
-              class="mt-1.5 w-full rounded-xl border border-bank-border bg-[#0c0c14] px-4 py-2.5 text-sm text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
-              placeholder="seu@email.com"
-            />
-          </div>
-          <div>
-            <label for="login-senha" class="block text-xs font-medium text-zinc-400">Senha</label>
-            <input
-              id="login-senha"
-              type="password"
-              required
-              autocomplete="current-password"
-              minlength="6"
-              class="mt-1.5 w-full rounded-xl border border-bank-border bg-[#0c0c14] px-4 py-2.5 text-sm text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
-              placeholder="••••••••"
-            />
-          </div>
-          <button
-            type="submit"
-            id="btn-login"
-            class="w-full rounded-xl bg-violet-600 py-2.5 text-sm font-semibold text-white transition hover:bg-violet-500 disabled:opacity-60"
-          >
-            Entrar
-          </button>
-        </form>
-
-        <div class="mt-4 flex flex-col items-center gap-2 text-center text-xs">
-          <button
-            type="button"
-            id="btn-mostrar-esqueci"
-            class="text-violet-400 transition hover:text-violet-300"
-          >
-            Esqueci minha senha
-          </button>
-          <button
-            type="button"
-            id="btn-mostrar-criar-senha"
-            class="text-zinc-500 transition hover:text-zinc-400"
-          >
-            Acabei de pagar · criar minha senha
-          </button>
-        </div>
-
-        <form id="form-esqueci-senha" class="mt-4 hidden space-y-3 border-t border-bank-border pt-4">
-          <p class="text-center text-xs text-bank-muted">
-            Enviaremos um link para redefinir a senha no e-mail da sua conta.
-          </p>
-          <div>
-            <label for="reset-email" class="block text-xs font-medium text-zinc-400">E-mail da conta</label>
-            <input
-              id="reset-email"
-              type="email"
-              required
-              autocomplete="email"
-              class="mt-1.5 w-full rounded-xl border border-bank-border bg-[#0c0c14] px-4 py-2.5 text-sm text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
-              placeholder="seu@email.com"
-            />
-          </div>
-          <button
-            type="submit"
-            id="btn-enviar-reset"
-            class="w-full rounded-xl border border-violet-500/40 bg-violet-600/20 py-2.5 text-sm font-semibold text-violet-200 transition hover:bg-violet-600/30 disabled:opacity-60"
-          >
-            Enviar link de redefinição
-          </button>
-        </form>
-
-        <div id="bloco-teste-signup" class="mt-6 hidden border-t border-bank-border pt-6">
-          <p class="text-center text-xs text-bank-muted">Primeiro acesso? (fase de testes)</p>
-          <button
-            type="button"
-            id="btn-mostrar-cadastro"
-            class="mt-2 w-full rounded-xl border border-bank-border py-2.5 text-sm font-medium text-zinc-300 transition hover:bg-white/5"
-          >
-            Criar conta de teste
-          </button>
-          <form id="form-cadastro" class="mt-4 hidden space-y-4">
-            <div>
-              <label for="cadastro-email" class="block text-xs font-medium text-zinc-400">E-mail</label>
-              <input
-                id="cadastro-email"
-                type="email"
-                required
-                autocomplete="email"
-                class="mt-1.5 w-full rounded-xl border border-bank-border bg-[#0c0c14] px-4 py-2.5 text-sm text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
-              />
-            </div>
-            <div>
-              <label for="cadastro-senha" class="block text-xs font-medium text-zinc-400">Senha (mín. 6)</label>
-              <input
-                id="cadastro-senha"
-                type="password"
-                required
-                minlength="6"
-                autocomplete="new-password"
-                class="mt-1.5 w-full rounded-xl border border-bank-border bg-[#0c0c14] px-4 py-2.5 text-sm text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
-              />
-            </div>
-            <button
-              type="submit"
-              id="btn-cadastro"
-              class="w-full rounded-xl border border-violet-500/40 bg-violet-600/20 py-2.5 text-sm font-semibold text-violet-200 transition hover:bg-violet-600/30 disabled:opacity-60"
+          <div id="sidebar-auth" class="space-y-4 lg:sticky lg:top-8">
+            <div
+              id="bloco-pos-pagamento"
+              class="hidden rounded-2xl border border-violet-500/30 bg-violet-600/10 p-6 shadow-xl"
             >
-              Criar conta
-            </button>
-          </form>
+              <p class="text-center text-sm font-semibold text-violet-200">Pagamento confirmado</p>
+              <p class="mt-2 text-center text-xs leading-relaxed text-bank-muted">
+                Crie sua senha com o <strong class="text-zinc-300">mesmo e-mail</strong> que você usou para o pagamento.
+              </p>
+              <p
+                id="pos-pagamento-ok"
+                class="mt-3 hidden rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-xs leading-relaxed text-emerald-200"
+              ></p>
+              <form id="form-criar-senha" class="mt-4 space-y-4">
+                <div>
+                  <label for="senha-email" class="block text-xs font-medium text-zinc-400">E-mail do pagamento</label>
+                  <input
+                    id="senha-email"
+                    type="email"
+                    required
+                    autocomplete="email"
+                    class="mt-1.5 w-full rounded-xl border border-bank-border bg-[#0c0c14] px-4 py-2.5 text-sm text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
+                  />
+                </div>
+                <div>
+                  <label for="senha-nova" class="block text-xs font-medium text-zinc-400">Nova senha (mín. 6)</label>
+                  <input
+                    id="senha-nova"
+                    type="password"
+                    required
+                    minlength="6"
+                    autocomplete="new-password"
+                    class="mt-1.5 w-full rounded-xl border border-bank-border bg-[#0c0c14] px-4 py-2.5 text-sm text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  id="btn-criar-senha"
+                  class="w-full rounded-xl bg-violet-600 py-2.5 text-sm font-semibold text-white transition hover:bg-violet-500 disabled:opacity-60"
+                >
+                  Criar senha e entrar
+                </button>
+              </form>
+            </div>
+
+            <div class="rounded-2xl border border-white/[0.08] bg-[#14141f] p-6 shadow-xl">
+              <p class="mb-4 text-center text-xs font-medium uppercase tracking-wide text-zinc-500">Já tem senha? Entre</p>
+              <p id="login-erro" class="mb-4 hidden rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200"></p>
+              <p id="login-ok" class="mb-4 hidden rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200"></p>
+
+              <form id="form-login" class="space-y-4">
+                <div>
+                  <label for="login-email" class="block text-xs font-medium text-zinc-400">E-mail</label>
+                  <input
+                    id="login-email"
+                    type="email"
+                    required
+                    autocomplete="email"
+                    placeholder="seu@email.com"
+                    class="mt-1.5 w-full rounded-xl border border-bank-border bg-[#0c0c14] px-4 py-2.5 text-sm text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
+                  />
+                </div>
+                <div>
+                  <label for="login-senha" class="block text-xs font-medium text-zinc-400">Senha</label>
+                  <input
+                    id="login-senha"
+                    type="password"
+                    required
+                    autocomplete="current-password"
+                    minlength="6"
+                    placeholder="••••••••"
+                    class="mt-1.5 w-full rounded-xl border border-bank-border bg-[#0c0c14] px-4 py-2.5 text-sm text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  id="btn-login"
+                  class="w-full rounded-xl bg-violet-600 py-2.5 text-sm font-semibold text-white transition hover:bg-violet-500 disabled:opacity-60"
+                >
+                  Entrar
+                </button>
+              </form>
+
+              <div class="mt-4 flex flex-col items-center gap-2 text-center text-xs">
+                <button type="button" id="btn-mostrar-esqueci" class="text-violet-400 transition hover:text-violet-300">
+                  Esqueci minha senha
+                </button>
+                <button type="button" id="btn-mostrar-criar-senha" class="text-zinc-500 transition hover:text-zinc-400">
+                  Acabei de pagar · criar minha senha
+                </button>
+              </div>
+
+              <form id="form-esqueci-senha" class="mt-4 hidden space-y-3 border-t border-bank-border pt-4">
+                <p class="text-center text-xs text-bank-muted">
+                  Enviaremos um link para redefinir a senha no e-mail da sua conta.
+                </p>
+                <div>
+                  <label for="reset-email" class="block text-xs font-medium text-zinc-400">E-mail da conta</label>
+                  <input
+                    id="reset-email"
+                    type="email"
+                    required
+                    autocomplete="email"
+                    placeholder="seu@email.com"
+                    class="mt-1.5 w-full rounded-xl border border-bank-border bg-[#0c0c14] px-4 py-2.5 text-sm text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  id="btn-enviar-reset"
+                  class="w-full rounded-xl border border-violet-500/40 bg-violet-600/20 py-2.5 text-sm font-semibold text-violet-200 transition hover:bg-violet-600/30 disabled:opacity-60"
+                >
+                  Enviar link de redefinição
+                </button>
+              </form>
+
+              <div id="bloco-teste-signup" class="mt-6 hidden border-t border-bank-border pt-6">
+                <p class="text-center text-xs text-bank-muted">Primeiro acesso? (fase de testes)</p>
+                <button
+                  type="button"
+                  id="btn-mostrar-cadastro"
+                  class="mt-2 w-full rounded-xl border border-bank-border py-2.5 text-sm font-medium text-zinc-300 transition hover:bg-white/5"
+                >
+                  Criar conta de teste
+                </button>
+                <form id="form-cadastro" class="mt-4 hidden space-y-4">
+                  <div>
+                    <label for="cadastro-email" class="block text-xs font-medium text-zinc-400">E-mail</label>
+                    <input
+                      id="cadastro-email"
+                      type="email"
+                      required
+                      autocomplete="email"
+                      class="mt-1.5 w-full rounded-xl border border-bank-border bg-[#0c0c14] px-4 py-2.5 text-sm text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
+                    />
+                  </div>
+                  <div>
+                    <label for="cadastro-senha" class="block text-xs font-medium text-zinc-400">Senha (mín. 6)</label>
+                    <input
+                      id="cadastro-senha"
+                      type="password"
+                      required
+                      minlength="6"
+                      autocomplete="new-password"
+                      class="mt-1.5 w-full rounded-xl border border-bank-border bg-[#0c0c14] px-4 py-2.5 text-sm text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    id="btn-cadastro"
+                    class="w-full rounded-xl border border-violet-500/40 bg-violet-600/20 py-2.5 text-sm font-semibold text-violet-200 transition hover:bg-violet-600/30 disabled:opacity-60"
+                  >
+                    Criar conta
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mockup -->
+        <div class="relative mx-auto mt-12 max-w-xl sm:mt-16">
+          <div class="pointer-events-none absolute -inset-8 rounded-full bg-violet-600/15 blur-3xl" aria-hidden="true"></div>
+          <div class="device relative z-10 overflow-hidden rounded-2xl border border-white/[0.08] bg-[#11111b] p-3 sm:p-4">
+            <div class="mb-3 flex items-center gap-1.5 px-0.5">
+              <span class="h-2.5 w-2.5 rounded-full bg-red-500/60"></span>
+              <span class="h-2.5 w-2.5 rounded-full bg-amber-500/60"></span>
+              <span class="h-2.5 w-2.5 rounded-full bg-emerald-500/60"></span>
+            </div>
+            <div class="grid grid-cols-3 gap-2.5 rounded-xl bg-[#07070d] p-3 sm:gap-3 sm:p-4">
+              <div class="col-span-2 rounded-xl border border-white/[0.05] bg-[#0c0c14]/80 p-3 sm:p-4">
+                <div class="flex items-start justify-between gap-2">
+                  <div>
+                    <p class="text-[10px] font-medium text-zinc-300 sm:text-xs">Total de gastos no mês</p>
+                    <p class="mt-0.5 text-[8px] text-zinc-600 sm:text-[9px]">Referência: Junho de 2026 (mês atual)</p>
+                  </div>
+                  <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-violet-600/20 text-violet-400">
+                    <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+                  </span>
+                </div>
+                <p class="mt-2 text-lg font-semibold text-white sm:text-xl">R$ 3.521,69</p>
+                <div class="mt-3 flex h-12 items-end gap-1 sm:mt-4 sm:h-14">
+                  <div class="gfp-bar h-[42%] flex-1 rounded-sm bg-violet-600/45"></div>
+                  <div class="gfp-bar h-[68%] flex-1 rounded-sm bg-violet-500/55"></div>
+                  <div class="gfp-bar h-[50%] flex-1 rounded-sm bg-violet-400/45"></div>
+                  <div class="gfp-bar h-[82%] flex-1 rounded-sm bg-emerald-500/40"></div>
+                </div>
+              </div>
+              <div class="rounded-xl border border-white/[0.05] bg-[#0c0c14]/80 p-3 sm:p-4">
+                <p class="text-[9px] text-zinc-600 sm:text-[10px]">Patrimônio</p>
+                <p class="mt-1.5 text-sm font-bold text-white sm:text-base">R$ 218k</p>
+                <div class="mt-4 space-y-1.5">
+                  <div class="h-1.5 w-full overflow-hidden rounded-full bg-white/5">
+                    <div class="h-full w-[68%] rounded-full bg-violet-500/70"></div>
+                  </div>
+                  <div class="h-1.5 w-full overflow-hidden rounded-full bg-white/5">
+                    <div class="h-full w-[38%] rounded-full bg-emerald-500/55"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="absolute -bottom-5 -right-2 z-20 w-[7.5rem] rounded-[1.35rem] border border-white/[0.1] bg-[#11111b] p-1.5 shadow-2xl shadow-black/50 sm:-bottom-7 sm:-right-5 sm:w-[8.5rem]">
+            <div class="rounded-[1.05rem] border border-white/[0.04] bg-[#07070d] p-2.5">
+              <p class="text-[8px] text-zinc-600">Capital Novo</p>
+              <p class="mt-0.5 text-xs font-semibold text-white">R$ 5.120</p>
+              <div class="mt-2 h-7 rounded-md bg-gradient-to-r from-violet-600/25 to-violet-500/15"></div>
+            </div>
+          </div>
         </div>
       </div>
+    </section>
 
-      <footer class="gfp-site-footer mt-8 border-t border-white/[0.08] pt-6 text-center text-xs leading-relaxed text-zinc-500">
-        <p class="text-zinc-500">
-          Ferramenta de organização financeira pessoal. Não constitui consultoria ou recomendação de investimentos.
-        </p>
-        <nav class="mt-3 flex flex-wrap items-center justify-center gap-x-1 gap-y-1" aria-label="Links legais">
-          <a href="/privacidade" class="text-zinc-500 transition hover:text-violet-300">Política de Privacidade</a>
-          <span class="text-zinc-600" aria-hidden="true">·</span>
-          <a href="/termos" class="text-zinc-500 transition hover:text-violet-300">Termos de Uso</a>
-          <span class="text-zinc-600" aria-hidden="true">·</span>
-          <a href="/contato" class="text-zinc-500 transition hover:text-violet-300">Contato</a>
-        </nav>
-        <div id="gfp-footer-social" class="mt-3 flex justify-center gap-3" aria-label="Redes sociais"></div>
-        <p class="mt-3 text-zinc-600">© 2026 Capital Novo</p>
-      </footer>
-    </main>
+    <!-- ANTES / DEPOIS -->
+    <section class="border-y border-white/5 bg-[#0c0814] py-14">
+      <div class="mx-auto max-w-6xl px-4 sm:px-6">
+        <h2 class="text-center text-xl font-bold sm:text-2xl">Sem controle vs. Com Capital Novo</h2>
+        <div class="mt-8 grid gap-4 sm:grid-cols-2">
+          <div class="rounded-2xl border border-red-500/15 bg-red-950/20 p-6">
+            <p class="text-xs font-bold uppercase text-red-400">Antes</p>
+            <ul class="mt-4 space-y-3 text-sm text-zinc-400">
+              <li>✗ Diversas planilhas que te trazem dor de cabeça e desorganização</li>
+              <li>✗ Esqueceu de pagar uma conta e levou multa</li>
+              <li>✗ Surpresa na fatura todo mês</li>
+              <li>✗ Patrimônio “mais ou menos” na cabeça</li>
+            </ul>
+          </div>
+          <div class="rounded-2xl border border-emerald-500/20 bg-emerald-950/20 p-6">
+            <p class="text-xs font-bold uppercase text-emerald-400">Depois</p>
+            <ul class="mt-4 space-y-3 text-sm text-zinc-300">
+              <li>✓ Tudo registrado em um painel só</li>
+              <li>✓ Saiba quando e o que precisa pagar antecipadamente</li>
+              <li>✓ Saldo e categorias sempre visíveis</li>
+              <li>✓ Patrimônio e metas com números reais</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- BENEFÍCIOS -->
+    <section class="py-14">
+      <div class="mx-auto max-w-6xl px-4 sm:px-6">
+        <h2 class="text-2xl font-bold">Feito para quem leva dinheiro a sério</h2>
+        <p class="mt-2 text-sm text-zinc-500">Seis pilares que só o Capital Novo entrega com essa profundidade.</p>
+        <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <article class="rounded-2xl border border-white/[0.06] bg-[#14101f] p-5">
+            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-600/15 text-violet-400">
+              <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 12l3-3 3 3 5-5"/></svg>
+            </div>
+            <h3 class="mt-4 font-semibold">Onde vai cada real</h3>
+            <p class="mt-2 text-sm leading-relaxed text-zinc-500">Gráficos por categoria e origem para você saber exatamente o que gasta em cada parte da sua vida.</p>
+          </article>
+          <article class="rounded-2xl border border-white/[0.06] bg-[#14101f] p-5">
+            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-600/15 text-emerald-400">
+              <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect width="20" height="14" x="2" y="5" rx="2"/><path d="M2 10h20"/></svg>
+            </div>
+            <h3 class="mt-4 font-semibold">Cartões sob controle</h3>
+            <p class="mt-2 text-sm leading-relaxed text-zinc-500">Controle todos os seus cartões de crédito em um só lugar e organize o seu dia a dia.</p>
+          </article>
+          <article class="rounded-2xl border border-white/[0.06] bg-[#14101f] p-5">
+            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-600/15 text-amber-400">
+              <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2v20M2 12h20"/></svg>
+            </div>
+            <h3 class="mt-4 font-semibold">Projete o seu sonho</h3>
+            <p class="mt-2 text-sm leading-relaxed text-zinc-500">Simulador profissional de longo prazo: juros compostos, aportes em dólar e real e patrimônio real descontado da inflação.</p>
+          </article>
+          <article class="rounded-2xl border border-white/[0.06] bg-[#14101f] p-5">
+            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600/15 text-blue-400">
+              <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-9-9"/><path d="M21 3v5h-5"/></svg>
+            </div>
+            <h3 class="mt-4 font-semibold">Patrimônio personalizado</h3>
+            <p class="mt-2 text-sm leading-relaxed text-zinc-500">O único dashboard que permite personalizar 100% como o seu patrimônio é constituído.</p>
+          </article>
+          <article class="rounded-2xl border border-white/[0.06] bg-[#14101f] p-5">
+            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-600/15 text-orange-400">
+              <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2v4"/><path d="m6 8 6-4 6 4"/><path d="M4 10v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V10"/></svg>
+            </div>
+            <h3 class="mt-4 font-semibold">Cripto e câmbio ao vivo</h3>
+            <p class="mt-2 text-sm leading-relaxed text-zinc-500">Saiba em tempo real o preço do bitcoin e a cotação do dólar. Faça aportes regulares e calculamos o seu preço médio de compra em um único lugar.</p>
+          </article>
+          <article class="rounded-2xl border border-white/[0.06] bg-[#14101f] p-5">
+            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-600/15 text-sky-400">
+              <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <h3 class="mt-4 font-semibold">Segurança e privacidade</h3>
+            <p class="mt-2 text-sm leading-relaxed text-zinc-500">Seus dados financeiros são exclusivos da sua conta. Só você acessa — nem nossa equipe vê suas finanças.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- DEPOIMENTOS -->
+    <section class="border-t border-white/5 bg-[#0c0814] py-14">
+      <div class="mx-auto max-w-4xl px-4 sm:px-6">
+        <p class="mb-6 text-center text-xs text-zinc-600">Depoimentos ilustrativos de assinantes fictícios</p>
+        <div class="rounded-3xl border border-violet-500/20 bg-violet-600/5 p-8 text-center">
+          <p class="text-lg font-medium leading-relaxed text-zinc-200">"O Capital Novo virou meu ritual de domingo.<br />Em 20 minutos sei onde estou e para onde vou."</p>
+          <p class="mt-4 text-sm text-violet-300">— Ricardo A. · assinante</p>
+        </div>
+        <div class="mt-4 grid gap-4 sm:grid-cols-2">
+          <div class="rounded-2xl border border-white/5 bg-[#14101f] p-5">
+            <p class="text-sm leading-relaxed text-zinc-400">"O simulador me deixa testar cenários com ou sem inflação. Pela primeira vez enxerguei se minha meta de aposentadoria era realista."</p>
+            <p class="mt-3 text-xs text-violet-300/80">— Marina S. · assinante</p>
+          </div>
+          <div class="rounded-2xl border border-white/5 bg-[#14101f] p-5">
+            <p class="text-sm leading-relaxed text-zinc-400">"Personalizei tudo do meu jeito — categorias, metas e a composição do patrimônio. Do gasto do dia a dia até cada ativo, ficou realmente meu."</p>
+            <p class="mt-3 text-xs text-violet-300/80">— Lucas F. · assinante</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- OFERTA -->
+    <section id="oferta" class="py-16">
+      <div class="mx-auto max-w-md px-4 text-center sm:px-6">
+        <div class="rounded-3xl border-2 border-emerald-500/40 bg-gradient-to-b from-emerald-600/20 to-transparent p-8">
+          <p class="text-sm font-bold text-emerald-300">7 DIAS PARA TESTAR · CANCELE QUANDO QUISER</p>
+          <p class="mt-4 text-5xl font-bold">R$ 29,90<span class="text-lg text-zinc-400">/mês</span></p>
+          <p class="mt-3 text-xs leading-relaxed text-zinc-500">
+            Acesso ao dashboard financeiro completo. Pagamento processado por provedor de cobrança certificado.
+          </p>
+          <a
+            id="btn-assinar-stripe"
+            href="#"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="glow-btn mt-6 inline-flex w-full items-center justify-center rounded-2xl bg-emerald-500 py-4 font-bold text-black transition hover:bg-emerald-400"
+          >
+            Assinar agora
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="border-t border-white/5 py-14">
+      <div class="mx-auto max-w-lg px-4 sm:px-6">
+        <h2 class="mb-6 text-center font-bold">Dúvidas?</h2>
+        <details class="mb-2 rounded-xl bg-[#14101f] px-4 py-3">
+          <summary class="font-medium text-sm">É seguro?</summary>
+          <p class="mt-2 text-sm leading-relaxed text-zinc-500">Sim. Cada conta é individual — ninguém mais acessa seus números, gastos ou investimentos. Seus dados ficam protegidos com login e senha, e a comunicação com o servidor usa criptografia. O Capital Novo não vende nem compartilha suas informações com terceiros.</p>
+        </details>
+        <details class="mb-2 rounded-xl bg-[#14101f] px-4 py-3">
+          <summary class="font-medium text-sm">Posso cancelar?</summary>
+          <p class="mt-2 text-sm leading-relaxed text-zinc-500">Sim, quando quiser. Não há fidelidade nem multa. Você cancela direto pelo dashboard, sem precisar ligar ou mandar e-mail. Se cancelar nos primeiros 7 dias, pode pedir reembolso integral. Depois disso, o acesso continua até o fim do período já pago.</p>
+        </details>
+        <details class="mb-2 rounded-xl bg-[#14101f] px-4 py-3">
+          <summary class="font-medium text-sm">Funciona no celular?</summary>
+          <p class="mt-2 text-sm leading-relaxed text-zinc-500">Funciona em qualquer dispositivo com navegador — celular, tablet ou computador. Não precisa instalar app: abra o site, faça login e pronto. Tudo fica sincronizado na nuvem, então o que você registra no celular aparece no desktop e vice-versa.</p>
+        </details>
+        <details class="rounded-xl bg-[#14101f] px-4 py-3">
+          <summary class="font-medium text-sm">É consultoria?</summary>
+          <p class="mt-2 text-sm leading-relaxed text-zinc-500">Não. O Capital Novo é uma ferramenta de organização financeira pessoal — ajuda você a ver gastos, contas, patrimônio e metas em um só lugar. Não recomendamos onde investir, não damos orientação tributária e não substituímos um contador ou planejador financeiro. A decisão é sempre sua.</p>
+        </details>
+      </div>
+    </section>
+
+    <footer class="border-t border-white/5 py-8 text-center text-xs leading-relaxed text-zinc-500">
+      <p class="font-semibold text-zinc-400">Capital Novo</p>
+      <p class="mt-2">Ferramenta de organização financeira pessoal. Não constitui consultoria ou recomendação de investimentos.</p>
+      <nav class="mt-3 flex flex-wrap items-center justify-center gap-x-1 gap-y-1" aria-label="Links legais">
+        <a href="/privacidade" class="text-zinc-500 transition hover:text-violet-300">Política de Privacidade</a>
+        <span class="text-zinc-600" aria-hidden="true">·</span>
+        <a href="/termos" class="text-zinc-500 transition hover:text-violet-300">Termos de Uso</a>
+        <span class="text-zinc-600" aria-hidden="true">·</span>
+        <a href="/contato" class="text-zinc-500 transition hover:text-violet-300">Contato</a>
+      </nav>
+      <div id="gfp-footer-social" class="mt-3 flex justify-center gap-3" aria-label="Redes sociais"></div>
+      <p class="mt-3 text-zinc-600">© 2026 Capital Novo</p>
+    </footer>
 
     <script>
       (function () {
@@ -263,6 +459,7 @@
           erroEl.textContent = msg;
           erroEl.classList.remove("hidden");
           okEl.classList.add("hidden");
+          document.getElementById("sidebar-auth").scrollIntoView({ behavior: "smooth", block: "start" });
         }
 
         if (params.get("erro") === "config") {
@@ -299,7 +496,7 @@
 
         function showBlocoPosPagamento(msg) {
           document.getElementById("bloco-pos-pagamento").classList.remove("hidden");
-          document.getElementById("bloco-pos-pagamento").scrollIntoView({ behavior: "smooth", block: "start" });
+          document.getElementById("sidebar-auth").scrollIntoView({ behavior: "smooth", block: "start" });
           okEl.classList.add("hidden");
           if (msg) {
             posPagamentoOkEl.textContent = msg;
