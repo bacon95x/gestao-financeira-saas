@@ -84,17 +84,17 @@
 
         <p id="reset-link-invalido" class="hidden text-center text-sm leading-relaxed text-bank-muted">
           <span id="reset-link-invalido-msg">Link inválido ou expirado.</span>
-          <a href="index.html" class="mt-3 block text-violet-400 hover:text-violet-300">Voltar ao login · solicitar novo link</a>
+          <a href="/" class="mt-3 block text-violet-400 hover:text-violet-300">Voltar ao login · solicitar novo link</a>
         </p>
       </div>
 
       <footer class="gfp-site-footer mt-8 border-t border-white/[0.08] pt-6 text-center text-xs leading-relaxed text-zinc-500">
         <nav class="flex flex-wrap items-center justify-center gap-x-1 gap-y-1" aria-label="Links legais">
-          <a href="privacidade.html" class="text-zinc-500 transition hover:text-violet-300">Política de Privacidade</a>
+          <a href="/privacidade" class="text-zinc-500 transition hover:text-violet-300">Política de Privacidade</a>
           <span class="text-zinc-600" aria-hidden="true">·</span>
-          <a href="termos.html" class="text-zinc-500 transition hover:text-violet-300">Termos de Uso</a>
+          <a href="/termos" class="text-zinc-500 transition hover:text-violet-300">Termos de Uso</a>
           <span class="text-zinc-600" aria-hidden="true">·</span>
-          <a href="contato.html" class="text-zinc-500 transition hover:text-violet-300">Contato</a>
+          <a href="/contato" class="text-zinc-500 transition hover:text-violet-300">Contato</a>
         </nav>
         <div id="gfp-footer-social" class="mt-3 flex justify-center gap-3" aria-label="Redes sociais"></div>
         <p class="mt-3 text-zinc-600">© 2026 Capital Novo</p>
@@ -232,7 +232,7 @@
           okEl.textContent = "Senha atualizada! Redirecionando…";
           okEl.classList.remove("hidden");
           setTimeout(function () {
-            window.location.replace("dashboard.html");
+            window.location.replace("/dashboard");
           }, 1200);
         });
       })();
