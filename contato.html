@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="violet" data-appearance="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Contato · Capital Novo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: { sans: ["DM Sans", "system-ui", "sans-serif"] },
+            colors: {
+              bank: {
+                bg: "#0c0c14",
+                card: "#14141f",
+                border: "rgba(255,255,255,0.08)",
+                muted: "#9ca3af",
+              },
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      body {
+        font-family: "DM Sans", system-ui, sans-serif;
+        background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(124, 58, 237, 0.18), transparent),
+          #0c0c14;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen text-zinc-100 antialiased">
+    <main class="mx-auto max-w-lg px-4 py-10 sm:py-14">
+      <p class="mb-6">
+        <a href="index.html" class="text-sm text-violet-400 transition hover:text-violet-300">← Voltar ao login</a>
+      </p>
+      <h1 class="text-2xl font-semibold text-white sm:text-3xl">Contato</h1>
+      <p class="mt-2 text-sm leading-relaxed text-bank-muted">
+        Fale conosco sobre assinatura, acesso à conta, privacidade ou sugestões.
+      </p>
+
+      <div class="mt-8 rounded-2xl border border-bank-border bg-bank-card p-6 shadow-xl">
+        <h2 class="text-sm font-semibold text-zinc-100">E-mail</h2>
+        <p class="mt-2">
+          <a
+            href="mailto:contato@capitalnovo.com.br"
+            class="text-base font-medium text-violet-300 transition hover:text-violet-200"
+            >contato@capitalnovo.com.br</a
+          >
+        </p>
+        <p class="mt-4 text-sm leading-relaxed text-bank-muted">
+          Respondemos em dias úteis, em geral em até 48 horas. Para redefinir senha, use
+          <a href="index.html" class="text-violet-400 hover:text-violet-300">Esqueci minha senha</a> na página de login.
+        </p>
+      </div>
+
+      <div class="mt-6 rounded-2xl border border-bank-border/80 bg-bank-bg/40 p-5">
+        <h2 class="text-sm font-semibold text-zinc-100">Assinatura</h2>
+        <p class="mt-2 text-sm leading-relaxed text-bank-muted">
+          Clientes com conta ativa podem cancelar ou alterar a forma de pagamento pelo botão
+          <strong class="text-zinc-300">Assinatura</strong> no dashboard (portal seguro do Stripe).
+        </p>
+      </div>
+
+      <footer class="gfp-site-footer mt-12 border-t border-white/[0.08] pt-6 text-center text-xs leading-relaxed text-zinc-500">
+        <nav class="flex flex-wrap items-center justify-center gap-x-1 gap-y-1" aria-label="Links legais">
+          <a href="privacidade.html" class="text-zinc-500 transition hover:text-violet-300">Política de Privacidade</a>
+          <span class="text-zinc-600" aria-hidden="true">·</span>
+          <a href="termos.html" class="text-zinc-500 transition hover:text-violet-300">Termos de Uso</a>
+          <span class="text-zinc-600" aria-hidden="true">·</span>
+          <a href="contato.html" class="text-violet-300">Contato</a>
+        </nav>
+        <div id="gfp-footer-social" class="mt-3 flex justify-center gap-3" aria-label="Redes sociais"></div>
+        <p class="mt-3 text-zinc-600">© 2026 Capital Novo</p>
+      </footer>
+    </main>
+  </body>
+</html>
