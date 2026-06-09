@@ -2,7 +2,7 @@
   async function gfpAuthGuard() {
     var loading = document.getElementById("gfp-auth-loading");
     function fail(url) {
-      window.location.replace(url || "index.html");
+      window.location.replace(url || "/");
     }
     try {
       if (
@@ -11,11 +11,11 @@
         window.GFP_SUPABASE_URL.indexOf("SEU_PROJETO") !== -1 ||
         window.GFP_SUPABASE_ANON_KEY.indexOf("COLE_") !== -1
       ) {
-        fail("index.html?erro=config");
+        fail("/?erro=config");
         return;
       }
       if (!window.supabase || !window.supabase.createClient) {
-        fail("index.html?erro=supabase");
+        fail("/?erro=supabase");
         return;
       }
       var sb = window.supabase.createClient(window.GFP_SUPABASE_URL, window.GFP_SUPABASE_ANON_KEY);
@@ -23,7 +23,7 @@
       var result = await sb.auth.getSession();
       var session = result && result.data ? result.data.session : null;
       if (!session) {
-        fail("index.html");
+        fail("/");
         return;
       }
       window.gfpUser = session.user;
@@ -46,20 +46,20 @@
         var vData = await vRes.json();
         if (!vData || !vData.active) {
           await sb.auth.signOut();
-          fail("index.html?erro=assinatura");
+          fail("/?erro=assinatura");
           return;
         }
       }
       sb.auth.onAuthStateChange(function (event, newSession) {
         if (event === "SIGNED_OUT" || !newSession) {
-          window.location.replace("index.html");
+          window.location.replace("/");
         }
       });
       if (loading) loading.remove();
       document.documentElement.classList.add("gfp-auth-ready");
     } catch (e) {
       console.error("Auth guard:", e);
-      fail("index.html?erro=auth");
+      fail("/?erro=auth");
     }
   }
 
@@ -78,6 +78,6 @@
     } catch (e) {
       console.warn("Logout:", e);
     }
-    window.location.replace("index.html");
+    window.location.replace("/");
   };
 })();
