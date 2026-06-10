@@ -1,0 +1,212 @@
+PROCESSO DE CANCELAMENTO E REEMBOLSO — Capital Novo
+====================================================
+Guia operacional para o titular do serviço.
+Última atualização: maio/2026
+
+Este arquivo descreve o que VOCÊ precisa fazer em cada cenário.
+O cancelamento pelo portal do cliente é automático; o reembolso dos 7 dias é MANUAL.
+
+
+COMO O ACESSO AO DASHBOARD É BLOQUEADO
+---------------------------------------
+1. Cliente abre dashboard.html
+2. auth-guard.js chama a função verificar-assinatura (Supabase)
+3. Consulta a tabela gfp_assinaturas pelo e-mail do cliente
+4. Só libera se status = active
+5. Se não estiver active → logout + redireciona para /?erro=assinatura
+
+Você NÃO precisa apagar a conta no Supabase Auth para bloquear.
+Basta status diferente de active em gfp_assinaturas.
+
+
+O QUE O CLIENTE VÊ NO SITE
+--------------------------
+• Botão "Assinatura" no dashboard → portal Stripe (cancelar / atualizar cartão)
+• Página /contato → e-mail contato@capitalnovo.com.br para pedir reembolso
+• Termos de Uso, seção 8 → regras públicas de cancelamento e reembolso
+
+IMPORTANTE: o portal Stripe NÃO tem botão "pedir reembolso".
+Reembolso nos 7 dias = cliente escreve para contato@capitalnovo.com.br
+e você processa manualmente no Stripe.
+
+
+CENÁRIO 1 — Cliente cancela pelo portal (SEM pedir reembolso)
+-------------------------------------------------------------
+Quando: a qualquer momento; cliente só não quer renovar.
+
+O que o cliente faz:
+  Dashboard → Assinatura → Cancelar assinatura (portal Stripe)
+
+O que acontece sozinho:
+  • Stripe cancela a renovação
+  • Webhook customer.subscription.deleted (ou updated) atualiza gfp_assinaturas
+  • Status passa para canceled (ou permanece active até fim do período, conforme
+    configuração do portal — em geral o acesso continua até vencer o mês pago)
+
+O que VOCÊ precisa fazer:
+  [ ] NADA, em regra
+  [ ] (Opcional) Conferir no Stripe se o cancelamento entrou
+  [ ] (Opcional) Conferir gfp_assinaturas no Supabase
+
+Reembolso: NÃO
+Acesso: continua até o fim do período já pago (Termos, seção 8)
+
+
+CENÁRIO 2 — Cliente pede REEMBOLSO dentro dos 7 dias
+----------------------------------------------------
+Quando: até 7 dias corridos após a PRIMEIRA cobrança (não vale para renovações).
+
+Como você fica sabendo:
+  • E-mail em contato@capitalnovo.com.br (principal)
+  • Cliente pode ter cancelado pelo portal antes ou depois do e-mail
+  • Stripe pode avisar só do CANCELAMENTO, não do pedido de reembolso
+
+Quando APROVAR reembolso:
+  ✓ Pedido em até 7 dias da primeira cobrança
+  ✓ Mesmo e-mail da conta Capital Novo / pagamento
+  ✓ Primeira assinatura daquele cliente (não reembolsar mês 2, 3…)
+
+Quando NÃO reembolsar (responder com educação + link dos Termos):
+  ✗ Pedido após o 7º dia
+  ✗ Cliente só quer cancelar renovação (sem pedir devolução)
+  ✗ Segunda tentativa de reembolso da mesma cobrança
+
+CHECKLIST — reembolso 7 dias (MANUAL no Stripe)
+-----------------------------------------------
+[ ] Anotar: e-mail, data do pedido, data da cobrança no Stripe
+[ ] Confirmar ≤ 7 dias desde a primeira cobrança
+[ ] Stripe (PRODUÇÃO) → Pagamentos → buscar pelo e-mail
+[ ] Abrir pagamento da primeira mensalidade (R$ 29,90)
+[ ] Reembolsar (Refund) → valor integral → motivo: solicitado pelo cliente
+[ ] Aguardar status "Reembolsado" / "Refunded"
+
+[ ] Stripe → Clientes → e-mail → Assinaturas
+[ ] Se assinatura ainda ativa: Cancelar → IMEDIATO (não "ao fim do período")
+      (já devolveu o dinheiro; não deve continuar cobrando)
+
+[ ] Supabase → Table Editor → gfp_assinaturas → buscar e-mail (minúsculas)
+[ ] Conferir status = canceled
+[ ] Se webhook falhar: editar manualmente status = canceled e updated_at = agora
+
+[ ] Responder o cliente (modelo abaixo)
+[ ] Registrar internamente: data | e-mail | ID pagamento Stripe | OK
+
+Modelo de resposta ao cliente:
+  Assunto: Reembolso Capital Novo — confirmado
+
+  Olá,
+
+  Processamos o reembolso integral de R$ 29,90 e o cancelamento da sua
+  assinatura. O valor deve aparecer na fatura do cartão em alguns dias úteis,
+  conforme o banco emissor.
+
+  Seu acesso ao dashboard foi encerrado. Se quiser usar o Capital Novo de novo
+  no futuro, basta assinar novamente pelo site.
+
+  Obrigado pelo retorno.
+
+  Capital Novo
+
+
+CENÁRIO 3 — Cliente cancelou pelo portal E pediu reembolso (≤ 7 dias)
+-----------------------------------------------------------------------
+• Mesmo checklist do Cenário 2
+• Mesmo que já tenha cancelado pelo portal: ainda faça o Refund do pagamento
+• Assinatura pode já estar canceled — tudo bem; o reembolso é o passo crítico
+
+
+CENÁRIO 4 — Cliente pediu reembolso mas NÃO cancelou pelo portal (≤ 7 dias)
+-----------------------------------------------------------------------------
+• Faça Refund + cancele assinatura no Stripe (imediato)
+• Conferir gfp_assinaturas = canceled
+
+
+CENÁRIO 5 — Cliente pede reembolso APÓS os 7 dias
+-------------------------------------------------
+Como você fica sabendo:
+  • E-mail em contato@capitalnovo.com.br (não há aviso automático)
+
+O que VOCÊ precisa fazer:
+  [ ] Verificar data da primeira cobrança no Stripe
+  [ ] Se passou do 7º dia: NÃO reembolsar (Termos, seção 8)
+  [ ] Responder educadamente citando os Termos
+  [ ] Se ele só quer parar de pagar: orientar que já pode cancelar pelo portal
+      Assinatura no dashboard; acesso segue até fim do período pago
+
+Modelo de resposta (após 7 dias):
+  Olá,
+
+  Conforme nossos Termos de Uso (seção 8), o reembolso integral aplica-se
+  apenas aos pedidos feitos em até 7 dias após a primeira cobrança.
+
+  Sua solicitação está fora desse prazo. O cancelamento pode ser feito a
+  qualquer momento pelo botão Assinatura no dashboard; o acesso permanece
+  até o fim do período já pago, sem nova cobrança.
+
+  Capital Novo
+
+
+CENÁRIO 6 — Cliente nunca criou senha (pagou mas não acessou)
+-------------------------------------------------------------
+• Reembolso 7 dias: igual Cenário 2 (Refund + cancelar assinatura)
+• Não precisa mexer no Supabase Auth
+• gfp_assinaturas: conferir canceled após cancelamento no Stripe
+
+
+CENÁRIO 7 — Disputa / chargeback no cartão
+------------------------------------------
+• NÃO fazer refund manual se o banco já abriu disputa
+• Tratar direto no Stripe (seção Disputas)
+
+
+CENÁRIO 8 — Bloquear acesso na hora (emergência)
+------------------------------------------------
+[ ] Stripe → Clientes → cancelar assinatura (imediato)
+[ ] Supabase → gfp_assinaturas → status = canceled (manual se webhook demorar)
+[ ] Cliente perde acesso ao recarregar ou abrir o dashboard de novo
+      (sessão aberta pode persistir até recarregar a página)
+
+
+CENÁRIO 9 — Cliente pede exclusão de dados (LGPD)
+------------------------------------------------
+• Após tratar assinatura/reembolso conforme cenário acima
+• Seguir Política de Privacidade (exclusão sob demanda via contato)
+
+
+TABELA RÁPIDA
+-------------
+| Situação                         | Você age? | Reembolso | Acesso              |
+|----------------------------------|-----------|-----------|---------------------|
+| Cancelou pelo portal             | Não       | Não       | Até fim do período  |
+| Reembolso ≤ 7 dias (e-mail)      | SIM       | Manual    | Encerra após refund |
+| Reembolso > 7 dias               | Responde  | Não       | Conforme assinatura |
+| Webhook falhou                   | Supabase  | —         | canceled = bloqueia |
+| Disputa no cartão                | Stripe    | —         | —                   |
+
+
+ONDE CONFERIR NO DIA A DIA
+--------------------------
+1. E-mail contato@capitalnovo.com.br — pedidos de reembolso
+2. Stripe (produção) → Clientes / Assinaturas / Pagamentos
+3. Supabase → gfp_assinaturas (status por e-mail)
+
+Notificações Stripe (recomendado ativar em Configurações → Notificações):
+  • Assinatura cancelada
+  • Pagamento bem-sucedido
+  (Não substituem o e-mail de pedido de reembolso.)
+
+
+REFERÊNCIAS NO PROJETO
+----------------------
+  termos.html                              → seção 8 (texto público)
+  contato.html                             → instrução para o cliente
+  REEMBOLSO-7-DIAS.txt                     → checklist detalhado dos 7 dias
+  supabase/PORTAL-ASSINATURA.txt           → portal pelo dashboard
+  supabase/functions/stripe-webhook/       → atualiza gfp_assinaturas
+  auth-guard.js                            → bloqueia quem não está active
+
+
+MELHORIA FUTURA (opcional)
+--------------------------
+Automatizar validação dos 7 dias + refund via API Stripe + e-mail ao admin.
+Até lá: use este arquivo e REEMBOLSO-7-DIAS.txt.
