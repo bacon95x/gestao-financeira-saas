@@ -1184,12 +1184,22 @@
             class="w-full max-w-md rounded-2xl border border-bank-border bg-bank-card p-6 shadow-glow"
           >
             <h2 id="modal-renda-mes-title" class="text-lg font-semibold text-white">
-              Renda mensal — mês e valor
+              Renda mensal — ano, mês e valor
             </h2>
             <p class="mt-1 text-sm text-bank-muted">
-              Escolha o mês e informe o valor em reais. O cartão do dashboard mostra o mês selecionado.
+              Escolha o ano, o mês e informe o valor em reais. O cartão do dashboard mostra o período
+              selecionado.
             </p>
             <div class="mt-5 space-y-4">
+              <div>
+                <label class="block text-xs font-medium text-zinc-400" for="modal-renda-select-ano"
+                  >Ano</label
+                >
+                <select
+                  id="modal-renda-select-ano"
+                  class="mt-1.5 w-full rounded-xl border border-bank-border bg-bank-bg px-4 py-2.5 text-sm text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
+                ></select>
+              </div>
               <div>
                 <label class="block text-xs font-medium text-zinc-400" for="modal-renda-select-mes"
                   >Mês</label
@@ -2645,6 +2655,7 @@
         const STORAGE_SALDO_PARTES_POR_MES = "gfp_saldo_partes_por_mes_v1";
         const STORAGE_RENDA_MENSAL = "gfp_renda_mensal_v1";
         const STORAGE_RENDA_DASHBOARD_MES_IDX = "gfp_renda_dashboard_mes_idx_v1";
+        const STORAGE_RENDA_DASHBOARD_REF = "gfp_renda_dashboard_ref_v1";
         const STORAGE_DASHBOARD_GASTOS_REF = "gfp_dashboard_gastos_ref_v1";
         const STORAGE_DASHBOARD_ANOTACOES = "gfp_dashboard_anotacoes_v1";
         const STORAGE_CONTAS_PAGAR_CATALOG = "gfp_contas_pagar_catalog_v1";
@@ -2810,6 +2821,7 @@
         let rendaMensalPorMes = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
         /** Mês cujo valor aparece no cartão Renda mensal (0–11). */
         let rendaDashboardMesIdx = new Date().getMonth();
+        let rendaDashboardAno = new Date().getFullYear();
         let rendaDashboardValorVisivel = false;
         let gastosDashboardValorVisivel = false;
         let historico12ValorVisivel = false;
@@ -2888,7 +2900,7 @@
         }
 
         function anoRendaDashboard() {
-          return new Date().getFullYear();
+          return rendaDashboardAno;
         }
 
         function chaveSaldoPartesMes(ano, mesIdx) {
@@ -2958,10 +2970,14 @@
           if (raw && Array.isArray(raw) && raw.length) {
             return totalSaldoDasPartesLista(deserializarSaldoPartesArray(raw));
           }
-          return rendaMensalPorMes[mesIdx] || 0;
+          const cy = new Date().getFullYear();
+          if (ano === cy) return rendaMensalPorMes[mesIdx] || 0;
+          return 0;
         }
 
         function sincronizarRendaMensalDasPartesPorMesNoAno(ano) {
+          const cy = new Date().getFullYear();
+          if (ano !== cy) return;
           let mudou = false;
           for (let m = 0; m <= 11; m++) {
             const k = chaveSaldoPartesMes(ano, m);
@@ -2988,19 +3004,23 @@
           syncSaldoPartesFromModalInputs();
           const total = normalizarValorCentavosBR(totalSaldoDasPartes());
           const ano = anoRendaDashboard();
+          const cy = new Date().getFullYear();
           const m0 = rendaDashboardMesIdx;
           if (m0 < 0 || m0 > 11) return;
           const partesSnapshot = clonarSaldoPartes(saldoPartes);
           if (replicarParaMesesSeguintes) {
             for (let m = m0; m <= 11; m++) {
-              rendaMensalPorMes[m] = total;
+              if (ano === cy) rendaMensalPorMes[m] = total;
               saldoPartesPorMes[chaveSaldoPartesMes(ano, m)] = clonarSaldoPartes(partesSnapshot);
             }
-            saldoDisponivel = total;
-            localStorage.setItem(STORAGE_SALDO_PARTES, JSON.stringify(saldoPartes));
-            localStorage.setItem(STORAGE_SALDO, String(saldoDisponivel));
+            const hoje = new Date();
+            if (ano === hoje.getFullYear()) {
+              saldoDisponivel = total;
+              localStorage.setItem(STORAGE_SALDO_PARTES, JSON.stringify(saldoPartes));
+              localStorage.setItem(STORAGE_SALDO, String(saldoDisponivel));
+            }
           } else {
-            rendaMensalPorMes[m0] = total;
+            if (ano === cy) rendaMensalPorMes[m0] = total;
             saldoPartesPorMes[chaveSaldoPartesMes(ano, m0)] = clonarSaldoPartes(partesSnapshot);
             for (let m = m0 + 1; m <= 11; m++) {
               const k = chaveSaldoPartesMes(ano, m);
@@ -3021,9 +3041,11 @@
               localStorage.setItem(STORAGE_SALDO, String(saldoDisponivel));
             }
           }
-          localStorage.setItem(STORAGE_RENDA_MENSAL, JSON.stringify(rendaMensalPorMes));
+          if (ano === cy) {
+            localStorage.setItem(STORAGE_RENDA_MENSAL, JSON.stringify(rendaMensalPorMes));
+            sincronizarRendaMensalDasPartesPorMesNoAno(ano);
+          }
           persistirSaldoPartesPorMes();
-          sincronizarRendaMensalDasPartesPorMesNoAno(ano);
         }
 
         function saveSaldoPartes() {
@@ -3114,11 +3136,23 @@
             }
             saldoDisponivel = rendaMensalPorMes[new Date().getMonth()] || 0;
             localStorage.setItem(STORAGE_SALDO, String(saldoDisponivel));
-            const rdmi = localStorage.getItem(STORAGE_RENDA_DASHBOARD_MES_IDX);
-            if (rdmi != null) {
-              const n = parseInt(rdmi, 10);
-              if (n >= 0 && n <= 11) rendaDashboardMesIdx = n;
-            } else rendaDashboardMesIdx = new Date().getMonth();
+            const rdRef = localStorage.getItem(STORAGE_RENDA_DASHBOARD_REF);
+            if (rdRef) {
+              try {
+                const o = JSON.parse(rdRef);
+                const y = parseInt(o.y, 10);
+                const m = parseInt(o.m, 10);
+                if (Number.isFinite(y) && y >= 1970 && y <= 2100) rendaDashboardAno = y;
+                if (Number.isFinite(m) && m >= 0 && m <= 11) rendaDashboardMesIdx = m;
+              } catch (_) {}
+            } else {
+              const rdmi = localStorage.getItem(STORAGE_RENDA_DASHBOARD_MES_IDX);
+              if (rdmi != null) {
+                const n = parseInt(rdmi, 10);
+                if (n >= 0 && n <= 11) rendaDashboardMesIdx = n;
+              } else rendaDashboardMesIdx = new Date().getMonth();
+              rendaDashboardAno = new Date().getFullYear();
+            }
             const dgRef = localStorage.getItem(STORAGE_DASHBOARD_GASTOS_REF);
             if (dgRef) {
               try {
@@ -3146,7 +3180,7 @@
             } catch {
               saldoPartesPorMes = {};
             }
-            sincronizarRendaMensalDasPartesPorMesNoAno(anoRendaDashboard());
+            sincronizarRendaMensalDasPartesPorMesNoAno(new Date().getFullYear());
           } catch {
             gastos = [];
             contas = [];
@@ -3157,6 +3191,7 @@
             saldoPartes = SALDO_PARTES_TEMPLATE.map((t) => ({ ...t }));
             rendaMensalPorMes = Array(12).fill(0);
             rendaDashboardMesIdx = new Date().getMonth();
+            rendaDashboardAno = new Date().getFullYear();
             dashboardGastosAno = new Date().getFullYear();
             dashboardGastosMesIdx = new Date().getMonth();
             dashboardAnotacoesPorMes = {};
@@ -3170,6 +3205,16 @@
               STORAGE_DASHBOARD_GASTOS_REF,
               JSON.stringify({ y: dashboardGastosAno, m: dashboardGastosMesIdx })
             );
+          } catch (_) {}
+        }
+
+        function saveRendaDashboardRef() {
+          try {
+            localStorage.setItem(
+              STORAGE_RENDA_DASHBOARD_REF,
+              JSON.stringify({ y: rendaDashboardAno, m: rendaDashboardMesIdx })
+            );
+            localStorage.setItem(STORAGE_RENDA_DASHBOARD_MES_IDX, String(rendaDashboardMesIdx));
           } catch (_) {}
         }
 
@@ -7200,7 +7245,8 @@
             saldoPartes = deserializarSaldoPartesArray(raw);
             return;
           }
-          redefinirSaldoPartesParaTotalMensal(rendaMensalPorMes[m] || 0);
+          const cy = new Date().getFullYear();
+          redefinirSaldoPartesParaTotalMensal(ano === cy ? rendaMensalPorMes[m] || 0 : 0);
         }
 
         function atualizarOpcoesSalvarPorquinho() {
@@ -7514,7 +7560,7 @@
 
         function atualizarCabecalhoModalSaldoPorquinho() {
           const mesNome = MESES_CONTAS_PAGAR[rendaDashboardMesIdx] || "";
-          const ano = new Date().getFullYear();
+          const ano = anoRendaDashboard();
           const tit = document.getElementById("modal-saldo-title");
           if (tit) tit.textContent = "Renda mensal — detalhe (" + mesNome + " de " + ano + ")";
           const desc = document.getElementById("modal-saldo-desc");
@@ -7572,11 +7618,13 @@
           const el = document.getElementById("card-renda-valor");
           const ref = document.getElementById("card-renda-mes-ref");
           const btnVis = document.getElementById("btn-renda-visualizar");
-          const ano = new Date().getFullYear();
+          const ano = anoRendaDashboard();
+          const now = new Date();
           const mesNome = MESES_CONTAS_PAGAR[rendaDashboardMesIdx] || "";
+          const isMesAtual =
+            rendaDashboardAno === now.getFullYear() && rendaDashboardMesIdx === now.getMonth();
           if (ref)
-            ref.textContent =
-              mesNome + " de " + ano + (rendaDashboardMesIdx === new Date().getMonth() ? " (mês atual)" : "");
+            ref.textContent = mesNome + " de " + ano + (isMesAtual ? " (mês atual)" : "");
           if (el) {
             const v = valorRendaMesComSomaPartes(ano, rendaDashboardMesIdx);
             el.textContent = rendaDashboardValorVisivel ? formatMoney(v) : TEXTO_RENDA_OCULTA;
@@ -7605,10 +7653,43 @@
           }
         }
 
+        function preencherAnoSelectModalRendaMes() {
+          const sel = document.getElementById("modal-renda-select-ano");
+          if (!sel) return;
+          const cy = new Date().getFullYear();
+          let minY = cy;
+          let maxY = cy;
+          Object.keys(saldoPartesPorMes).forEach((k) => {
+            const y = parseInt(String(k).split("-")[0], 10);
+            if (Number.isFinite(y)) {
+              minY = Math.min(minY, y);
+              maxY = Math.max(maxY, y);
+            }
+          });
+          minY = Math.min(minY, rendaDashboardAno, cy, cy - 5);
+          maxY = Math.max(maxY, rendaDashboardAno, cy);
+          sel.innerHTML = "";
+          for (let y = minY; y <= maxY; y++) {
+            const o = document.createElement("option");
+            o.value = String(y);
+            o.textContent = String(y);
+            sel.appendChild(o);
+          }
+          sel.value = String(rendaDashboardAno);
+        }
+
+        function anoSelecionadoModalRendaMes() {
+          const selAno = document.getElementById("modal-renda-select-ano");
+          const y = selAno ? parseInt(selAno.value, 10) : rendaDashboardAno;
+          return Number.isFinite(y) ? y : rendaDashboardAno;
+        }
+
         function abrirModalRendaMes() {
+          const selAno = document.getElementById("modal-renda-select-ano");
           const sel = document.getElementById("modal-renda-select-mes");
           const inp = document.getElementById("modal-renda-input-valor");
-          if (!sel || !inp) return;
+          if (!selAno || !sel || !inp) return;
+          preencherAnoSelectModalRendaMes();
           sel.innerHTML = "";
           MESES_CONTAS_PAGAR.forEach((nome, idx) => {
             const o = document.createElement("option");
@@ -7619,7 +7700,7 @@
           });
           const idxSel = parseInt(sel.value, 10);
           const idxUse = Number.isFinite(idxSel) ? idxSel : rendaDashboardMesIdx;
-          const v = valorRendaMesComSomaPartes(anoRendaDashboard(), idxUse);
+          const v = valorRendaMesComSomaPartes(anoSelecionadoModalRendaMes(), idxUse);
           inp.value = v !== 0 ? String(v) : "";
           const modal = document.getElementById("modal-renda-mes");
           modal.classList.remove("hidden");
@@ -7633,7 +7714,7 @@
           if (!sel || !inp) return;
           const idx = parseInt(sel.value, 10);
           if (!Number.isFinite(idx) || idx < 0 || idx > 11) return;
-          const v = valorRendaMesComSomaPartes(anoRendaDashboard(), idx);
+          const v = valorRendaMesComSomaPartes(anoSelecionadoModalRendaMes(), idx);
           inp.value = v !== 0 ? String(v) : "";
         }
 
@@ -9381,19 +9462,30 @@
           if (e.target.id === "modal-renda-mes") fecharModalRendaMes();
         });
         document.getElementById("modal-renda-select-mes").addEventListener("change", sincModalRendaMesValorDoMesSelecionado);
+        const selAnoModalRenda = document.getElementById("modal-renda-select-ano");
+        if (selAnoModalRenda) {
+          selAnoModalRenda.addEventListener("change", sincModalRendaMesValorDoMesSelecionado);
+        }
         document.getElementById("btn-salvar-modal-renda-mes").addEventListener("click", () => {
+          const selAno = document.getElementById("modal-renda-select-ano");
           const sel = document.getElementById("modal-renda-select-mes");
           const inp = document.getElementById("modal-renda-input-valor");
+          const anoSel = selAno ? parseInt(selAno.value, 10) : rendaDashboardAno;
           const idx = parseInt(sel.value, 10);
+          if (!Number.isFinite(anoSel) || anoSel < 1970 || anoSel > 2100) return;
           if (!Number.isFinite(idx) || idx < 0 || idx > 11) return;
           const raw = inp.value.trim();
           const x = raw === "" ? 0 : parseValorMonetarioLancamento(raw);
           const novoTotal = normalizarValorCentavosBR(Number.isFinite(x) ? Math.max(0, x) : 0);
-          rendaMensalPorMes[idx] = novoTotal;
+          rendaDashboardAno = anoSel;
           rendaDashboardMesIdx = idx;
-          localStorage.setItem(STORAGE_RENDA_DASHBOARD_MES_IDX, String(idx));
-          const anoMap = anoRendaDashboard();
-          const kMap = chaveSaldoPartesMes(anoMap, idx);
+          saveRendaDashboardRef();
+          const cy = new Date().getFullYear();
+          if (anoSel === cy) {
+            rendaMensalPorMes[idx] = novoTotal;
+            localStorage.setItem(STORAGE_RENDA_MENSAL, JSON.stringify(rendaMensalPorMes));
+          }
+          const kMap = chaveSaldoPartesMes(anoSel, idx);
           const brutoMap = saldoPartesPorMes[kMap];
           let somaSalva = 0;
           if (brutoMap && Array.isArray(brutoMap) && brutoMap.length) {
@@ -9410,12 +9502,12 @@
             redefinirSaldoPartesParaTotalMensal(novoTotal);
             saldoPartesPorMes[kMap] = clonarSaldoPartes(saldoPartes);
           }
-          localStorage.setItem(STORAGE_RENDA_MENSAL, JSON.stringify(rendaMensalPorMes));
           localStorage.setItem(STORAGE_SALDO_PARTES, JSON.stringify(saldoPartes));
           persistirSaldoPartesPorMes();
-          sincronizarRendaMensalDasPartesPorMesNoAno(anoMap);
-          if (idx === new Date().getMonth()) {
-            saldoDisponivel = rendaMensalPorMes[idx];
+          if (anoSel === cy) sincronizarRendaMensalDasPartesPorMesNoAno(anoSel);
+          const hoje = new Date();
+          if (idx === hoje.getMonth() && anoSel === hoje.getFullYear()) {
+            saldoDisponivel = novoTotal;
             localStorage.setItem(STORAGE_SALDO, String(saldoDisponivel));
           }
           fecharModalRendaMes();
