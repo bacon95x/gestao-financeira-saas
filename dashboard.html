@@ -3520,6 +3520,17 @@
           return calendarioJurosPorMes[k];
         }
 
+        function totalJurosTaxasMesAno(y, m) {
+          const linhas = calendarioJurosPorMes[chaveCalendarioJuros(y, m)];
+          if (!Array.isArray(linhas)) return 0;
+          let s = 0;
+          linhas.forEach((row) => {
+            const j = row.juros != null ? Number(row.juros) : NaN;
+            if (Number.isFinite(j)) s += j;
+          });
+          return s;
+        }
+
         function aplicarSnapshotLinhaJuros(dest, snap) {
           if (snap.juros === null || snap.juros === "" || snap.juros === undefined) dest.juros = null;
           else if (Number.isFinite(Number(snap.juros))) dest.juros = Number(snap.juros);
@@ -3718,6 +3729,7 @@
               row.juros = v === "" ? null : Number.isFinite(parseFloat(v)) ? parseFloat(v) : row.juros;
               saveCalendarioJuros();
               renderCalendarioJurosTabela();
+              updateDashboard();
             });
             inJ.addEventListener("blur", () => {
               if (row.congelado) {
@@ -3748,6 +3760,7 @@
                   row.congelado = false;
                   saveCalendarioJuros();
                   renderCalendarioJurosTabela();
+                  updateDashboard();
                   lucide.createIcons();
                   return;
                 }
@@ -3765,6 +3778,7 @@
                 });
                 saveCalendarioJuros();
                 renderCalendarioJurosTabela();
+                updateDashboard();
                 lucide.createIcons();
               } catch (err) {
                 console.error("Congelar juros/taxas:", err);
@@ -3804,6 +3818,7 @@
               calendarioJurosPorMes[k] = linhasMes.filter((x) => x.id !== row.id);
               saveCalendarioJuros();
               renderCalendarioJurosTabela();
+              updateDashboard();
               lucide.createIcons();
             });
             wrapA.appendChild(btnEd);
@@ -7194,7 +7209,11 @@
         }
 
         function totalGastosMes() {
-          return totalGastosLancamentosMes() + totalFixasMesAno(dashboardGastosAno, dashboardGastosMesIdx);
+          return (
+            totalGastosLancamentosMes() +
+            totalFixasMesAno(dashboardGastosAno, dashboardGastosMesIdx) +
+            totalJurosTaxasMesAno(dashboardGastosAno, dashboardGastosMesIdx)
+          );
         }
 
         function indiceParcelaNoMesAno(g, dy, dm) {
@@ -7232,7 +7251,7 @@
           const lanc = gastos
             .filter((g) => isGastoInMesAno(g, y, m))
             .reduce((s, g) => s + valorGastoParaMesAno(g, y, m), 0);
-          return lanc + totalFixasMesAno(y, m);
+          return lanc + totalFixasMesAno(y, m) + totalJurosTaxasMesAno(y, m);
         }
 
         function mesAbrevHistorico(mesIdx) {
@@ -8203,7 +8222,7 @@
             dashboardGastosAno === now.getFullYear() && dashboardGastosMesIdx === now.getMonth();
           if (ref) {
             ref.textContent =
-              "Lançamentos (todos os meios) + fixas pagas. Pagar fatura de cartões não entra aqui, porque o gasto já foi adicionado em lançamentos. · Referência: " +
+              "Lançamentos (todos os meios) + fixas pagas + juros/taxas do mês (aba Juros/taxas, mesmo período). Pagar fatura de cartões não entra aqui, porque o gasto já foi adicionado em lançamentos. · Referência: " +
               mesNome.charAt(0).toUpperCase() +
               mesNome.slice(1) +
               (isMesAtual ? " (mês atual)" : "");
@@ -10791,7 +10810,7 @@
             seletor: "#tour-alvo-total-gastos",
             titulo: "Total de gastos no mês",
             texto:
-              "Aqui entra o que você pagou no mês: lançamentos (todos os meios) + contas fixas com valor pago preenchido. Pagar fatura de cartões não entra aqui.",
+              "Lançamentos + fixas com valor pago + juros/taxas do mesmo mês (aba Juros/taxas). Pagar fatura de cartões não entra aqui.",
           },
           {
             seletor: '[data-tab="lancamentos"]',
