@@ -9212,13 +9212,16 @@
           const trTot = document.createElement("tr");
           trTot.innerHTML =
             '<td class="px-3 py-2 tabular-nums text-sm font-bold text-emerald-200 sm:px-4">' +
-            formatMoney(totalValorPagoMes) +
+            formatMoney(totalGastoMes) +
             "</td>" +
-            '<td colspan="4" class="px-3 py-2 text-right text-[11px] font-medium uppercase tracking-wide text-bank-muted sm:px-4">Total pago (entra no dashboard)</td>' +
+            '<td colspan="5" class="px-3 py-2 text-right text-[11px] font-medium uppercase tracking-wide text-bank-muted sm:px-4">' +
+            "Totais do mês · valor pago entra no dashboard" +
+            "</td>" +
             '<td class="px-3 py-2 tabular-nums text-sm font-bold text-emerald-300/90 sm:px-4">' +
             formatMoney(totalValorPagoMes) +
             "</td>" +
-            '<td class="px-3 py-2 sm:px-4"></td><td class="px-3 py-2 sm:px-4"></td>';
+            '<td class="px-3 py-2 sm:px-4"></td>' +
+            '<td class="px-3 py-2 sm:px-4"></td>';
           tfoot.appendChild(trTot);
           table.appendChild(tbody);
           table.appendChild(tfoot);
