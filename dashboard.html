@@ -9667,8 +9667,9 @@
             '<i data-lucide="plus-circle" class="h-4 w-4"></i><span>Adicionar cartão (origem)</span>';
           btnAddLinha.addEventListener("click", () => {
             alert(
-              "Cartões servem para fatura e vencimento. O gasto do mês vem dos lançamentos (Crédito na data da compra) e das fixas com valor pago preenchido.\n\n" +
-                "Compras em cartão que não passaram por lançamentos não entram no total do dashboard — registre em Lançamentos com meio Crédito se quiser que entrem no gasto do mês."
+              "Cartões servem para fatura e vencimento. O gasto do mês vem dos lançamentos e das fixas com valor pago preenchido.\n\n" +
+                "Compras em cartão que não passaram por lançamentos não entram no total do dashboard — registre em Lançamentos ou em conta fixa se quiser que entrem no gasto do mês.\n\n" +
+                "Ação recomendada temporariamente somente para faturas antigas que não foram registradas em lançamento."
             );
             const nome = prompt(
               "Nome da origem/cartão (deve coincidir com Origem em Lançamentos):",
