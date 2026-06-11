@@ -1326,22 +1326,27 @@
             <div class="mb-6 flex flex-col gap-1">
               <h2 class="text-lg font-semibold text-white">Gastos fora do crédito</h2>
               <p class="text-sm text-bank-muted">
-                Lançamentos (sem Crédito) e contas fixas do mês, agrupados por meio de pagamento: Débito, Pix,
+                Lançamentos (sem Crédito) e contas fixas com valor pago preenchido, por meio: Débito, Pix,
                 Dinheiro, Vale alimentação e outros.
               </p>
             </div>
-            <div class="mx-auto max-w-md">
+            <div class="relative mx-auto h-[min(16rem,42vw)] w-full min-h-[14rem] max-w-md">
               <canvas
                 id="chart-pizza-sem-credito"
-                height="240"
+                class="!h-full !w-full"
                 aria-label="Pizza: gastos do mês sem crédito, por meio de pagamento"
               ></canvas>
             </div>
+            <div
+              id="chart-sem-credito-legenda"
+              class="mx-auto mt-4 hidden max-w-md grid grid-cols-3 gap-x-3 gap-y-2 sm:gap-x-4"
+              aria-hidden="true"
+            ></div>
             <p
               id="chart-sem-credito-empty"
               class="hidden py-10 text-center text-sm text-bank-muted"
             >
-              Nenhum gasto fora do crédito neste mês (lançamentos ou contas fixas).
+              Nenhum gasto fora do crédito neste mês (lançamentos ou contas fixas pagas).
             </p>
           </div>
           <div
@@ -1361,6 +1366,11 @@
                 aria-label="Gráfico de pizza: gastos no crédito por origem"
               ></canvas>
             </div>
+            <div
+              id="chart-origem-meio-legenda"
+              class="mx-auto mt-4 hidden max-w-md grid grid-cols-3 gap-x-3 gap-y-2 sm:gap-x-4"
+              aria-hidden="true"
+            ></div>
             <p
               id="chart-origem-meio-empty"
               class="hidden py-10 text-center text-sm text-bank-muted"
@@ -3973,8 +3983,8 @@
           return listaCategorias.includes("outros") ? "outros" : listaCategorias[0] || "outros";
         }
 
-        /** Contas fixas no gráfico de categoria: só entram com valor pago preenchido. */
-        function valorFixaParaGraficoCategoria(cell) {
+        /** Contas fixas contabilizadas: só entram com valor pago preenchido (o que de fato foi pago). */
+        function valorFixaValorPagoEfetivo(cell) {
           if (!cell || cell.valorPago == null || !Number.isFinite(Number(cell.valorPago))) return 0;
           const v = Number(cell.valorPago);
           return v > 0 ? v : 0;
@@ -4082,7 +4092,7 @@
           contasFixasItems.forEach((item) => {
             if (!contasPagarItemVisivelNaGrade(item, y, m)) return;
             const cell = peekCellContaFixa(y, m, item.id);
-            s += cell && Number.isFinite(Number(cell.gastoAtual)) ? Number(cell.gastoAtual) : 0;
+            s += valorFixaValorPagoEfetivo(cell);
           });
           return s;
         }
@@ -7232,7 +7242,7 @@
           contasFixasItems.forEach((item) => {
             if (!contasPagarItemVisivelNaGrade(item, dashboardGastosAno, dashboardGastosMesIdx)) return;
             const cell = peekCellContaFixa(dashboardGastosAno, dashboardGastosMesIdx, item.id);
-            const v = valorFixaParaGraficoCategoria(cell);
+            const v = valorFixaValorPagoEfetivo(cell);
             if (v <= 0) return;
             const cat = categoriaContaFixa(item);
             map[cat] = (map[cat] || 0) + v;
@@ -7254,7 +7264,7 @@
           contasFixasItems.forEach((item) => {
             if (!contasPagarItemVisivelNaGrade(item, dashboardGastosAno, dashboardGastosMesIdx)) return;
             const cell = peekCellContaFixa(dashboardGastosAno, dashboardGastosMesIdx, item.id);
-            const v = cell && Number.isFinite(Number(cell.gastoAtual)) ? Number(cell.gastoAtual) : 0;
+            const v = valorFixaValorPagoEfetivo(cell);
             if (v <= 0) return;
             const m = (item.meioPagamento || "Pix").trim();
             if (m === "Crédito") return;
@@ -7858,15 +7868,15 @@
           "rgba(167, 139, 250, 0.88)",
         ];
 
-        function colSpanLegendaPizzaCategoria(label) {
+        function colSpanLegendaPizza(label) {
           const n = String(label).length;
           if (n > 18) return 3;
           if (n > 11) return 2;
           return 1;
         }
 
-        function renderLegendaPizzaCategoria(labels, cores) {
-          const el = document.getElementById("chart-categoria-legenda");
+        function renderLegendaPizzaGrid(legendElId, labels, cores) {
+          const el = document.getElementById(legendElId);
           if (!el) return;
           el.innerHTML = "";
           if (!labels.length) {
@@ -7880,7 +7890,7 @@
             document.documentElement.getAttribute("data-appearance") === "light";
           const txtColor = light ? "#52525b" : "#a1a1aa";
           labels.forEach((lab, i) => {
-            const span = colSpanLegendaPizzaCategoria(lab);
+            const span = colSpanLegendaPizza(lab);
             const div = document.createElement("div");
             div.className =
               "flex min-w-0 items-center gap-1.5" +
@@ -7991,7 +8001,7 @@
             dashboardGastosAno === now.getFullYear() && dashboardGastosMesIdx === now.getMonth();
           if (ref) {
             ref.textContent =
-              "Gasto do mês = lançamentos + contas fixas (crédito na data do lançamento). Pagar fatura não entra. · Referência: " +
+              "Tudo que você pagou no mês: lançamentos + contas fixas com valor pago preenchido. Crédito na data do lançamento; pagar fatura não entra. · Referência: " +
               mesNome.charAt(0).toUpperCase() +
               mesNome.slice(1) +
               (isMesAtual ? " (mês atual)" : "");
@@ -8267,6 +8277,8 @@
           document.getElementById("card-proximos").textContent = textoDataMaisProximoVencimento();
           atualizarCardRendaDashboard();
 
+          const pieOptsPadrao = { hideLegend: true, fillContainer: true };
+
           const mapSem = agregadoPorMeioSemCreditoMes();
           const pieSem = pizzaLabelsDataCoresSemCredito(mapSem);
           criarOuAtualizarPizza(
@@ -8279,11 +8291,14 @@
               } },
             pieSem.labels,
             pieSem.data,
-            pieSem.cores
+            pieSem.cores,
+            pieOptsPadrao
           );
+          renderLegendaPizzaGrid("chart-sem-credito-legenda", pieSem.labels, pieSem.cores);
 
           const aggCartao = agregadoPorOrigemCreditoMes();
           const labelsCartao = Object.keys(aggCartao);
+          const coresCartao = coresGraficoOrigem(labelsCartao);
           criarOuAtualizarPizza(
             document.getElementById("chart-pizza-origem-meio"),
             document.getElementById("chart-origem-meio-empty"),
@@ -8294,8 +8309,10 @@
               } },
             labelsCartao,
             Object.values(aggCartao),
-            coresGraficoOrigem(labelsCartao)
+            coresCartao,
+            pieOptsPadrao
           );
+          renderLegendaPizzaGrid("chart-origem-meio-legenda", labelsCartao, coresCartao);
 
           const aggCat = agregadoPorCategoriaMes();
           const labelsCat = Object.keys(aggCat);
@@ -8312,9 +8329,9 @@
             labelsCat,
             dataCat,
             CORES_CATEGORIA,
-            { hideLegend: true, fillContainer: true }
+            pieOptsPadrao
           );
-          renderLegendaPizzaCategoria(labelsCat, coresCat);
+          renderLegendaPizzaGrid("chart-categoria-legenda", labelsCat, coresCat);
           renderHistorico12Chart();
         }
 
@@ -9195,9 +9212,9 @@
           const trTot = document.createElement("tr");
           trTot.innerHTML =
             '<td class="px-3 py-2 tabular-nums text-sm font-bold text-emerald-200 sm:px-4">' +
-            formatMoney(totalGastoMes) +
+            formatMoney(totalValorPagoMes) +
             "</td>" +
-            '<td colspan="4" class="px-3 py-2 text-right text-[11px] font-medium uppercase tracking-wide text-bank-muted sm:px-4">Total do mês (entra no dashboard)</td>' +
+            '<td colspan="4" class="px-3 py-2 text-right text-[11px] font-medium uppercase tracking-wide text-bank-muted sm:px-4">Total pago (entra no dashboard)</td>' +
             '<td class="px-3 py-2 tabular-nums text-sm font-bold text-emerald-300/90 sm:px-4">' +
             formatMoney(totalValorPagoMes) +
             "</td>" +
