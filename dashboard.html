@@ -658,6 +658,26 @@
         max-width: 100%;
         box-sizing: border-box;
       }
+      /* Tour do dashboard */
+      #tour-dashboard-overlay {
+        pointer-events: auto;
+      }
+      #tour-dashboard-spotlight {
+        position: fixed;
+        z-index: 101;
+        border-radius: 0.75rem;
+        box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.74);
+        pointer-events: none;
+        transition:
+          top 0.28s ease,
+          left 0.28s ease,
+          width 0.28s ease,
+          height 0.28s ease;
+      }
+      html[data-appearance="light"] #tour-dashboard-spotlight {
+        box-shadow: 0 0 0 9999px rgba(15, 15, 25, 0.55);
+      }
+
       #calendario-juros-mount table tbody td:first-child button.cj-btn-congelar-juros {
         flex-shrink: 0;
         margin: 0;
@@ -804,6 +824,15 @@
               Escuro
             </button>
           </div>
+          <button
+            type="button"
+            id="btn-tour-como-funciona"
+            class="inline-flex shrink-0 items-center gap-2 rounded-2xl border border-violet-500/35 bg-violet-600/10 px-3 py-2 text-xs font-semibold text-violet-200 transition hover:bg-violet-600/20"
+            title="Tour rápido: Lançamentos, Contas fixas e Cartões"
+          >
+            <i data-lucide="help-circle" class="h-4 w-4"></i>
+            Como funciona?
+          </button>
           <div
             class="flex flex-wrap items-center gap-2 rounded-2xl border border-bank-border bg-bank-card/80 px-2 py-2 backdrop-blur-sm"
             role="group"
@@ -954,6 +983,7 @@
       >
         <div class="grid gap-4 sm:grid-cols-3">
           <article
+            id="tour-alvo-total-gastos"
             class="group relative overflow-hidden rounded-2xl border border-bank-border bg-bank-card p-5 shadow-glow transition hover:border-violet-500/30"
           >
             <div class="flex items-start justify-between gap-3">
@@ -1319,7 +1349,7 @@
           </div>
         </article>
 
-        <div class="grid gap-6 lg:grid-cols-3">
+        <div id="tour-alvo-graficos" class="grid gap-6 lg:grid-cols-3">
           <div
             class="rounded-2xl border border-bank-border bg-bank-card p-6 shadow-glow sm:p-8"
           >
@@ -2689,6 +2719,45 @@
       </footer>
     </div>
 
+    <div
+      id="tour-dashboard-overlay"
+      class="fixed inset-0 z-[100] hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="tour-dashboard-titulo"
+      aria-hidden="true"
+    >
+      <div id="tour-dashboard-spotlight" aria-hidden="true"></div>
+      <div
+        id="tour-dashboard-card"
+        class="fixed z-[102] w-[min(calc(100vw-2rem),22rem)] rounded-2xl border border-violet-500/40 bg-bank-card p-5 shadow-glow"
+      >
+        <p
+          id="tour-dashboard-contador"
+          class="text-xs font-medium uppercase tracking-wide text-violet-300"
+        ></p>
+        <h3 id="tour-dashboard-titulo" class="mt-1 text-lg font-semibold text-white"></h3>
+        <p id="tour-dashboard-texto" class="mt-2 text-sm leading-relaxed text-bank-muted"></p>
+        <div id="tour-dashboard-dots" class="mt-4 flex justify-center gap-1.5" aria-hidden="true"></div>
+        <div class="mt-5 flex items-center justify-between gap-2">
+          <button
+            type="button"
+            id="tour-dashboard-pular"
+            class="rounded-xl border border-bank-border px-3 py-2 text-xs font-medium text-zinc-400 transition hover:bg-white/5 hover:text-zinc-200"
+          >
+            Pular tour
+          </button>
+          <button
+            type="button"
+            id="tour-dashboard-proximo"
+            class="rounded-xl bg-violet-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-violet-500"
+          >
+            Próximo
+          </button>
+        </div>
+      </div>
+    </div>
+
     <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script>
@@ -2708,6 +2777,7 @@
         const STORAGE_CONTAS_FIXAS_CATALOG = "gfp_contas_fixas_catalog_v1";
         const STORAGE_CONTAS_FIXAS_ANUAL = "gfp_contas_fixas_anual_v1";
         const STORAGE_MIGRACAO_FIXAS_V1 = "gfp_migracao_contas_fixas_v1";
+        const STORAGE_TOUR_DASHBOARD = "gfp_tour_dashboard_v1";
         const STORAGE_LISTA_ORIGENS = "gfp_lista_origens_v1";
         const STORAGE_LISTA_CATEGORIAS = "gfp_lista_categorias_v1";
         const STORAGE_CALENDARIO_JUROS = "gfp_calendario_juros_v1";
@@ -10561,6 +10631,193 @@
           aplicarAparência(cur);
         }
 
+        const TOUR_DASHBOARD_PASSOS = [
+          {
+            seletor: "#tour-alvo-total-gastos",
+            titulo: "Total de gastos no mês",
+            texto:
+              "Aqui entra o que você pagou no mês: lançamentos (todos os meios) + contas fixas com valor pago preenchido. Pagar fatura de cartões não entra aqui.",
+          },
+          {
+            seletor: '[data-tab="lancamentos"]',
+            titulo: "Lançamentos",
+            texto:
+              "Registre compras do dia a dia: Pix, débito, crédito e outros. É a base do seu gasto do mês.",
+          },
+          {
+            seletor: '[data-tab="contas-fixas"]',
+            titulo: "Contas fixas",
+            texto:
+              "Aluguel, internet, assinaturas… Preencha valor pago quando pagar — aí entra no total e nos gráficos.",
+          },
+          {
+            seletor: '[data-tab="contas-pagar"]',
+            titulo: "Cartões",
+            texto:
+              "Controle de fatura e vencimento. Pagar a fatura aqui não soma de novo — o gasto já foi nos lançamentos.",
+          },
+          {
+            seletor: "#tour-alvo-graficos",
+            titulo: "Gráficos",
+            texto:
+              "Os gráficos seguem a mesma regra: lançamentos + fixas pagas; gastos no cartão vêm só dos lançamentos em Crédito.",
+          },
+        ];
+
+        let tourDashboardAtivo = false;
+        let tourDashboardPassoIdx = 0;
+
+        function marcarTourDashboardVisto() {
+          try {
+            localStorage.setItem(STORAGE_TOUR_DASHBOARD, "1");
+          } catch (_) {}
+        }
+
+        function tourDashboardJaVisto() {
+          try {
+            return localStorage.getItem(STORAGE_TOUR_DASHBOARD) === "1";
+          } catch (_) {
+            return false;
+          }
+        }
+
+        function posicionarTourDashboardSpotlight(el) {
+          const spot = document.getElementById("tour-dashboard-spotlight");
+          const card = document.getElementById("tour-dashboard-card");
+          if (!spot || !el) return;
+          const pad = 8;
+          const r = el.getBoundingClientRect();
+          spot.style.top = Math.max(0, r.top - pad) + "px";
+          spot.style.left = Math.max(0, r.left - pad) + "px";
+          spot.style.width = r.width + pad * 2 + "px";
+          spot.style.height = r.height + pad * 2 + "px";
+          if (!card) return;
+          const margin = 14;
+          const cardRect = card.getBoundingClientRect();
+          const cardH = cardRect.height || 200;
+          const cardW = cardRect.width || 320;
+          let top = r.bottom + margin;
+          if (top + cardH > window.innerHeight - 16) {
+            top = r.top - cardH - margin;
+          }
+          if (top < 16) top = 16;
+          let left = r.left + r.width / 2 - cardW / 2;
+          left = Math.min(Math.max(16, left), window.innerWidth - cardW - 16);
+          card.style.top = top + "px";
+          card.style.left = left + "px";
+        }
+
+        function renderTourDashboardDots() {
+          const wrap = document.getElementById("tour-dashboard-dots");
+          if (!wrap) return;
+          wrap.innerHTML = "";
+          TOUR_DASHBOARD_PASSOS.forEach((_, i) => {
+            const d = document.createElement("span");
+            d.className =
+              "h-1.5 rounded-full transition-all " +
+              (i === tourDashboardPassoIdx
+                ? "w-4 bg-violet-400"
+                : "w-1.5 bg-zinc-600");
+            wrap.appendChild(d);
+          });
+        }
+
+        function mostrarPassoTourDashboard(idx) {
+          const passo = TOUR_DASHBOARD_PASSOS[idx];
+          if (!passo) return;
+          tourDashboardPassoIdx = idx;
+          const el = document.querySelector(passo.seletor);
+          const titulo = document.getElementById("tour-dashboard-titulo");
+          const texto = document.getElementById("tour-dashboard-texto");
+          const contador = document.getElementById("tour-dashboard-contador");
+          const btnProx = document.getElementById("tour-dashboard-proximo");
+          if (!el || !titulo || !texto || !contador || !btnProx) return;
+
+          if (idx === 0 || idx === TOUR_DASHBOARD_PASSOS.length - 1) {
+            setTab("dashboard");
+          }
+
+          titulo.textContent = passo.titulo;
+          texto.textContent = passo.texto;
+          contador.textContent = "Passo " + (idx + 1) + " de " + TOUR_DASHBOARD_PASSOS.length;
+          btnProx.textContent =
+            idx >= TOUR_DASHBOARD_PASSOS.length - 1 ? "Concluir" : "Próximo";
+          renderTourDashboardDots();
+
+          el.scrollIntoView({ block: "center", behavior: "smooth" });
+          const aplicar = () => posicionarTourDashboardSpotlight(el);
+          aplicar();
+          window.setTimeout(aplicar, 320);
+        }
+
+        function fecharTourDashboard(marcarVisto) {
+          tourDashboardAtivo = false;
+          const overlay = document.getElementById("tour-dashboard-overlay");
+          if (overlay) {
+            overlay.classList.add("hidden");
+            overlay.setAttribute("aria-hidden", "true");
+          }
+          document.body.style.overflow = "";
+          if (marcarVisto) marcarTourDashboardVisto();
+        }
+
+        function iniciarTourDashboard() {
+          const overlay = document.getElementById("tour-dashboard-overlay");
+          if (!overlay) return;
+          tourDashboardAtivo = true;
+          tourDashboardPassoIdx = 0;
+          overlay.classList.remove("hidden");
+          overlay.setAttribute("aria-hidden", "false");
+          document.body.style.overflow = "hidden";
+          setTab("dashboard");
+          mostrarPassoTourDashboard(0);
+          try {
+            if (typeof lucide !== "undefined" && lucide.createIcons) lucide.createIcons();
+          } catch (_) {}
+        }
+
+        function avancarTourDashboard() {
+          if (tourDashboardPassoIdx >= TOUR_DASHBOARD_PASSOS.length - 1) {
+            fecharTourDashboard(true);
+            return;
+          }
+          mostrarPassoTourDashboard(tourDashboardPassoIdx + 1);
+        }
+
+        function initTourDashboard() {
+          const btnHelp = document.getElementById("btn-tour-como-funciona");
+          const btnPular = document.getElementById("tour-dashboard-pular");
+          const btnProx = document.getElementById("tour-dashboard-proximo");
+          if (btnHelp && btnHelp.dataset.bound !== "1") {
+            btnHelp.dataset.bound = "1";
+            btnHelp.addEventListener("click", () => iniciarTourDashboard());
+          }
+          if (btnPular && btnPular.dataset.bound !== "1") {
+            btnPular.dataset.bound = "1";
+            btnPular.addEventListener("click", () => fecharTourDashboard(true));
+          }
+          if (btnProx && btnProx.dataset.bound !== "1") {
+            btnProx.dataset.bound = "1";
+            btnProx.addEventListener("click", () => avancarTourDashboard());
+          }
+          if (window.__tourDashboardResizeBound !== "1") {
+            window.__tourDashboardResizeBound = "1";
+            window.addEventListener("resize", () => {
+              if (!tourDashboardAtivo) return;
+              const passo = TOUR_DASHBOARD_PASSOS[tourDashboardPassoIdx];
+              const el = passo ? document.querySelector(passo.seletor) : null;
+              if (el) posicionarTourDashboardSpotlight(el);
+            });
+          }
+        }
+
+        function agendarTourDashboardInicial() {
+          if (tourDashboardJaVisto()) return;
+          window.setTimeout(() => {
+            if (!tourDashboardJaVisto()) iniciarTourDashboard();
+          }, 900);
+        }
+
         async function gfpBootstrapDashboard() {
           try {
             if (typeof window.gfpWaitForAuth === "function") {
@@ -10578,6 +10835,7 @@
           initLogoutControl();
           initAssinaturaControl();
           initBackupControls();
+          initTourDashboard();
           if (typeof window.gfpInitCloudControls === "function") window.gfpInitCloudControls();
           initThemeFundoPicker();
           initFundoIluminacao();
@@ -10614,6 +10872,7 @@
           } catch (e) {
             console.warn("Ícones Lucide:", e);
           }
+          agendarTourDashboardInicial();
         }
 
         gfpBootstrapDashboard();
