@@ -1354,10 +1354,10 @@
                 fatura não entra aqui.
               </p>
             </div>
-            <div class="mx-auto max-w-md">
+            <div class="relative mx-auto h-[min(16rem,42vw)] w-full min-h-[14rem] max-w-md">
               <canvas
                 id="chart-pizza-origem-meio"
-                height="220"
+                class="!h-full !w-full"
                 aria-label="Gráfico de pizza: gastos no crédito por origem"
               ></canvas>
             </div>
@@ -1375,17 +1375,22 @@
               <div>
                 <h2 class="text-lg font-semibold text-white">Gastos por categoria</h2>
                 <p id="dashboard-gastos-categoria-desc" class="text-sm text-bank-muted">
-                  Lançamentos e contas fixas do mês, por categoria
+                  Lançamentos do mês + contas fixas com valor pago preenchido, por categoria
                 </p>
               </div>
             </div>
-            <div class="mx-auto max-w-md">
+            <div class="relative mx-auto h-[min(16rem,42vw)] w-full min-h-[14rem] max-w-md">
               <canvas
                 id="chart-pizza-categoria"
-                height="260"
+                class="!h-full !w-full"
                 aria-label="Gráfico de pizza por categoria"
               ></canvas>
             </div>
+            <div
+              id="chart-categoria-legenda"
+              class="mx-auto mt-4 hidden max-w-md grid grid-cols-3 gap-x-3 gap-y-2 sm:gap-x-4"
+              aria-hidden="true"
+            ></div>
             <p
               id="chart-categoria-empty"
               class="hidden py-10 text-center text-sm text-bank-muted"
@@ -3966,6 +3971,13 @@
           const c = item.categoria && String(item.categoria).trim();
           if (c) return c;
           return listaCategorias.includes("outros") ? "outros" : listaCategorias[0] || "outros";
+        }
+
+        /** Contas fixas no gráfico de categoria: só entram com valor pago preenchido. */
+        function valorFixaParaGraficoCategoria(cell) {
+          if (!cell || cell.valorPago == null || !Number.isFinite(Number(cell.valorPago))) return 0;
+          const v = Number(cell.valorPago);
+          return v > 0 ? v : 0;
         }
 
         function defaultCellContaFixa() {
@@ -7220,7 +7232,7 @@
           contasFixasItems.forEach((item) => {
             if (!contasPagarItemVisivelNaGrade(item, dashboardGastosAno, dashboardGastosMesIdx)) return;
             const cell = peekCellContaFixa(dashboardGastosAno, dashboardGastosMesIdx, item.id);
-            const v = cell && Number.isFinite(Number(cell.gastoAtual)) ? Number(cell.gastoAtual) : 0;
+            const v = valorFixaParaGraficoCategoria(cell);
             if (v <= 0) return;
             const cat = categoriaContaFixa(item);
             map[cat] = (map[cat] || 0) + v;
@@ -7846,7 +7858,49 @@
           "rgba(167, 139, 250, 0.88)",
         ];
 
-        function criarOuAtualizarPizza(canvas, emptyEl, chartRef, labels, data, cores) {
+        function colSpanLegendaPizzaCategoria(label) {
+          const n = String(label).length;
+          if (n > 18) return 3;
+          if (n > 11) return 2;
+          return 1;
+        }
+
+        function renderLegendaPizzaCategoria(labels, cores) {
+          const el = document.getElementById("chart-categoria-legenda");
+          if (!el) return;
+          el.innerHTML = "";
+          if (!labels.length) {
+            el.classList.add("hidden");
+            el.setAttribute("aria-hidden", "true");
+            return;
+          }
+          el.classList.remove("hidden");
+          el.setAttribute("aria-hidden", "false");
+          const light =
+            document.documentElement.getAttribute("data-appearance") === "light";
+          const txtColor = light ? "#52525b" : "#a1a1aa";
+          labels.forEach((lab, i) => {
+            const span = colSpanLegendaPizzaCategoria(lab);
+            const div = document.createElement("div");
+            div.className =
+              "flex min-w-0 items-center gap-1.5" +
+              (span === 3 ? " col-span-3" : span === 2 ? " col-span-2" : "");
+            const cor = document.createElement("span");
+            cor.className = "h-2.5 w-2.5 shrink-0 rounded-sm";
+            cor.style.backgroundColor = cores[i % cores.length];
+            const txt = document.createElement("span");
+            txt.className = "truncate text-[11px] leading-tight";
+            txt.style.color = txtColor;
+            txt.textContent = lab;
+            txt.title = lab;
+            div.appendChild(cor);
+            div.appendChild(txt);
+            el.appendChild(div);
+          });
+        }
+
+        function criarOuAtualizarPizza(canvas, emptyEl, chartRef, labels, data, cores, pieOpts) {
+          pieOpts = pieOpts || {};
           if (labels.length === 0) {
             canvas.classList.add("hidden");
             emptyEl.classList.remove("hidden");
@@ -7879,9 +7933,10 @@
             },
             options: {
               responsive: true,
-              maintainAspectRatio: true,
+              maintainAspectRatio: !pieOpts.fillContainer,
               plugins: {
                 legend: {
+                  display: !pieOpts.hideLegend,
                   position: "bottom",
                   labels: {
                     color: legendColor,
@@ -8200,11 +8255,14 @@
           atualizarCardGastosDashboard();
           const descCat = document.getElementById("dashboard-gastos-categoria-desc");
           if (descCat) {
+            const sufixoFixas =
+              " · Lançamentos do mês + contas fixas com valor pago preenchido";
             descCat.textContent = isMesAtual
-              ? "Percentual gasto em cada categoria no mês atual (referência do cartão)"
-              : "Percentual gasto em cada categoria em " +
+              ? "Percentual por categoria no mês atual" + sufixoFixas
+              : "Percentual por categoria em " +
                 mesNome.charAt(0).toUpperCase() +
-                mesNome.slice(1);
+                mesNome.slice(1) +
+                sufixoFixas;
           }
           document.getElementById("card-proximos").textContent = textoDataMaisProximoVencimento();
           atualizarCardRendaDashboard();
@@ -8240,6 +8298,9 @@
           );
 
           const aggCat = agregadoPorCategoriaMes();
+          const labelsCat = Object.keys(aggCat);
+          const dataCat = Object.values(aggCat);
+          const coresCat = labelsCat.map((_, i) => CORES_CATEGORIA[i % CORES_CATEGORIA.length]);
           criarOuAtualizarPizza(
             document.getElementById("chart-pizza-categoria"),
             document.getElementById("chart-categoria-empty"),
@@ -8248,10 +8309,12 @@
               }, set current(c) {
                 chartPizzaCategoria = c;
               } },
-            Object.keys(aggCat),
-            Object.values(aggCat),
-            CORES_CATEGORIA
+            labelsCat,
+            dataCat,
+            CORES_CATEGORIA,
+            { hideLegend: true, fillContainer: true }
           );
+          renderLegendaPizzaCategoria(labelsCat, coresCat);
           renderHistorico12Chart();
         }
 
@@ -9064,6 +9127,8 @@
               }
               saveContasFixasAnual();
               renderContasFixas();
+              renderTotaisCategoriaMes();
+              updateDashboard();
             });
             tdVP.appendChild(inVP);
 
