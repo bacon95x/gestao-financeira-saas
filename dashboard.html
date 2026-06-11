@@ -8001,7 +8001,7 @@
             dashboardGastosAno === now.getFullYear() && dashboardGastosMesIdx === now.getMonth();
           if (ref) {
             ref.textContent =
-              "Tudo que você pagou no mês: lançamentos + contas fixas com valor pago preenchido. Crédito na data do lançamento; pagar fatura não entra. · Referência: " +
+              "Lançamentos (todos os meios) + fixas pagas. Pagar fatura de cartões não entra aqui, porque o gasto já foi adicionado em lançamentos. · Referência: " +
               mesNome.charAt(0).toUpperCase() +
               mesNome.slice(1) +
               (isMesAtual ? " (mês atual)" : "");
@@ -9666,6 +9666,10 @@
           btnAddLinha.innerHTML =
             '<i data-lucide="plus-circle" class="h-4 w-4"></i><span>Adicionar cartão (origem)</span>';
           btnAddLinha.addEventListener("click", () => {
+            alert(
+              "Cartões servem para fatura e vencimento. O gasto do mês vem dos lançamentos (Crédito na data da compra) e das fixas com valor pago preenchido.\n\n" +
+                "Compras em cartão que não passaram por lançamentos não entram no total do dashboard — registre em Lançamentos com meio Crédito se quiser que entrem no gasto do mês."
+            );
             const nome = prompt(
               "Nome da origem/cartão (deve coincidir com Origem em Lançamentos):",
               ""
