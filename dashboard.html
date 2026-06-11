@@ -1454,11 +1454,7 @@
           <h2 id="modal-dashboard-mes-gastos-title" class="text-lg font-semibold text-white">
             Mês de referência dos gastos
           </h2>
-          <p class="mt-1 text-sm text-bank-muted">
-            Vale para o cartão e gráficos do dashboard, a tabela de lançamentos registrados e os totais por
-            categoria ao lado. Cada lançamento continua na data que você informou; em um mês sem registros a
-            lista aparece vazia.
-          </p>
+          <p id="modal-dashboard-mes-gastos-desc" class="mt-1 text-sm text-bank-muted"></p>
           <div class="mt-5">
             <label class="block text-xs font-medium text-zinc-400" for="modal-dashboard-gastos-select-ano"
               >Ano</label
@@ -8211,22 +8207,36 @@
           atualizarOpcoesSalvarPorquinho();
         }
 
-        function atualizarCardGastosDashboard() {
-          const el = document.getElementById("card-total-mes");
-          const ref = document.getElementById("card-total-mes-ref");
-          const btnVis = document.getElementById("btn-gastos-visualizar");
+        function textoReferenciaMesDashboard() {
           const refD = refMonthStartDashboard();
           const mesNome = refD.toLocaleString("pt-BR", { month: "long", year: "numeric" });
           const now = new Date();
           const isMesAtual =
             dashboardGastosAno === now.getFullYear() && dashboardGastosMesIdx === now.getMonth();
-          if (ref) {
-            ref.textContent =
-              "Lançamentos (todos os meios) + fixas pagas + juros/taxas do mês (aba Juros/taxas, mesmo período). Pagar fatura de cartões não entra aqui, porque o gasto já foi adicionado em lançamentos. · Referência: " +
-              mesNome.charAt(0).toUpperCase() +
-              mesNome.slice(1) +
-              (isMesAtual ? " (mês atual)" : "");
-          }
+          return (
+            "Referência: " +
+            mesNome.charAt(0).toUpperCase() +
+            mesNome.slice(1) +
+            (isMesAtual ? " (mês atual)" : "") +
+            "."
+          );
+        }
+
+        function textoExplicacaoTotalGastosMes() {
+          return (
+            "Lançamentos (todos os meios) + fixas pagas + juros/taxas do mês (aba Juros/taxas, mesmo período). " +
+            "Pagar fatura de cartões não entra aqui, porque o gasto já foi adicionado em lançamentos."
+          );
+        }
+
+        function atualizarCardGastosDashboard() {
+          const el = document.getElementById("card-total-mes");
+          const ref = document.getElementById("card-total-mes-ref");
+          const modalDesc = document.getElementById("modal-dashboard-mes-gastos-desc");
+          const btnVis = document.getElementById("btn-gastos-visualizar");
+          const refTxt = textoReferenciaMesDashboard();
+          if (ref) ref.textContent = refTxt;
+          if (modalDesc) modalDesc.textContent = refTxt + " " + textoExplicacaoTotalGastosMes();
           if (el) {
             const total = totalGastosMes();
             el.textContent = gastosDashboardValorVisivel ? formatMoney(total) : TEXTO_RENDA_OCULTA;
