@@ -615,7 +615,8 @@
         color: #b45309 !important;
       }
 
-      /* Contas a pagar: input + botão ❄ em linha (sem sobreposição) */
+      /* Contas fixas / Cartões: input + botão ❄ em linha (sem sobreposição) */
+      #contas-fixas-meses-wrapper table tbody td:first-child .cp-gasto-celula-wrap,
       #contas-pagar-meses-wrapper table tbody td:first-child .cp-gasto-celula-wrap {
         display: flex;
         flex-direction: row;
@@ -624,6 +625,7 @@
         min-width: 0;
         width: 100%;
       }
+      #contas-fixas-meses-wrapper table tbody td:first-child .cp-gasto-input,
       #contas-pagar-meses-wrapper table tbody td:first-child .cp-gasto-input {
         flex: 1 1 0%;
         min-width: 0;
@@ -631,6 +633,7 @@
         max-width: 100%;
         box-sizing: border-box;
       }
+      #contas-fixas-meses-wrapper table tbody td:first-child button.cp-btn-congelar-gasto,
       #contas-pagar-meses-wrapper table tbody td:first-child button.cp-btn-congelar-gasto {
         flex-shrink: 0;
         margin: 0;
@@ -811,7 +814,7 @@
               type="button"
               id="btn-gerenciar-assinatura"
               class="hidden rounded-lg border border-violet-500/35 bg-violet-600/15 px-2.5 py-1.5 text-xs font-semibold text-violet-200 transition hover:bg-violet-600/25 disabled:opacity-60"
-              title="Cancelar ou gerenciar assinatura"
+              title="Cancelar ou gerenciar assinatura. Reembolso nos 7 dias: contato@capitalnovo.com.br"
             >
               Assinatura
             </button>
@@ -887,11 +890,20 @@
             <button
               type="button"
               role="tab"
+              data-tab="contas-fixas"
+              class="tab-btn inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl border border-transparent px-4 py-2.5 text-sm font-medium text-zinc-400 transition hover:text-zinc-200"
+            >
+              <i data-lucide="calendar-days" class="h-4 w-4"></i>
+              Contas fixas
+            </button>
+            <button
+              type="button"
+              role="tab"
               data-tab="contas-pagar"
               class="tab-btn inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl border border-transparent px-4 py-2.5 text-sm font-medium text-zinc-400 transition hover:text-zinc-200"
             >
               <i data-lucide="credit-card" class="h-4 w-4"></i>
-              Contas a pagar
+              Cartões
             </button>
             <button
               type="button"
@@ -1312,10 +1324,10 @@
             class="rounded-2xl border border-bank-border bg-bank-card p-6 shadow-glow sm:p-8"
           >
             <div class="mb-6 flex flex-col gap-1">
-              <h2 class="text-lg font-semibold text-white">Gasto total desconsiderando crédito</h2>
+              <h2 class="text-lg font-semibold text-white">Gastos fora do crédito</h2>
               <p class="text-sm text-bank-muted">
-                Soma do mês por meio: Débito, Pix, Dinheiro, Vale alimentação e outros — sem lançamentos em
-                Crédito.
+                Lançamentos (sem Crédito) e contas fixas do mês, agrupados por meio de pagamento: Débito, Pix,
+                Dinheiro, Vale alimentação e outros.
               </p>
             </div>
             <div class="mx-auto max-w-md">
@@ -1329,47 +1341,31 @@
               id="chart-sem-credito-empty"
               class="hidden py-10 text-center text-sm text-bank-muted"
             >
-              Nenhum gasto neste mês fora de crédito.
+              Nenhum gasto fora do crédito neste mês (lançamentos ou contas fixas).
             </p>
           </div>
           <div
             class="rounded-2xl border border-bank-border bg-bank-card p-6 shadow-glow sm:p-8"
           >
-            <div class="mb-4 flex flex-col gap-1">
-              <h2 class="text-lg font-semibold text-white">Gastos por origem</h2>
+            <div class="mb-6 flex flex-col gap-1">
+              <h2 class="text-lg font-semibold text-white">Gastos no cartão</h2>
               <p class="text-sm text-bank-muted">
-                Escolha o meio de pagamento (o mesmo de Lançamentos). No crédito, divide por origem; nos
-                demais meios, por categoria.
+                Só lançamentos com meio Crédito no mês de referência, divididos por origem (cartão). Pagar a
+                fatura não entra aqui.
               </p>
-            </div>
-            <div class="mb-4">
-              <label class="block text-xs font-medium text-bank-muted" for="dashboard-pizza-meio"
-                >Meio de pagamento</label
-              >
-              <select
-                id="dashboard-pizza-meio"
-                class="mt-1.5 w-full rounded-xl border border-bank-border bg-bank-bg px-3 py-2 text-sm font-medium text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
-              >
-                <option value="Dinheiro">Dinheiro</option>
-                <option value="Pix">Pix</option>
-                <option value="Crédito" selected>Crédito</option>
-                <option value="Débito">Débito</option>
-                <option value="Vale alimentação">Vale alimentação</option>
-                <option value="outros">outros</option>
-              </select>
             </div>
             <div class="mx-auto max-w-md">
               <canvas
                 id="chart-pizza-origem-meio"
                 height="220"
-                aria-label="Gráfico de pizza por origem no meio selecionado"
+                aria-label="Gráfico de pizza: gastos no crédito por origem"
               ></canvas>
             </div>
             <p
               id="chart-origem-meio-empty"
               class="hidden py-10 text-center text-sm text-bank-muted"
             >
-              Nenhum gasto neste mês para este meio de pagamento.
+              Nenhum gasto no crédito neste mês.
             </p>
           </div>
           <div
@@ -1379,7 +1375,7 @@
               <div>
                 <h2 class="text-lg font-semibold text-white">Gastos por categoria</h2>
                 <p id="dashboard-gastos-categoria-desc" class="text-sm text-bank-muted">
-                  Percentual gasto em cada categoria no mês de referência
+                  Lançamentos e contas fixas do mês, por categoria
                 </p>
               </div>
             </div>
@@ -1500,7 +1496,7 @@
           <h2 class="text-lg font-semibold text-white">Novo lançamento</h2>
           <p class="mt-1 text-sm text-bank-muted">
             Meio de pagamento é como você pagou; origem é qual cartão (quando couber). Em Crédito, a coluna em
-            Contas a pagar é o mês do vencimento da fatura (ciclo que cruza o mês anterior ao fechamento).
+            Cartões é o mês do vencimento da fatura (ciclo que cruza o mês anterior ao fechamento).
             Parcelas (opcional) repartem o valor nas colunas dos vencimentos seguintes. A descrição é opcional.
           </p>
           <form id="form-gasto" class="mt-6 grid gap-5 sm:grid-cols-2">
@@ -1542,7 +1538,7 @@
               <div>
                 <label class="block text-sm font-medium text-zinc-300" for="gasto-parcelas">Parcelas</label>
                 <p class="mt-0.5 text-[11px] leading-snug text-bank-muted">
-                  Opcional (2 a 24). Divide o valor nas colunas dos meses seguintes em Contas a pagar, pela
+                  Opcional (2 a 24). Divide o valor nas colunas dos meses seguintes em Cartões, pela
                   origem.
                 </p>
                 <input
@@ -1610,7 +1606,7 @@
                     Editar nome ou excluir origem
                   </summary>
                   <p class="mt-2 text-xs text-bank-muted">
-                    Alterações atualizam lançamentos e vínculos em Contas a pagar.
+                    Alterações atualizam lançamentos e vínculos em Cartões.
                   </p>
                   <div id="lista-gerir-origens" class="mt-2 flex flex-col gap-2"></div>
                 </details>
@@ -1823,7 +1819,44 @@
         </div>
       </section>
 
-      <!-- Contas a pagar (anual por mês, vinculado aos lançamentos) -->
+      <!-- Contas fixas (aluguel, assinaturas, etc.) -->
+      <section
+        id="panel-contas-fixas"
+        class="tab-panel hidden space-y-6"
+        role="tabpanel"
+        aria-labelledby="titulo-contas-fixas"
+      >
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <h2 id="titulo-contas-fixas" class="text-lg font-semibold text-white">Contas fixas</h2>
+            <p class="mt-1 max-w-3xl text-sm text-bank-muted">
+              Despesas recorrentes do mês (aluguel, assinaturas, etc.). Informe valor, categoria, meio de
+              pagamento e vencimento. Entram no gasto do mês e nos gráficos do dashboard — não duplique o mesmo
+              gasto em Lançamentos.
+            </p>
+          </div>
+          <div class="flex shrink-0 flex-wrap items-end gap-3">
+            <div class="flex flex-col gap-1">
+              <label class="text-xs font-medium text-bank-muted" for="mes-contas-fixas">Mês</label>
+              <select
+                id="mes-contas-fixas"
+                class="min-w-[10rem] rounded-xl border border-bank-border bg-bank-bg px-4 py-2.5 text-sm font-medium text-white outline-none ring-emerald-500/40 focus:border-emerald-500/50 focus:ring-2"
+              ></select>
+            </div>
+            <div class="flex flex-col gap-1">
+              <label class="text-xs font-medium text-bank-muted" for="ano-contas-fixas">Ano</label>
+              <select
+                id="ano-contas-fixas"
+                class="min-w-[6rem] rounded-xl border border-bank-border bg-bank-bg px-4 py-2.5 text-sm font-medium text-white outline-none ring-emerald-500/40 focus:border-emerald-500/50 focus:ring-2"
+              ></select>
+            </div>
+          </div>
+        </div>
+
+        <div id="contas-fixas-meses-wrapper" class="space-y-6"></div>
+      </section>
+
+      <!-- Cartões (faturas por origem, vinculado aos lançamentos em crédito) -->
       <section
         id="panel-contas-pagar"
         class="tab-panel hidden space-y-6"
@@ -1832,13 +1865,11 @@
       >
         <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <h2 id="titulo-contas-pagar" class="text-lg font-semibold text-white">
-              Contas a pagar
-            </h2>
+            <h2 id="titulo-contas-pagar" class="text-lg font-semibold text-white">Cartões</h2>
             <p class="mt-1 max-w-3xl text-sm text-bank-muted">
-              Um mês por vez (padrão: atual). Lançamentos somam em «gasto atual» quando origem ou categoria
-              batem. A coluna Fechamento de fatura define o dia usado no vínculo e nos lançamentos para cada
-              mês/ano da grade. Vencimentos alimentam «Próximos vencimentos» no dashboard.
+              Um mês por vez (padrão: atual). Só contas com vínculo por origem (cartão). Lançamentos em Crédito
+              somam em «gasto atual»; Fechamento de fatura define o ciclo. Valor pago é controle da fatura — não
+              entra no gasto do mês. Vencimentos alimentam «Próximos vencimentos» no dashboard.
             </p>
           </div>
           <div class="flex shrink-0 flex-wrap items-end gap-3">
@@ -1874,7 +1905,7 @@
           <p class="text-sm text-bank-muted">
             Juros/taxas e resumo por origem. <strong class="font-semibold text-zinc-300">Fechamento</strong> e
             <strong class="font-semibold text-zinc-300">vencimento</strong> vêm da grade em
-            <strong class="font-semibold text-zinc-300">Contas a pagar</strong>; os nomes de origem seguem
+            <strong class="font-semibold text-zinc-300">Cartões</strong>; os nomes de origem seguem
             <strong class="font-semibold text-zinc-300">Lançamentos</strong>.
           </p>
         </div>
@@ -1916,7 +1947,7 @@
           <h2 class="text-lg font-semibold text-white">Origem · fechamento · vencimento</h2>
           <p class="mt-1 text-sm text-bank-muted">
             Uma linha por origem (mesma ordem de Lançamentos). Fechamento e vencimento espelham o cadastro da
-            conta correspondente em Contas a pagar.
+            conta correspondente em Cartões.
           </p>
           <div id="calendario-origens-resumo-mount" class="mt-6"></div>
         </div>
@@ -2659,6 +2690,9 @@
         const STORAGE_DASHBOARD_GASTOS_REF = "gfp_dashboard_gastos_ref_v1";
         const STORAGE_DASHBOARD_ANOTACOES = "gfp_dashboard_anotacoes_v1";
         const STORAGE_CONTAS_PAGAR_CATALOG = "gfp_contas_pagar_catalog_v1";
+        const STORAGE_CONTAS_FIXAS_CATALOG = "gfp_contas_fixas_catalog_v1";
+        const STORAGE_CONTAS_FIXAS_ANUAL = "gfp_contas_fixas_anual_v1";
+        const STORAGE_MIGRACAO_FIXAS_V1 = "gfp_migracao_contas_fixas_v1";
         const STORAGE_LISTA_ORIGENS = "gfp_lista_origens_v1";
         const STORAGE_LISTA_CATEGORIAS = "gfp_lista_categorias_v1";
         const STORAGE_CALENDARIO_JUROS = "gfp_calendario_juros_v1";
@@ -2681,6 +2715,10 @@
 
         /** Catálogo editável (espelho persistido de CONTAS_PAGAR_ITEMS_DEFAULT na 1ª carga). */
         let contasPagarItems = [];
+        /** Contas fixas: despesas recorrentes fora do crédito/cartão. */
+        let contasFixasItems = [];
+        /** @type {Record<string, Record<string, Record<string, { gastoAtual: number, ultimaAtualizacao: string, vencimento: string, valorPago: number | null, dataPago: string, gastoCongelado?: boolean }>>>} */
+        let contasFixasAnual = {};
 
         const MEIOS_PAGAMENTO = [
           "Dinheiro",
@@ -3181,6 +3219,7 @@
               saldoPartesPorMes = {};
             }
             sincronizarRendaMensalDasPartesPorMesNoAno(new Date().getFullYear());
+            executarMigracaoContasFixasSeNecessario();
           } catch {
             gastos = [];
             contas = [];
@@ -3792,7 +3831,7 @@
             tr.className = "hover:bg-white/[0.02]";
             if (!item)
               tr.title =
-                "Nenhuma linha da grade Contas a pagar com vínculo a esta origem; crie ou edite o vínculo lá.";
+                "Nenhuma linha da grade Cartões com vínculo a esta origem; crie ou edite o vínculo lá.";
             const tdO = document.createElement("td");
             tdO.className = "px-3 py-2.5 font-medium text-zinc-100 sm:px-4";
             tdO.textContent = origemNome;
@@ -3818,6 +3857,274 @@
 
         function saveContasPagarCatalog() {
           localStorage.setItem(STORAGE_CONTAS_PAGAR_CATALOG, JSON.stringify(contasPagarItems));
+        }
+
+        function saveContasFixasCatalog() {
+          localStorage.setItem(STORAGE_CONTAS_FIXAS_CATALOG, JSON.stringify(contasFixasItems));
+        }
+
+        function saveContasFixasAnual() {
+          localStorage.setItem(STORAGE_CONTAS_FIXAS_ANUAL, JSON.stringify(contasFixasAnual));
+        }
+
+        function initContasFixasFromStorage() {
+          try {
+            const c = localStorage.getItem(STORAGE_CONTAS_FIXAS_CATALOG);
+            contasFixasItems = c ? JSON.parse(c) : [];
+            if (!Array.isArray(contasFixasItems)) contasFixasItems = [];
+          } catch {
+            contasFixasItems = [];
+          }
+          try {
+            const a = localStorage.getItem(STORAGE_CONTAS_FIXAS_ANUAL);
+            contasFixasAnual = a && typeof JSON.parse(a) === "object" ? JSON.parse(a) : {};
+          } catch {
+            contasFixasAnual = {};
+          }
+        }
+
+        function moverCelulasContasPagarParaFixas(itemId) {
+          Object.keys(contasPagarAnual).forEach((y) => {
+            const yo = contasPagarAnual[y];
+            if (!yo) return;
+            Object.keys(yo).forEach((m) => {
+              if (!yo[m] || !yo[m][itemId]) return;
+              if (!contasFixasAnual[y]) contasFixasAnual[y] = {};
+              if (!contasFixasAnual[y][m]) contasFixasAnual[y][m] = {};
+              contasFixasAnual[y][m][itemId] = yo[m][itemId];
+              delete yo[m][itemId];
+            });
+          });
+        }
+
+        function itemContaPagarParaFixa(item) {
+          const cat =
+            (item.matchCategorias && item.matchCategorias[0]) ||
+            (listaCategorias.includes(item.nome) ? item.nome : null) ||
+            (listaCategorias.includes("outros") ? "outros" : listaCategorias[0] || "outros");
+          return {
+            id: item.id,
+            nome: item.nome,
+            categoria: cat,
+            meioPagamento: item.meioPagamento || "Pix",
+            diaVencimento: item.diaVencimento,
+            vencimentoAnual: item.vencimentoAnual,
+            mostrarAPartirDe: item.mostrarAPartirDe,
+            ocultarAPartirDe: item.ocultarAPartirDe,
+          };
+        }
+
+        /** Move linhas sem origem que ainda estejam no catálogo de cartões (ex.: backup parcial). */
+        function sanitizarItensSemOrigemParaFixas() {
+          const stray = contasPagarItems.filter((item) => !item.matches || !item.matches.length);
+          if (!stray.length) return;
+          const idsExistentes = new Set(contasFixasItems.map((f) => f.id));
+          stray.forEach((item) => {
+            if (!idsExistentes.has(item.id)) {
+              contasFixasItems.push(itemContaPagarParaFixa(item));
+              idsExistentes.add(item.id);
+            }
+            moverCelulasContasPagarParaFixas(item.id);
+          });
+          contasPagarItems = contasPagarItems.filter((item) => item.matches && item.matches.length);
+          saveContasPagarCatalog();
+          saveContasPagarAnual();
+          saveContasFixasCatalog();
+          saveContasFixasAnual();
+        }
+
+        /** Separa cartões (com origem) de contas fixas; preserva células anuais pelos mesmos ids. */
+        function executarMigracaoContasFixasSeNecessario() {
+          initContasFixasFromStorage();
+          if (localStorage.getItem(STORAGE_MIGRACAO_FIXAS_V1)) {
+            sanitizarItensSemOrigemParaFixas();
+            return;
+          }
+
+          const cartoes = [];
+          const fixasNovas = [];
+          contasPagarItems.forEach((item) => {
+            if (item.matches && item.matches.length > 0) {
+              cartoes.push({ ...item, matchCategorias: null });
+            } else {
+              fixasNovas.push(itemContaPagarParaFixa(item));
+              moverCelulasContasPagarParaFixas(item.id);
+            }
+          });
+
+          contasPagarItems = cartoes;
+          const idsNovos = new Set(fixasNovas.map((f) => f.id));
+          contasFixasItems = fixasNovas.concat(contasFixasItems.filter((f) => !idsNovos.has(f.id)));
+          saveContasPagarCatalog();
+          saveContasPagarAnual();
+          saveContasFixasCatalog();
+          saveContasFixasAnual();
+          localStorage.setItem(STORAGE_MIGRACAO_FIXAS_V1, "1");
+        }
+
+        function categoriaContaFixa(item) {
+          const c = item.categoria && String(item.categoria).trim();
+          if (c) return c;
+          return listaCategorias.includes("outros") ? "outros" : listaCategorias[0] || "outros";
+        }
+
+        function defaultCellContaFixa() {
+          return defaultCellContaPagar();
+        }
+
+        function getCellContaFixa(year, monthIdx, contaId) {
+          const y = String(year);
+          const m = String(monthIdx);
+          if (!contasFixasAnual[y]) contasFixasAnual[y] = {};
+          if (!contasFixasAnual[y][m]) contasFixasAnual[y][m] = {};
+          if (!contasFixasAnual[y][m][contaId]) {
+            contasFixasAnual[y][m][contaId] = defaultCellContaFixa();
+          }
+          return contasFixasAnual[y][m][contaId];
+        }
+
+        function peekCellContaFixa(year, monthIdx, contaId) {
+          const y = String(year);
+          const m = String(monthIdx);
+          return contasFixasAnual[y]?.[m]?.[contaId] ?? null;
+        }
+
+        function propagarGastoCongeladoFixa(itemId, fromYear, fromMonthIdx, valor, isoVenRef) {
+          let y = fromYear;
+          let m = fromMonthIdx + 1;
+          if (m > 11) {
+            m = 0;
+            y++;
+          }
+          const maxMeses = 12 * 15;
+          const venRef = String(isoVenRef || "").trim();
+          const dtVen = /^\d{4}-\d{2}-\d{2}$/.test(venRef) ? parseISODateLocal(venRef) : null;
+          const diaVen = dtVen && !Number.isNaN(dtVen.getTime()) ? dtVen.getDate() : null;
+          for (let step = 0; step < maxMeses; step++) {
+            const cell = getCellContaFixa(y, m, itemId);
+            cell.gastoAtual = valor;
+            cell.gastoCongelado = true;
+            if (diaVen != null) {
+              const dim = daysInMonth(y, m);
+              const d = Math.min(diaVen, dim);
+              cell.vencimento =
+                String(y) +
+                "-" +
+                String(m + 1).padStart(2, "0") +
+                "-" +
+                String(d).padStart(2, "0");
+            }
+            m++;
+            if (m > 11) {
+              m = 0;
+              y++;
+            }
+          }
+        }
+
+        function propagarVencimentoContaFixa(itemId, fromYear, fromMonthIdx, isoRef) {
+          const venRef = String(isoRef || "").trim();
+          if (!/^\d{4}-\d{2}-\d{2}$/.test(venRef)) return;
+          const dtVen = parseISODateLocal(venRef);
+          if (!dtVen || Number.isNaN(dtVen.getTime())) return;
+          const diaVen = dtVen.getDate();
+          let y = fromYear;
+          let m = fromMonthIdx;
+          const maxMeses = 12 * 15;
+          for (let step = 0; step < maxMeses; step++) {
+            const cell = getCellContaFixa(y, m, itemId);
+            const dim = daysInMonth(y, m);
+            const d = Math.min(diaVen, dim);
+            cell.vencimento =
+              String(y) +
+              "-" +
+              String(m + 1).padStart(2, "0") +
+              "-" +
+              String(d).padStart(2, "0");
+            m++;
+            if (m > 11) {
+              m = 0;
+              y++;
+            }
+          }
+        }
+
+        function removerCelulasDoItemContasFixasDesde(itemId, fromYear, fromMonthIdx) {
+          Object.keys(contasFixasAnual).forEach((yStr) => {
+            const y = parseInt(yStr, 10);
+            if (!Number.isFinite(y)) return;
+            const yo = contasFixasAnual[yStr];
+            if (!yo) return;
+            Object.keys(yo).forEach((mStr) => {
+              const m = parseInt(mStr, 10);
+              if (!Number.isFinite(m) || m < 0 || m > 11) return;
+              if (y < fromYear) return;
+              if (y === fromYear && m < fromMonthIdx) return;
+              if (yo[mStr] && yo[mStr][itemId]) delete yo[mStr][itemId];
+            });
+          });
+        }
+
+        function totalFixasMesAno(y, m) {
+          let s = 0;
+          contasFixasItems.forEach((item) => {
+            if (!contasPagarItemVisivelNaGrade(item, y, m)) return;
+            const cell = peekCellContaFixa(y, m, item.id);
+            s += cell && Number.isFinite(Number(cell.gastoAtual)) ? Number(cell.gastoAtual) : 0;
+          });
+          return s;
+        }
+
+        function parseVencimentoCampoParaDateFixa(year, monthIdx, item) {
+          const rawCell = peekCellContaFixa(year, monthIdx, item.id);
+          const cell = rawCell || defaultCellContaFixa();
+          const raw = vencimentoCampoValor(year, monthIdx, item, cell);
+          if (!raw || !String(raw).trim()) return null;
+          const s = String(raw).trim();
+          let iso = "";
+          if (/^\d{4}-\d{2}-\d{2}$/.test(s)) iso = s;
+          else {
+            const parsed = parseDiaMesOuIsoParaISO(s, year);
+            iso = parsed || "";
+          }
+          if (!iso) return null;
+          const dt = parseISODateLocal(iso);
+          return dt && !Number.isNaN(dt.getTime()) ? dt : null;
+        }
+
+        function proximoVencimentoFixaPorRegra(item, hoje) {
+          hoje = new Date(hoje);
+          hoje.setHours(0, 0, 0, 0);
+          const y0 = hoje.getFullYear();
+          const m0 = hoje.getMonth();
+          const limiteMesesBusca = 12 * 15;
+          for (let step = 0; step < limiteMesesBusca; step++) {
+            const alvo = avancarMesAnoContaPagar(y0, m0, step);
+            const dt = parseVencimentoCampoParaDateFixa(alvo.y, alvo.mo, item);
+            if (!dt) continue;
+            dt.setHours(0, 0, 0, 0);
+            if (dt >= hoje) return dt;
+          }
+          return null;
+        }
+
+        function novaLinhaContaFixa(desdeMesAno) {
+          const row = {
+            id: "cpf-" + uid(),
+            nome: "Nova conta fixa",
+            categoria: listaCategorias.includes("outros") ? "outros" : listaCategorias[0] || "outros",
+            meioPagamento: "Pix",
+            diaVencimento: null,
+            vencimentoAnual: null,
+          };
+          if (
+            desdeMesAno &&
+            Number.isFinite(desdeMesAno.year) &&
+            Number.isFinite(desdeMesAno.monthIdx)
+          ) {
+            row.mostrarAPartirDe = { year: desdeMesAno.year, month: desdeMesAno.monthIdx };
+          }
+          return row;
         }
 
         function saveListaOrigens() {
@@ -4153,11 +4460,8 @@
 
         function lancamentoVinculaContaPagar(item, g) {
           const orig = origemDoGasto(g);
-          const cat = (g.categoria || "").trim();
-          if (item.matches && item.matches.length && item.matches.some((x) => x === orig)) return true;
-          if (item.matchCategorias && item.matchCategorias.length && item.matchCategorias.includes(cat))
-            return true;
-          return false;
+          if (!item.matches || !item.matches.length) return false;
+          return item.matches.some((x) => x === orig);
         }
 
         function meioPagamentoEfetivo(g) {
@@ -4423,7 +4727,7 @@
           }
           if (MEIOS_SEM_VINCULO_CONTAS_PAGAR.has(meioPagamentoEfetivo(g))) {
             el.textContent =
-              "Com Pix, Dinheiro ou Débito este lançamento não usa fechamento de fatura e não altera Contas a pagar.";
+              "Com Pix, Dinheiro ou Débito este lançamento não usa fechamento de fatura e não altera Cartões.";
             el.classList.remove("hidden");
             return;
           }
@@ -4488,7 +4792,7 @@
             (venTxt ? " — vencimento na coluna Vencimento da grade: " + venTxt : "") +
             ". O valor vai para a coluna " +
             mesDest +
-            " em Contas a pagar (mês do vencimento). Fechamento pode vir da grade.";
+            " em Cartões (mês do vencimento). Fechamento pode vir da grade.";
           const parcInp = document.getElementById("gasto-parcelas");
           const pn = parcInp ? parseInt(String(parcInp.value).trim(), 10) : NaN;
           if (Number.isFinite(pn) && pn >= 2 && pn <= 24) {
@@ -4504,7 +4808,7 @@
               u0 +
               " a " +
               uLast +
-              " (Contas a pagar, por origem).";
+              " (Cartões, por origem).";
           }
           el.textContent = txt;
           el.classList.remove("hidden");
@@ -6659,8 +6963,14 @@
           return c || "outros";
         }
 
+        function totalGastosLancamentosMes() {
+          return gastos
+            .filter(isGastoInDashboardMonth)
+            .reduce((s, g) => s + valorGastoParaMesDashboard(g), 0);
+        }
+
         function totalGastosMes() {
-          return gastos.filter(isGastoInDashboardMonth).reduce((s, g) => s + valorGastoParaMesDashboard(g), 0);
+          return totalGastosLancamentosMes() + totalFixasMesAno(dashboardGastosAno, dashboardGastosMesIdx);
         }
 
         function indiceParcelaNoMesAno(g, dy, dm) {
@@ -6695,9 +7005,10 @@
         }
 
         function totalGastosMesAno(y, m) {
-          return gastos
+          const lanc = gastos
             .filter((g) => isGastoInMesAno(g, y, m))
             .reduce((s, g) => s + valorGastoParaMesAno(g, y, m), 0);
+          return lanc + totalFixasMesAno(y, m);
         }
 
         function mesAbrevHistorico(mesIdx) {
@@ -6906,6 +7217,14 @@
             const cat = categoriaDoGasto(g);
             map[cat] = (map[cat] || 0) + valorGastoParaMesDashboard(g);
           });
+          contasFixasItems.forEach((item) => {
+            if (!contasPagarItemVisivelNaGrade(item, dashboardGastosAno, dashboardGastosMesIdx)) return;
+            const cell = peekCellContaFixa(dashboardGastosAno, dashboardGastosMesIdx, item.id);
+            const v = cell && Number.isFinite(Number(cell.gastoAtual)) ? Number(cell.gastoAtual) : 0;
+            if (v <= 0) return;
+            const cat = categoriaContaFixa(item);
+            map[cat] = (map[cat] || 0) + v;
+          });
           return map;
         }
 
@@ -6919,6 +7238,26 @@
             if (m === "Crédito") return;
             const k = ["Débito", "Pix", "Dinheiro", "Vale alimentação"].includes(m) ? m : "outros";
             map[k] += valorGastoParaMesDashboard(g);
+          });
+          contasFixasItems.forEach((item) => {
+            if (!contasPagarItemVisivelNaGrade(item, dashboardGastosAno, dashboardGastosMesIdx)) return;
+            const cell = peekCellContaFixa(dashboardGastosAno, dashboardGastosMesIdx, item.id);
+            const v = cell && Number.isFinite(Number(cell.gastoAtual)) ? Number(cell.gastoAtual) : 0;
+            if (v <= 0) return;
+            const m = (item.meioPagamento || "Pix").trim();
+            if (m === "Crédito") return;
+            const k = ["Débito", "Pix", "Dinheiro", "Vale alimentação"].includes(m) ? m : "outros";
+            map[k] += v;
+          });
+          return map;
+        }
+
+        function agregadoPorOrigemCreditoMes() {
+          const map = {};
+          gastos.filter(isGastoInDashboardMonth).forEach((g) => {
+            if (meioPagamentoEfetivo(g) !== "Crédito") return;
+            const rotulo = origemDoGasto(g) || "Sem origem";
+            map[rotulo] = (map[rotulo] || 0) + valorGastoParaMesDashboard(g);
           });
           return map;
         }
@@ -7121,8 +7460,8 @@
           const now = new Date();
           now.setHours(0, 0, 0, 0);
           const out = [];
-          contasPagarItems.forEach((item) => {
-            const next = proximoVencimentoPorRegra(item, new Date(now));
+          const pushVenc = (item, nextFn, peekFn) => {
+            const next = nextFn(item, new Date(now));
             if (!next) return;
             const d = new Date(next.getFullYear(), next.getMonth(), next.getDate());
             d.setHours(0, 0, 0, 0);
@@ -7130,9 +7469,16 @@
             const y = d.getFullYear();
             const m = d.getMonth();
             if (!contasPagarItemVisivelNaGrade(item, y, m)) return;
-            const cell = peekCellContaPagar(y, m, item.id);
+            const cell = peekFn(y, m, item.id);
             if (cell && cell.dataPago && String(cell.dataPago).trim() !== "") return;
             out.push({ item, data: d });
+          };
+          contasPagarItems.forEach((item) => {
+            if (!item.matches || !item.matches.length) return;
+            pushVenc(item, proximoVencimentoPorRegra, peekCellContaPagar);
+          });
+          contasFixasItems.forEach((item) => {
+            pushVenc(item, proximoVencimentoFixaPorRegra, peekCellContaFixa);
           });
           out.sort((a, b) => a.data.getTime() - b.data.getTime());
           return out;
@@ -7590,7 +7936,7 @@
             dashboardGastosAno === now.getFullYear() && dashboardGastosMesIdx === now.getMonth();
           if (ref) {
             ref.textContent =
-              "Referência: " +
+              "Gasto do mês = lançamentos + contas fixas (crédito na data do lançamento). Pagar fatura não entra. · Referência: " +
               mesNome.charAt(0).toUpperCase() +
               mesNome.slice(1) +
               (isMesAtual ? " (mês atual)" : "");
@@ -7878,9 +8224,8 @@
             pieSem.cores
           );
 
-          const dashMeio = document.getElementById("dashboard-pizza-meio");
-          const meioPizza = dashMeio && dashMeio.value ? dashMeio.value : "Crédito";
-          const aggOrigemMeio = agregadoPorOrigemMesNoMeio(meioPizza);
+          const aggCartao = agregadoPorOrigemCreditoMes();
+          const labelsCartao = Object.keys(aggCartao);
           criarOuAtualizarPizza(
             document.getElementById("chart-pizza-origem-meio"),
             document.getElementById("chart-origem-meio-empty"),
@@ -7889,9 +8234,9 @@
               }, set current(c) {
                 chartPizzaOrigemMeio = c;
               } },
-            Object.keys(aggOrigemMeio),
-            Object.values(aggOrigemMeio),
-            coresGraficoOrigem(Object.keys(aggOrigemMeio))
+            labelsCartao,
+            Object.values(aggCartao),
+            coresGraficoOrigem(labelsCartao)
           );
 
           const aggCat = agregadoPorCategoriaMes();
@@ -8214,7 +8559,7 @@
               );
             }
           }
-          if (!p.length) return "Sem vínculo por origem/categoria (apenas edição manual na grade).";
+          if (!p.length) return "Sem origem vinculada.";
           return p.join(" · ");
         }
 
@@ -8297,6 +8642,7 @@
           if (cc) fillSelectContaCartao(cc);
           renderTabelaGastos();
           renderContasPagar();
+          renderContasFixas();
           renderTotaisCategoriaMes();
           updateDashboard();
           atualizarHintDestinoFatura();
@@ -8403,13 +8749,12 @@
           gastos.forEach((g) => {
             if ((g.categoria || "").trim() === was) g.categoria = now;
           });
-          contasPagarItems.forEach((item) => {
-            if (item.matchCategorias && item.matchCategorias.length)
-              item.matchCategorias = item.matchCategorias.map((c) => (c === was ? now : c));
+          contasFixasItems.forEach((item) => {
+            if (categoriaContaFixa(item) === was) item.categoria = now;
           });
           saveGastos();
           saveListaCategorias();
-          saveContasPagarCatalog();
+          saveContasFixasCatalog();
           const hidC = document.getElementById("gasto-categoria");
           if (hidC && (hidC.value || "").trim() === was) hidC.value = now;
           refreshUiListasEContas();
@@ -8426,15 +8771,12 @@
           gastos.forEach((g) => {
             if ((g.categoria || "").trim() === cat) g.categoria = fallback;
           });
-          contasPagarItems.forEach((item) => {
-            if (item.matchCategorias && item.matchCategorias.length) {
-              item.matchCategorias = item.matchCategorias.filter((c) => c !== cat);
-              if (!item.matchCategorias.length) item.matchCategorias = null;
-            }
+          contasFixasItems.forEach((item) => {
+            if (categoriaContaFixa(item) === cat) item.categoria = fallback;
           });
           saveGastos();
           saveListaCategorias();
-          saveContasPagarCatalog();
+          saveContasFixasCatalog();
           const hidC = document.getElementById("gasto-categoria");
           if (hidC && (hidC.value || "").trim() === cat) hidC.value = "";
           refreshUiListasEContas();
@@ -8447,6 +8789,380 @@
           saveListaCategorias();
           refreshUiListasEContas();
           return true;
+        }
+
+        function preencherSelectAnoContasFixas() {
+          const sel = document.getElementById("ano-contas-fixas");
+          if (!sel) return;
+          const yAtual = new Date().getFullYear();
+          sel.innerHTML = "";
+          for (let y = yAtual - 2; y <= yAtual + 2; y++) {
+            const o = document.createElement("option");
+            o.value = String(y);
+            o.textContent = String(y);
+            if (y === yAtual) o.selected = true;
+            sel.appendChild(o);
+          }
+        }
+
+        function preencherSelectMesContasFixas() {
+          const sel = document.getElementById("mes-contas-fixas");
+          if (!sel) return;
+          const mAtual = new Date().getMonth();
+          sel.innerHTML = "";
+          MESES_CONTAS_PAGAR.forEach((nome, idx) => {
+            const o = document.createElement("option");
+            o.value = String(idx);
+            o.textContent = nome;
+            if (idx === mAtual) o.selected = true;
+            sel.appendChild(o);
+          });
+        }
+
+        function renderContasFixas() {
+          const wrap = document.getElementById("contas-fixas-meses-wrapper");
+          if (!wrap) return;
+          const selA = document.getElementById("ano-contas-fixas");
+          const selM = document.getElementById("mes-contas-fixas");
+          const year = selA ? parseInt(selA.value, 10) : new Date().getFullYear();
+          const monthIdx = selM ? parseInt(selM.value, 10) : new Date().getMonth();
+          if (Number.isNaN(year) || Number.isNaN(monthIdx)) return;
+
+          const inputCls =
+            "w-full min-w-[5rem] rounded-lg border border-bank-border bg-bank-bg px-2 py-1.5 text-xs text-white outline-none ring-emerald-500/40 focus:border-emerald-500/50 focus:ring-1";
+          const inputClsGastoComBotao =
+            "min-w-0 flex-1 max-w-full rounded-lg border border-bank-border bg-bank-bg px-2 py-1.5 text-xs text-white outline-none ring-emerald-500/40 focus:border-emerald-500/50 focus:ring-1";
+
+          wrap.innerHTML = "";
+          const section = document.createElement("section");
+          section.className =
+            "overflow-hidden rounded-2xl border border-bank-border bg-bank-card shadow-glow";
+          const head = document.createElement("div");
+          head.className = "border-b border-bank-border bg-emerald-950/25 px-4 py-2 sm:px-5";
+          const h3 = document.createElement("h3");
+          h3.className = "text-sm font-semibold text-white";
+          h3.textContent = MESES_CONTAS_PAGAR[monthIdx] + " ";
+          const span = document.createElement("span");
+          span.className = "text-sm font-normal text-bank-muted";
+          span.textContent = String(year);
+          h3.appendChild(span);
+          head.appendChild(h3);
+
+          const scroll = document.createElement("div");
+          scroll.className = "overflow-x-auto";
+          const table = document.createElement("table");
+          table.className = "w-full min-w-[980px] text-left text-xs";
+          const thead = document.createElement("thead");
+          thead.innerHTML =
+            '<tr class="border-b border-bank-border bg-bank-bg/40 text-bank-muted">' +
+            '<th class="whitespace-nowrap px-3 py-1.5 font-medium sm:px-4">Gasto atual (R$)</th>' +
+            '<th class="min-w-[10rem] px-3 py-1.5 font-medium sm:px-4">Conta</th>' +
+            '<th class="min-w-[8rem] px-3 py-1.5 font-medium sm:px-4">Categoria</th>' +
+            '<th class="min-w-[8rem] px-3 py-1.5 font-medium sm:px-4">Meio</th>' +
+            '<th class="whitespace-nowrap px-3 py-1.5 font-medium sm:px-4">Última atualização</th>' +
+            '<th class="whitespace-nowrap px-3 py-1.5 font-medium sm:px-4">Vencimento</th>' +
+            '<th class="whitespace-nowrap px-3 py-1.5 font-medium sm:px-4">Valor pago (R$)</th>' +
+            '<th class="whitespace-nowrap px-3 py-1.5 font-medium sm:px-4">Data pagamento</th>' +
+            '<th class="w-14 whitespace-nowrap px-2 py-1.5 text-center font-medium sm:px-3"></th>' +
+            "</tr>";
+          table.appendChild(thead);
+          const tbody = document.createElement("tbody");
+          tbody.className = "divide-y divide-bank-border";
+
+          let totalGastoMes = 0;
+          let totalValorPagoMes = 0;
+
+          contasFixasItems.forEach((item) => {
+            if (!contasPagarItemVisivelNaGrade(item, year, monthIdx)) return;
+            const cell = getCellContaFixa(year, monthIdx, item.id);
+            if (cell.gastoCongelado == null) cell.gastoCongelado = false;
+            const frozen = !!cell.gastoCongelado;
+            const gVal = Number(cell.gastoAtual) || 0;
+            const pVal =
+              cell.valorPago != null && Number.isFinite(Number(cell.valorPago))
+                ? Number(cell.valorPago)
+                : 0;
+            totalGastoMes += gVal;
+            totalValorPagoMes += pVal;
+
+            const tr = document.createElement("tr");
+            tr.className = "hover:bg-white/[0.02]";
+
+            const tdG = document.createElement("td");
+            tdG.className = "align-middle px-3 py-1.5 sm:px-4";
+            const wrapG = document.createElement("div");
+            wrapG.className = "cp-gasto-celula-wrap";
+            const inG = document.createElement("input");
+            inG.type = "number";
+            inG.step = "0.01";
+            inG.min = "0";
+            inG.className =
+              inputClsGastoComBotao +
+              " cp-gasto-input tabular-nums" +
+              (frozen ? " cursor-not-allowed opacity-80" : "");
+            inG.readOnly = frozen;
+            inG.value = String(cell.gastoAtual ?? 0);
+            inG.addEventListener("blur", () => {
+              if (cell.gastoCongelado) {
+                inG.value = String(cell.gastoAtual ?? 0);
+                return;
+              }
+              const v = parseFloat(inG.value);
+              if (Number.isNaN(v) || v < 0) {
+                inG.value = String(cell.gastoAtual);
+                return;
+              }
+              if (v !== cell.gastoAtual) {
+                cell.gastoAtual = v;
+                cell.ultimaAtualizacao = hojeISO();
+                saveContasFixasAnual();
+                const u = tr.querySelector(".cf-ultima-cell");
+                if (u) u.textContent = formatContasPagarSomenteDia(cell.ultimaAtualizacao);
+                renderContasFixas();
+                updateDashboard();
+              }
+            });
+            const btnNeve = document.createElement("button");
+            btnNeve.type = "button";
+            btnNeve.className =
+              "cp-btn-congelar-gasto flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border text-base leading-none transition " +
+              (frozen
+                ? "border-cyan-400/50 bg-cyan-500/20 text-cyan-100"
+                : "border-bank-border bg-bank-bg/80 text-zinc-400 hover:border-cyan-500/40 hover:bg-cyan-500/10 hover:text-cyan-200");
+            btnNeve.textContent = "❄️";
+            btnNeve.addEventListener("click", function (ev) {
+              ev.preventDefault();
+              ev.stopPropagation();
+              if (cell.gastoCongelado) {
+                cell.gastoCongelado = false;
+                saveContasFixasAnual();
+                renderContasFixas();
+                return;
+              }
+              const v = parseFloat(inG.value);
+              const valor = Number.isFinite(v) && v >= 0 ? v : 0;
+              cell.gastoAtual = valor;
+              cell.gastoCongelado = true;
+              cell.ultimaAtualizacao = hojeISO();
+              const isoVenRef = vencimentoCampoValor(year, monthIdx, item, cell);
+              propagarGastoCongeladoFixa(item.id, year, monthIdx, valor, isoVenRef);
+              saveContasFixasAnual();
+              renderContasFixas();
+              updateDashboard();
+            });
+            wrapG.appendChild(inG);
+            wrapG.appendChild(btnNeve);
+            tdG.appendChild(wrapG);
+
+            const tdN = document.createElement("td");
+            tdN.className = "align-top px-3 py-1.5 sm:px-4";
+            const inNome = document.createElement("input");
+            inNome.type = "text";
+            inNome.className = inputCls + " font-medium text-zinc-100";
+            inNome.value = item.nome;
+            inNome.addEventListener("blur", () => {
+              const v = inNome.value.trim();
+              if (!v) {
+                inNome.value = item.nome;
+                return;
+              }
+              item.nome = v;
+              saveContasFixasCatalog();
+            });
+            tdN.appendChild(inNome);
+
+            const tdCat = document.createElement("td");
+            tdCat.className = "align-top px-3 py-1.5 sm:px-4";
+            const selCat = document.createElement("select");
+            selCat.className = inputCls;
+            listaCategorias.forEach((cat) => {
+              const o = document.createElement("option");
+              o.value = cat;
+              o.textContent = cat;
+              if (categoriaContaFixa(item) === cat) o.selected = true;
+              selCat.appendChild(o);
+            });
+            selCat.addEventListener("change", () => {
+              item.categoria = selCat.value;
+              saveContasFixasCatalog();
+              updateDashboard();
+            });
+            tdCat.appendChild(selCat);
+
+            const tdMeio = document.createElement("td");
+            tdMeio.className = "align-top px-3 py-1.5 sm:px-4";
+            const selMeio = document.createElement("select");
+            selMeio.className = inputCls;
+            MEIOS_PAGAMENTO.filter((m) => m !== "Crédito").forEach((meio) => {
+              const o = document.createElement("option");
+              o.value = meio;
+              o.textContent = meio;
+              if ((item.meioPagamento || "Pix") === meio) o.selected = true;
+              selMeio.appendChild(o);
+            });
+            selMeio.addEventListener("change", () => {
+              item.meioPagamento = selMeio.value;
+              saveContasFixasCatalog();
+              updateDashboard();
+            });
+            tdMeio.appendChild(selMeio);
+
+            const tdU = document.createElement("td");
+            tdU.className =
+              "cf-ultima-cell w-10 whitespace-nowrap px-2 py-1.5 text-center text-xs text-zinc-300 sm:px-3";
+            tdU.textContent = cell.ultimaAtualizacao
+              ? formatContasPagarSomenteDia(cell.ultimaAtualizacao)
+              : "—";
+
+            const tdV = document.createElement("td");
+            tdV.className = "align-middle px-3 py-1.5 sm:px-4";
+            const inV = document.createElement("input");
+            inV.type = "text";
+            inV.inputMode = "numeric";
+            inV.className = inputCls + " max-w-[4.5rem] tabular-nums text-center";
+            inV.placeholder = "dd/mm";
+            const isoVenEfetivo = vencimentoCampoValor(year, monthIdx, item, cell);
+            inV.value = isoVenEfetivo ? isoParaDiaMesBR(isoVenEfetivo) : "";
+            inV.addEventListener("blur", () => {
+              const raw = inV.value.trim();
+              if (raw === "") {
+                cell.vencimento = "";
+                saveContasFixasAnual();
+                renderContasFixas();
+                updateDashboard();
+                return;
+              }
+              const parsed = parseDiaMesOuIsoParaISO(raw, year);
+              if (parsed === null) {
+                const prev = vencimentoCampoValor(year, monthIdx, item, cell);
+                inV.value = prev ? isoParaDiaMesBR(prev) : "";
+                return;
+              }
+              cell.vencimento = parsed;
+              propagarVencimentoContaFixa(item.id, year, monthIdx, parsed);
+              saveContasFixasAnual();
+              inV.value = isoParaDiaMesBR(parsed);
+              updateDashboard();
+            });
+            tdV.appendChild(inV);
+
+            const tdVP = document.createElement("td");
+            tdVP.className = "align-middle px-3 py-1.5 sm:px-4";
+            const inVP = document.createElement("input");
+            inVP.type = "number";
+            inVP.step = "0.01";
+            inVP.min = "0";
+            inVP.placeholder = "—";
+            inVP.className = inputCls + " tabular-nums";
+            inVP.value = cell.valorPago != null ? String(cell.valorPago) : "";
+            inVP.addEventListener("blur", () => {
+              const raw = inVP.value.trim();
+              if (raw === "") cell.valorPago = null;
+              else {
+                const x = parseFloat(raw);
+                if (Number.isFinite(x)) cell.valorPago = x;
+              }
+              saveContasFixasAnual();
+              renderContasFixas();
+            });
+            tdVP.appendChild(inVP);
+
+            const tdDP = document.createElement("td");
+            tdDP.className = "align-middle px-3 py-1.5 sm:px-4";
+            const inDP = document.createElement("input");
+            inDP.type = "text";
+            inDP.inputMode = "numeric";
+            inDP.className = inputCls + " max-w-[4.5rem] tabular-nums text-center";
+            inDP.placeholder = "dd/mm";
+            inDP.value = cell.dataPago ? isoParaDiaMesBR(cell.dataPago) : "";
+            inDP.addEventListener("blur", () => {
+              const raw = inDP.value.trim();
+              if (raw === "") {
+                cell.dataPago = "";
+                saveContasFixasAnual();
+                updateDashboard();
+                renderContasFixas();
+                return;
+              }
+              const parsed = parseDiaMesOuIsoParaISO(raw, year);
+              if (parsed === null) {
+                inDP.value = cell.dataPago ? isoParaDiaMesBR(cell.dataPago) : "";
+                return;
+              }
+              cell.dataPago = parsed;
+              saveContasFixasAnual();
+              inDP.value = isoParaDiaMesBR(parsed);
+              updateDashboard();
+            });
+            tdDP.appendChild(inDP);
+
+            const tdDel = document.createElement("td");
+            tdDel.className = "align-middle px-2 py-1.5 text-center sm:px-3";
+            const btnDel = document.createElement("button");
+            btnDel.type = "button";
+            btnDel.className =
+              "inline-flex h-8 w-8 items-center justify-center rounded-lg border border-rose-500/35 text-rose-300 hover:bg-rose-500/10";
+            btnDel.innerHTML = '<i data-lucide="trash-2" class="h-4 w-4"></i>';
+            btnDel.addEventListener("click", () => {
+              if (!confirm('Excluir a linha "' + item.nome + '" a partir deste mês?')) return;
+              item.ocultarAPartirDe = { year, month: monthIdx };
+              removerCelulasDoItemContasFixasDesde(item.id, year, monthIdx);
+              saveContasFixasCatalog();
+              saveContasFixasAnual();
+              refreshUiListasEContas();
+            });
+            tdDel.appendChild(btnDel);
+
+            tr.appendChild(tdG);
+            tr.appendChild(tdN);
+            tr.appendChild(tdCat);
+            tr.appendChild(tdMeio);
+            tr.appendChild(tdU);
+            tr.appendChild(tdV);
+            tr.appendChild(tdVP);
+            tr.appendChild(tdDP);
+            tr.appendChild(tdDel);
+            tbody.appendChild(tr);
+          });
+
+          const tfoot = document.createElement("tfoot");
+          tfoot.className = "border-t-2 border-emerald-500/25 bg-bank-bg/60";
+          const trTot = document.createElement("tr");
+          trTot.innerHTML =
+            '<td class="px-3 py-2 tabular-nums text-sm font-bold text-emerald-200 sm:px-4">' +
+            formatMoney(totalGastoMes) +
+            "</td>" +
+            '<td colspan="4" class="px-3 py-2 text-right text-[11px] font-medium uppercase tracking-wide text-bank-muted sm:px-4">Total do mês (entra no dashboard)</td>' +
+            '<td class="px-3 py-2 tabular-nums text-sm font-bold text-emerald-300/90 sm:px-4">' +
+            formatMoney(totalValorPagoMes) +
+            "</td>" +
+            '<td class="px-3 py-2 sm:px-4"></td><td class="px-3 py-2 sm:px-4"></td>';
+          tfoot.appendChild(trTot);
+          table.appendChild(tbody);
+          table.appendChild(tfoot);
+          scroll.appendChild(table);
+          section.appendChild(head);
+          section.appendChild(scroll);
+
+          const addRowBar = document.createElement("div");
+          addRowBar.className =
+            "flex flex-wrap items-center justify-end gap-2 border-t border-bank-border bg-bank-bg/30 px-4 py-2";
+          const btnAdd = document.createElement("button");
+          btnAdd.type = "button";
+          btnAdd.className =
+            "inline-flex shrink-0 items-center gap-2 rounded-xl border border-emerald-500/40 bg-emerald-600/15 px-3 py-1.5 text-xs font-medium text-emerald-200 hover:bg-emerald-600/25";
+          btnAdd.innerHTML =
+            '<i data-lucide="plus-circle" class="h-4 w-4"></i><span>Adicionar conta fixa</span>';
+          btnAdd.addEventListener("click", () => {
+            contasFixasItems.push(novaLinhaContaFixa({ year, monthIdx }));
+            saveContasFixasCatalog();
+            renderContasFixas();
+            setTimeout(() => lucide.createIcons(), 0);
+          });
+          addRowBar.appendChild(btnAdd);
+          section.appendChild(addRowBar);
+          wrap.appendChild(section);
+          setTimeout(() => lucide.createIcons(), 0);
         }
 
         function renderContasPagar() {
@@ -8488,7 +9204,7 @@
             '<tr class="border-b border-bank-border bg-bank-bg/40 text-bank-muted">' +
             '<th class="whitespace-nowrap px-3 py-1.5 font-medium sm:px-4">Gasto atual (R$)</th>' +
             '<th class="min-w-[11rem] px-3 py-1.5 font-medium sm:px-4">Conta</th>' +
-            '<th class="min-w-[10rem] px-3 py-1.5 font-medium sm:px-4">Vínculo c/ lançamento</th>' +
+            '<th class="min-w-[10rem] px-3 py-1.5 font-medium sm:px-4">Origem (cartão)</th>' +
             '<th class="whitespace-nowrap px-3 py-1.5 font-medium sm:px-4">Última atualização</th>' +
             '<th class="whitespace-nowrap px-3 py-1.5 font-medium sm:px-4">Vencimento</th>' +
             '<th class="whitespace-nowrap px-3 py-1.5 font-medium sm:px-4">Valor pago (R$)</th>' +
@@ -8503,7 +9219,9 @@
           let totalGastoMes = 0;
           let totalValorPagoMes = 0;
 
-          contasPagarItems.forEach((item) => {
+          contasPagarItems
+            .filter((item) => item.matches && item.matches.length)
+            .forEach((item) => {
             if (!contasPagarItemVisivelNaGrade(item, year, monthIdx)) return;
             const cell = getCellContaPagar(year, monthIdx, item.id);
             if (cell.gastoCongelado == null) cell.gastoCongelado = false;
@@ -8628,130 +9346,7 @@
 
             const tdL = document.createElement("td");
             tdL.className = "align-top px-3 py-1.5 text-[11px] leading-snug text-bank-muted sm:px-4";
-            const boxL = document.createElement("div");
-            boxL.className = "flex flex-col gap-2";
-            const dL = document.createElement("div");
-            dL.textContent = vinculoContaPagarLabel(item, year, monthIdx);
-            boxL.appendChild(dL);
-            if (itemPodeEditarVinculoCategorias(item)) {
-              const temCatVinc =
-                item.matchCategorias && item.matchCategorias.length > 0;
-              const btnVinc = document.createElement("button");
-              btnVinc.type = "button";
-              btnVinc.className =
-                "inline-flex max-w-full items-center gap-1.5 rounded-lg border border-violet-500/35 bg-violet-600/10 px-2.5 py-1.5 text-left text-[11px] font-medium text-violet-200 transition hover:border-violet-400/50 hover:bg-violet-600/20";
-              btnVinc.innerHTML =
-                '<i data-lucide="link-2" class="h-3.5 w-3.5 shrink-0"></i><span>' +
-                (temCatVinc ? "Editar vínculo por categoria…" : "Vincular a categoria…") +
-                "</span>";
-              const painelCat = document.createElement("div");
-              painelCat.className =
-                "hidden max-w-[19rem] rounded-xl border border-bank-border bg-bank-bg/90 p-2 shadow-lg";
-              painelCat.setAttribute("role", "group");
-              painelCat.setAttribute("aria-label", "Categorias para vínculo");
-
-              const secAtual = document.createElement("div");
-              secAtual.className = "mb-2 border-b border-bank-border/50 pb-2";
-              const titAtual = document.createElement("p");
-              titAtual.className = "mb-1.5 text-[10px] font-medium uppercase tracking-wide text-zinc-500";
-              titAtual.textContent = "Categorias vinculadas";
-              secAtual.appendChild(titAtual);
-              const rowChips = document.createElement("div");
-              rowChips.className = "flex min-h-[1.5rem] flex-wrap gap-1";
-              const catsAtuais =
-                item.matchCategorias && item.matchCategorias.length
-                  ? item.matchCategorias.slice()
-                  : [];
-              if (!catsAtuais.length) {
-                const empty = document.createElement("span");
-                empty.className = "text-[10px] italic text-zinc-600";
-                empty.textContent = "Nenhuma — adicione abaixo ou deixe sem vínculo.";
-                rowChips.appendChild(empty);
-              } else {
-                catsAtuais.forEach((cat) => {
-                  const chip = document.createElement("span");
-                  chip.className =
-                    "inline-flex items-center gap-0.5 rounded-md border border-violet-500/25 bg-violet-500/10 pl-1.5 pr-0.5 py-0.5 text-[10px] text-violet-100";
-                  const labC = document.createElement("span");
-                  labC.textContent = cat;
-                  chip.appendChild(labC);
-                  const btnX = document.createElement("button");
-                  btnX.type = "button";
-                  btnX.className =
-                    "rounded p-0.5 text-violet-300 hover:bg-white/10 hover:text-white";
-                  btnX.title = "Remover esta categoria";
-                  btnX.innerHTML = '<i data-lucide="x" class="h-3 w-3"></i>';
-                  btnX.addEventListener("click", () => {
-                    item.matchCategorias = (item.matchCategorias || []).filter((c) => c !== cat);
-                    if (!item.matchCategorias.length) item.matchCategorias = null;
-                    saveContasPagarCatalog();
-                    renderContasPagar();
-                  });
-                  chip.appendChild(btnX);
-                  rowChips.appendChild(chip);
-                });
-              }
-              secAtual.appendChild(rowChips);
-              const btnTodas = document.createElement("button");
-              btnTodas.type = "button";
-              btnTodas.className =
-                "mt-2 w-full rounded-md border border-rose-500/30 py-1.5 text-[10px] font-medium text-rose-200/95 hover:bg-rose-500/10 disabled:cursor-not-allowed disabled:opacity-40";
-              btnTodas.textContent = "Remover todas as categorias";
-              btnTodas.disabled = !catsAtuais.length;
-              btnTodas.addEventListener("click", () => {
-                item.matchCategorias = null;
-                saveContasPagarCatalog();
-                renderContasPagar();
-              });
-              secAtual.appendChild(btnTodas);
-              painelCat.appendChild(secAtual);
-
-              const legAdd = document.createElement("p");
-              legAdd.className = "mb-2 text-[10px] leading-snug text-zinc-500";
-              legAdd.textContent =
-                "Adicionar (mesma lista de Categoria em Lançamentos). Já vinculadas aparecem acima.";
-              painelCat.appendChild(legAdd);
-              const wrapBtns = document.createElement("div");
-              wrapBtns.className = "flex max-h-36 flex-wrap gap-1.5 overflow-y-auto";
-              listaCategorias.forEach((cat) => {
-                const ja = catsAtuais.includes(cat);
-                const bc = document.createElement("button");
-                bc.type = "button";
-                bc.disabled = ja;
-                bc.className =
-                  "rounded-md border px-2 py-1 text-left text-[11px] transition " +
-                  (ja
-                    ? "cursor-not-allowed border-bank-border/40 bg-bank-bg/30 text-zinc-600"
-                    : "border-bank-border bg-bank-card text-zinc-200 hover:border-violet-500/45 hover:bg-violet-500/10");
-                bc.textContent = ja ? cat + " ✓" : cat;
-                bc.title = ja ? "Já vinculada" : "Adicionar vínculo com esta categoria";
-                bc.addEventListener("click", () => {
-                  if (ja) return;
-                  if (!item.matchCategorias) item.matchCategorias = [];
-                  if (!item.matchCategorias.includes(cat)) item.matchCategorias.push(cat);
-                  saveContasPagarCatalog();
-                  renderContasPagar();
-                });
-                wrapBtns.appendChild(bc);
-              });
-              painelCat.appendChild(wrapBtns);
-
-              btnVinc.addEventListener("click", () => {
-                painelCat.classList.toggle("hidden");
-                btnVinc.setAttribute(
-                  "aria-expanded",
-                  painelCat.classList.contains("hidden") ? "false" : "true"
-                );
-                if (!painelCat.classList.contains("hidden")) {
-                  setTimeout(() => lucide.createIcons(), 0);
-                }
-              });
-              btnVinc.setAttribute("aria-expanded", "false");
-              btnVinc.setAttribute("aria-haspopup", "true");
-              boxL.appendChild(btnVinc);
-              boxL.appendChild(painelCat);
-            }
-            tdL.appendChild(boxL);
+            tdL.textContent = vinculoContaPagarLabel(item, year, monthIdx);
 
             const tdU = document.createElement("td");
             tdU.className =
@@ -8984,9 +9579,24 @@
           btnAddLinha.className =
             "inline-flex shrink-0 items-center gap-2 rounded-xl border border-violet-500/40 bg-violet-600/15 px-3 py-1.5 text-xs font-medium text-violet-200 hover:bg-violet-600/25";
           btnAddLinha.innerHTML =
-            '<i data-lucide="plus-circle" class="h-4 w-4"></i><span>Adicionar linha (nova conta)</span>';
+            '<i data-lucide="plus-circle" class="h-4 w-4"></i><span>Adicionar cartão (origem)</span>';
           btnAddLinha.addEventListener("click", () => {
-            contasPagarItems.push(novaLinhaContaPagar({ year, monthIdx }));
+            const nome = prompt(
+              "Nome da origem/cartão (deve coincidir com Origem em Lançamentos):",
+              ""
+            );
+            if (!nome || !String(nome).trim()) return;
+            const n = String(nome).trim();
+            contasPagarItems.push({
+              id: "cpp-" + uid(),
+              nome: n,
+              matches: [n],
+              diaVencimento: null,
+              matchCategorias: null,
+              vencimentoAnual: null,
+              diaFechamentoFatura: null,
+              mostrarAPartirDe: { year, month: monthIdx },
+            });
             saveContasPagarCatalog();
             renderContasPagar();
             setTimeout(() => lucide.createIcons(), 0);
@@ -9014,6 +9624,10 @@
             atualizarTotalGastoDia();
             renderTotaisCategoriaMes();
             atualizarHintDestinoFatura();
+            setTimeout(() => lucide.createIcons(), 0);
+          }
+          if (name === "contas-fixas") {
+            renderContasFixas();
             setTimeout(() => lucide.createIcons(), 0);
           }
           if (name === "contas-pagar") {
@@ -9291,12 +9905,6 @@
         });
         document.getElementById("gasto-meio").addEventListener("change", () => {
           atualizarHintDestinoFatura();
-          syncDashboardPizzaMeioFromForm();
-          updateDashboard();
-        });
-        document.getElementById("dashboard-pizza-meio").addEventListener("change", () => {
-          syncFormMeioFromDashboard();
-          atualizarHintDestinoFatura();
           updateDashboard();
         });
         document.getElementById("gasto-parcelas").addEventListener("input", atualizarHintDestinoFatura);
@@ -9566,6 +10174,14 @@
         document.getElementById("mes-contas-pagar").addEventListener("change", () => {
           renderContasPagar();
         });
+        const elAnoFixas = document.getElementById("ano-contas-fixas");
+        const elMesFixas = document.getElementById("mes-contas-fixas");
+        if (elAnoFixas) {
+          elAnoFixas.addEventListener("change", () => renderContasFixas());
+        }
+        if (elMesFixas) {
+          elMesFixas.addEventListener("change", () => renderContasFixas());
+        }
 
         const elAnoCalJuros = document.getElementById("ano-calendario-juros");
         const elMesCalJuros = document.getElementById("mes-calendario-juros");
@@ -9881,14 +10497,14 @@
           initBitcoin();
 
           fillSelectMeios(document.getElementById("gasto-meio"));
-          fillDashboardPizzaMeios(document.getElementById("dashboard-pizza-meio"));
           initFiltrosLancamentos();
-          syncDashboardPizzaMeioFromForm();
           montarBotoesCategoria();
           montarBotoesOrigem();
           setOrigemSelecionada("");
           preencherSelectAnoContasPagar();
           preencherSelectMesContasPagar();
+          preencherSelectAnoContasFixas();
+          preencherSelectMesContasFixas();
           preencherSelectAnoCalendarioJuros();
           preencherSelectMesCalendarioJuros();
           syncCalendarioJurosMesAnoComContasPagar();
@@ -9899,6 +10515,7 @@
           renderTabelaGastos();
           renderListaContas();
           renderContasPagar();
+          renderContasFixas();
           renderCalendarioJurosTabela();
           renderCalendarioOrigensResumo();
           updateDashboard();
@@ -9910,8 +10527,6 @@
         }
 
         gfpBootstrapDashboard();
-
-        fillDashboardPizzaMeios(document.getElementById("dashboard-pizza-meio"));
       })();
     </script>
   </body>
