@@ -1834,6 +1834,23 @@
                 </tr>
               </thead>
               <tbody id="tbody-gastos" class="divide-y divide-bank-border"></tbody>
+              <tfoot id="tfoot-gastos" class="hidden border-t-2 border-violet-500/25 bg-bank-bg/60">
+                <tr>
+                  <td
+                    colspan="5"
+                    class="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wide text-bank-muted"
+                  >
+                    Total
+                  </td>
+                  <td
+                    id="total-lancamentos-valor"
+                    class="px-6 py-3 tabular-nums text-sm font-bold text-violet-200"
+                  >
+                    R$ 0,00
+                  </td>
+                  <td colspan="2" class="px-6 py-3"></td>
+                </tr>
+              </tfoot>
             </table>
           </div>
           <p
@@ -8543,6 +8560,15 @@
             "Sem parcelas: só aparecem lançamentos cuja data está neste mês. Com parcelas — indicador (parcela/total), número da parcela em vermelho — o mesmo item aparece em cada mês com o valor daquela parcela; a data da compra continua na primeira coluna.";
         }
 
+        function atualizarTotalLancamentosTabela(sorted) {
+          const tfoot = document.getElementById("tfoot-gastos");
+          const el = document.getElementById("total-lancamentos-valor");
+          if (!tfoot || !el) return;
+          const total = (sorted || []).reduce((s, g) => s + valorGastoParaMesDashboard(g), 0);
+          el.textContent = formatMoney(total);
+          tfoot.classList.toggle("hidden", !(sorted && sorted.length));
+        }
+
         function renderTabelaGastos() {
           const tbody = document.getElementById("tbody-gastos");
           const empty = document.getElementById("empty-gastos");
@@ -8551,6 +8577,7 @@
           syncFiltrosLancamentosUI();
           const sorted = gastosMes.filter(gastoPassaFiltrosLancamentos).sort((a, b) => b.data.localeCompare(a.data));
           if (sorted.length === 0) {
+            atualizarTotalLancamentosTabela([]);
             empty.classList.remove("hidden");
             if (gastos.length === 0) {
               empty.textContent = "Nenhum lançamento ainda. Adicione o primeiro acima.";
@@ -8612,6 +8639,7 @@
               '" title="Excluir"><i data-lucide="trash-2" class="h-4 w-4"></i></button></td>';
             tbody.appendChild(tr);
           });
+          atualizarTotalLancamentosTabela(sorted);
           atualizarRefLancamentosRegistrados();
           lucide.createIcons();
           tbody.querySelectorAll("[data-del-gasto]").forEach((btn) => {
