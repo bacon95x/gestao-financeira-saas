@@ -4072,36 +4072,13 @@
           return v > 0 ? v : 0;
         }
 
-        function normalizarTextoDuplicata(s) {
-          return String(s || "")
-            .toLowerCase()
-            .normalize("NFD")
-            .replace(/[\u0300-\u036f]/g, "")
-            .replace(/[^a-z0-9\s]/g, " ")
-            .replace(/\s+/g, " ")
-            .trim();
-        }
-
-        function textosParecidosDuplicata(a, b) {
-          const na = normalizarTextoDuplicata(a);
-          const nb = normalizarTextoDuplicata(b);
-          if (!na || !nb) return false;
-          if (na === nb) return true;
-          if (na.length >= 4 && nb.length >= 4 && (na.includes(nb) || nb.includes(na))) return true;
-          const ta = na.split(" ").filter((w) => w.length >= 3);
-          const tb = nb.split(" ").filter((w) => w.length >= 3);
-          if (!ta.length || !tb.length) return false;
-          const comum = ta.filter((w) => tb.includes(w));
-          return comum.length >= 1 && comum.length >= Math.min(ta.length, tb.length) * 0.5;
-        }
-
         function valoresProximosDuplicata(v1, v2) {
           const a = Number(v1);
           const b = Number(v2);
           if (!Number.isFinite(a) || !Number.isFinite(b) || a <= 0 || b <= 0) return false;
           if (Math.abs(a - b) < 0.02) return true;
           const max = Math.max(a, b);
-          return Math.abs(a - b) / max <= 0.05;
+          return Math.abs(a - b) / max <= 0.02;
         }
 
         function mesAnoDeDataISO(iso) {
@@ -4132,8 +4109,6 @@
           if (!ma) return [];
           const out = [];
           const catG = (gastoDraft.categoria || "").trim();
-          const descG = (gastoDraft.descricao || "").trim();
-          const origG = (gastoDraft.origem || "").trim();
           const valorG = gastoDraft.valor;
 
           contasFixasItems.forEach((item) => {
@@ -4143,26 +4118,12 @@
             if (vFixa <= 0) return;
             const catF = categoriaContaFixa(item);
             const nomeF = item.nome || "";
-            const motivos = [];
-            if (catG && catF === catG && valoresProximosDuplicata(valorG, vFixa)) {
-              motivos.push("mesma categoria e valor parecido");
-            }
-            if (
-              textosParecidosDuplicata(descG, nomeF) ||
-              textosParecidosDuplicata(origG, nomeF) ||
-              textosParecidosDuplicata(catG, nomeF)
-            ) {
-              motivos.push('nome parecido com a fixa "' + nomeF + '"');
-            }
-            if (
-              cell.dataPago &&
-              String(cell.dataPago).trim() &&
-              gastoDraft.data === cell.dataPago &&
-              valoresProximosDuplicata(valorG, vFixa)
-            ) {
-              motivos.push("mesmo valor na mesma data");
-            }
-            if (motivos.length) out.push({ nome: nomeF, valor: vFixa, motivos });
+            if (!catG || catF !== catG || !valoresProximosDuplicata(valorG, vFixa)) return;
+            out.push({
+              nome: nomeF,
+              valor: vFixa,
+              motivos: ["mesma categoria e valor dentro de 2%"],
+            });
           });
           return out;
         }
@@ -4172,8 +4133,6 @@
           const vFixa = Number(valorPago);
           if (!Number.isFinite(vFixa) || vFixa <= 0) return out;
           const catF = categoriaContaFixa(item);
-          const nomeF = item.nome || "";
-          const dataP = String(dataPagoISO || "").trim();
 
           gastos.forEach((g) => {
             if (!isGastoInMesAno(g, year, monthIdx)) return;
@@ -4181,24 +4140,13 @@
             const catG = categoriaDoGasto(g);
             const desc = (g.descricao || "").trim();
             const orig = (g.origem || "").trim();
-            const motivos = [];
-            if (catF === catG && valoresProximosDuplicata(vFixa, valorG)) {
-              motivos.push('lançamento em "' + catG + '" com valor parecido');
-            }
-            if (
-              textosParecidosDuplicata(desc, nomeF) ||
-              textosParecidosDuplicata(orig, nomeF) ||
-              textosParecidosDuplicata(desc, catF)
-            ) {
-              motivos.push("descrição ou origem parecida com esta fixa");
-            }
-            if (dataP && g.data === dataP && valoresProximosDuplicata(vFixa, valorG)) {
-              motivos.push("mesmo valor na mesma data");
-            }
-            if (motivos.length) {
-              const rotulo = desc || orig || catG || "Lançamento";
-              out.push({ nome: rotulo, valor: valorG, motivos });
-            }
+            if (!catF || catF !== catG || !valoresProximosDuplicata(vFixa, valorG)) return;
+            const rotulo = desc || orig || catG || "Lançamento";
+            out.push({
+              nome: rotulo,
+              valor: valorG,
+              motivos: ['lançamento em "' + catG + '" com valor dentro de 2%'],
+            });
           });
           return out;
         }
