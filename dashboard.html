@@ -1385,7 +1385,7 @@
             <div class="mb-6 flex flex-col gap-1">
               <h2 class="text-lg font-semibold text-white">Gastos no cartão</h2>
               <p class="text-sm text-bank-muted">
-                Só lançamentos com meio Crédito no mês de referência, divididos por origem (cartão). Pagar a
+                Só lançamentos com meio Crédito e contas fixas em Crédito (valor pago), por origem (cartão). Pagar a
                 fatura não entra aqui.
               </p>
             </div>
@@ -1889,9 +1889,10 @@
           <div>
             <h2 id="titulo-contas-fixas" class="text-lg font-semibold text-white">Contas fixas</h2>
             <p class="mt-1 max-w-3xl text-sm text-bank-muted">
-              Despesas recorrentes do mês (aluguel, assinaturas, etc.). Informe valor, categoria, meio de
-              pagamento e vencimento. Entram no gasto do mês e nos gráficos do dashboard — não duplique o mesmo
-              gasto em Lançamentos.
+              Despesas que repetem todo mês (aluguel, assinaturas, planos). Assinatura no cartão: meio
+              <strong class="font-medium text-zinc-300">Crédito</strong> + origem do cartão — não precisa lançar de
+              novo em Lançamentos. Compras avulsas no cartão continuam em Lançamentos. Preencha
+              <strong class="font-medium text-zinc-300">valor pago</strong> quando pagar; entra no dashboard.
             </p>
           </div>
           <div class="flex shrink-0 flex-wrap items-end gap-3">
@@ -4021,6 +4022,7 @@
             nome: item.nome,
             categoria: cat,
             meioPagamento: item.meioPagamento || "Pix",
+            origem: item.origem || "",
             diaVencimento: item.diaVencimento,
             vencimentoAnual: item.vencimentoAnual,
             mostrarAPartirDe: item.mostrarAPartirDe,
@@ -4314,6 +4316,7 @@
             nome: "Nova conta fixa",
             categoria: listaCategorias.includes("outros") ? "outros" : listaCategorias[0] || "outros",
             meioPagamento: "Pix",
+            origem: "",
             diaVencimento: null,
             vencimentoAnual: null,
           };
@@ -7463,6 +7466,15 @@
             const rotulo = origemDoGasto(g) || "Sem origem";
             map[rotulo] = (map[rotulo] || 0) + valorGastoParaMesDashboard(g);
           });
+          contasFixasItems.forEach((item) => {
+            if (!contasPagarItemVisivelNaGrade(item, dashboardGastosAno, dashboardGastosMesIdx)) return;
+            if ((item.meioPagamento || "").trim() !== "Crédito") return;
+            const cell = peekCellContaFixa(dashboardGastosAno, dashboardGastosMesIdx, item.id);
+            const v = valorFixaValorPagoEfetivo(cell);
+            if (v <= 0) return;
+            const rotulo = (item.origem || "").trim() || "Sem origem";
+            map[rotulo] = (map[rotulo] || 0) + v;
+          });
           return map;
         }
 
@@ -9138,7 +9150,7 @@
           const scroll = document.createElement("div");
           scroll.className = "overflow-x-auto";
           const table = document.createElement("table");
-          table.className = "w-full min-w-[980px] text-left text-xs";
+          table.className = "w-full min-w-[1060px] text-left text-xs";
           const thead = document.createElement("thead");
           thead.innerHTML =
             '<tr class="border-b border-bank-border bg-bank-bg/40 text-bank-muted">' +
@@ -9146,6 +9158,7 @@
             '<th class="min-w-[10rem] px-3 py-1.5 font-medium sm:px-4">Conta</th>' +
             '<th class="min-w-[8rem] px-3 py-1.5 font-medium sm:px-4">Categoria</th>' +
             '<th class="min-w-[8rem] px-3 py-1.5 font-medium sm:px-4">Meio</th>' +
+            '<th class="min-w-[8rem] px-3 py-1.5 font-medium sm:px-4">Origem</th>' +
             '<th class="whitespace-nowrap px-3 py-1.5 font-medium sm:px-4">Última atualização</th>' +
             '<th class="whitespace-nowrap px-3 py-1.5 font-medium sm:px-4">Vencimento</th>' +
             '<th class="whitespace-nowrap px-3 py-1.5 font-medium sm:px-4">Valor pago (R$)</th>' +
@@ -9280,7 +9293,7 @@
             tdMeio.className = "align-top px-3 py-1.5 sm:px-4";
             const selMeio = document.createElement("select");
             selMeio.className = inputCls;
-            MEIOS_PAGAMENTO.filter((m) => m !== "Crédito").forEach((meio) => {
+            MEIOS_PAGAMENTO.forEach((meio) => {
               const o = document.createElement("option");
               o.value = meio;
               o.textContent = meio;
@@ -9289,10 +9302,38 @@
             });
             selMeio.addEventListener("change", () => {
               item.meioPagamento = selMeio.value;
+              if (selMeio.value !== "Crédito") item.origem = "";
               saveContasFixasCatalog();
+              renderContasFixas();
               updateDashboard();
             });
             tdMeio.appendChild(selMeio);
+
+            const tdOrig = document.createElement("td");
+            tdOrig.className = "align-top px-3 py-1.5 sm:px-4";
+            if ((item.meioPagamento || "Pix") === "Crédito") {
+              const selOrig = document.createElement("select");
+              selOrig.className = inputCls;
+              const oVazio = document.createElement("option");
+              oVazio.value = "";
+              oVazio.textContent = "Escolha origem";
+              selOrig.appendChild(oVazio);
+              listaOrigens.forEach((orig) => {
+                const o = document.createElement("option");
+                o.value = orig;
+                o.textContent = orig;
+                if ((item.origem || "") === orig) o.selected = true;
+                selOrig.appendChild(o);
+              });
+              selOrig.addEventListener("change", () => {
+                item.origem = selOrig.value;
+                saveContasFixasCatalog();
+                updateDashboard();
+              });
+              tdOrig.appendChild(selOrig);
+            } else {
+              tdOrig.innerHTML = '<span class="text-zinc-600">—</span>';
+            }
 
             const tdU = document.createElement("td");
             tdU.className =
@@ -9425,6 +9466,7 @@
             tr.appendChild(tdN);
             tr.appendChild(tdCat);
             tr.appendChild(tdMeio);
+            tr.appendChild(tdOrig);
             tr.appendChild(tdU);
             tr.appendChild(tdV);
             tr.appendChild(tdVP);
@@ -9440,7 +9482,7 @@
             '<td class="px-3 py-2 tabular-nums text-sm font-bold text-emerald-200 sm:px-4">' +
             formatMoney(totalGastoMes) +
             "</td>" +
-            '<td colspan="5" class="px-3 py-2 text-right text-[11px] font-medium uppercase tracking-wide text-bank-muted sm:px-4">' +
+            '<td colspan="6" class="px-3 py-2 text-right text-[11px] font-medium uppercase tracking-wide text-bank-muted sm:px-4">' +
             "Totais do mês · valor pago entra no dashboard" +
             "</td>" +
             '<td class="px-3 py-2 tabular-nums text-sm font-bold text-emerald-300/90 sm:px-4">' +
@@ -10802,25 +10844,25 @@
             seletor: '[data-tab="lancamentos"]',
             titulo: "Lançamentos",
             texto:
-              "Registre compras do dia a dia: Pix, débito, crédito e outros. Não duplique aqui o que já está em Contas fixas no mesmo mês — o sistema avisa se parecer duplicado.",
+              "Compras variáveis do dia a dia — mercado, loja, Uber… Assinaturas fixas no cartão (Netflix, plano) vão em Contas fixas. O sistema avisa se parecer duplicado.",
           },
           {
             seletor: '[data-tab="contas-fixas"]',
             titulo: "Contas fixas",
             texto:
-              "Aluguel, internet, assinaturas… Preencha valor pago quando pagar. Não registre de novo em Lançamentos a mesma conta — evita somar em dobro no total e nos gráficos.",
+              "Todo mês, mesmo valor: aluguel, internet, assinatura no cartão. Use Crédito + origem para Netflix no Nubank — sem lançar de novo todo mês. Preencha valor pago quando cobrar.",
           },
           {
             seletor: '[data-tab="contas-pagar"]',
             titulo: "Cartões",
             texto:
-              "Controle de fatura e vencimento. Pagar a fatura aqui não soma de novo — o gasto já foi nos lançamentos.",
+              "Controle de fatura e vencimento. Pagar a fatura aqui não soma de novo — o gasto já foi em Lançamentos ou em fixas com Crédito.",
           },
           {
             seletor: "#tour-alvo-graficos",
             titulo: "Gráficos",
             texto:
-              "Os gráficos seguem a mesma regra: lançamentos + fixas pagas; gastos no cartão vêm só dos lançamentos em Crédito.",
+              "Lançamentos + fixas pagas. Gastos no cartão: lançamentos em Crédito + fixas em Crédito com valor pago.",
           },
         ];
 
