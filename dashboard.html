@@ -4135,8 +4135,8 @@
             const cell = peekCellContaFixa(ma.y, ma.m, item.id);
             const vFixa = valorFixaValorPagoEfetivo(cell);
             if (vFixa <= 0) return;
-            const catF = categoriaContaFixa(item);
-            const nomeF = item.nome || "";
+            const catF = categoriaContaFixaMes(item, ma.y, ma.m);
+            const nomeF = nomeContaFixaMes(item, ma.y, ma.m);
             if (!catG || catF !== catG || !valoresProximosDuplicata(valorG, vFixa)) return;
             out.push({
               nome: nomeF,
@@ -4151,7 +4151,7 @@
           const out = [];
           const vFixa = Number(valorPago);
           if (!Number.isFinite(vFixa) || vFixa <= 0) return out;
-          const catF = categoriaContaFixa(item);
+          const catF = categoriaContaFixaMes(item, year, monthIdx);
 
           gastos.forEach((g) => {
             if (!isGastoInMesAno(g, year, monthIdx)) return;
@@ -4189,6 +4189,145 @@
           const y = String(year);
           const m = String(monthIdx);
           return contasFixasAnual[y]?.[m]?.[contaId] ?? null;
+        }
+
+        /** Campos do catálogo espelhados na célula mensal (só mês atual em diante ao editar). */
+        const CAMPOS_FIXA_META = {
+          nome: "fixaNome",
+          categoria: "fixaCategoria",
+          meioPagamento: "fixaMeio",
+          origem: "fixaOrigem",
+        };
+
+        function retrocederMesAnoFixa(y, m) {
+          if (m > 0) return { y, m: m - 1 };
+          return { y: y - 1, m: 11 };
+        }
+
+        function fixaCampoCatalogo(item, campo) {
+          if (campo === "nome") return item.nome || "";
+          if (campo === "categoria") return categoriaContaFixa(item);
+          if (campo === "meioPagamento") return (item.meioPagamento || "Pix").trim();
+          if (campo === "origem") return (item.origem || "").trim();
+          return "";
+        }
+
+        function fixaCampoEfetivo(item, year, monthIdx, campo) {
+          const key = CAMPOS_FIXA_META[campo];
+          if (!key) return "";
+          let y = year;
+          let m = monthIdx;
+          const maxSteps = 12 * 30;
+          for (let i = 0; i < maxSteps; i++) {
+            if (contasPagarItemVisivelNaGrade(item, y, m)) {
+              const cell = peekCellContaFixa(y, m, item.id);
+              if (cell && Object.prototype.hasOwnProperty.call(cell, key)) {
+                return cell[key];
+              }
+            }
+            const ma = item.mostrarAPartirDe;
+            if (
+              ma &&
+              Number.isFinite(ma.year) &&
+              Number.isFinite(ma.month) &&
+              compararMesAnoContasPagar(y, m, ma.year, ma.month) <= 0
+            ) {
+              break;
+            }
+            const prev = retrocederMesAnoFixa(y, m);
+            y = prev.y;
+            m = prev.m;
+          }
+          return fixaCampoCatalogo(item, campo);
+        }
+
+        function nomeContaFixaMes(item, year, monthIdx) {
+          const n = String(fixaCampoEfetivo(item, year, monthIdx, "nome") || "").trim();
+          return n || item.nome || "Conta fixa";
+        }
+
+        function categoriaContaFixaMes(item, year, monthIdx) {
+          const c = String(fixaCampoEfetivo(item, year, monthIdx, "categoria") || "").trim();
+          if (c) return c;
+          return listaCategorias.includes("outros") ? "outros" : listaCategorias[0] || "outros";
+        }
+
+        function meioContaFixaMes(item, year, monthIdx) {
+          return (fixaCampoEfetivo(item, year, monthIdx, "meioPagamento") || "Pix").trim();
+        }
+
+        function origemContaFixaMes(item, year, monthIdx) {
+          return (fixaCampoEfetivo(item, year, monthIdx, "origem") || "").trim();
+        }
+
+        function iterarMesesFixaAnteriores(item, fromYear, fromMonthIdx, fn) {
+          let y = fromYear;
+          let m = fromMonthIdx;
+          const maxSteps = 12 * 30;
+          for (let i = 0; i < maxSteps; i++) {
+            const prev = retrocederMesAnoFixa(y, m);
+            y = prev.y;
+            m = prev.m;
+            const ma = item.mostrarAPartirDe;
+            if (
+              ma &&
+              Number.isFinite(ma.year) &&
+              Number.isFinite(ma.month) &&
+              compararMesAnoContasPagar(y, m, ma.year, ma.month) < 0
+            ) {
+              break;
+            }
+            if (!contasPagarItemVisivelNaGrade(item, y, m)) continue;
+            fn(y, m);
+          }
+        }
+
+        function snapshotCampoFixaMesesAnteriores(item, fromYear, fromMonthIdx, campo, valor) {
+          const key = CAMPOS_FIXA_META[campo];
+          if (!key) return;
+          iterarMesesFixaAnteriores(item, fromYear, fromMonthIdx, (y, mo) => {
+            const cell = getCellContaFixa(y, mo, item.id);
+            if (!Object.prototype.hasOwnProperty.call(cell, key)) {
+              cell[key] = valor;
+            }
+          });
+        }
+
+        function propagarCampoFixaDesde(item, fromYear, fromMonthIdx, campo, valor) {
+          const key = CAMPOS_FIXA_META[campo];
+          if (!key) return;
+          let y = fromYear;
+          let m = fromMonthIdx;
+          const maxMeses = 12 * 15;
+          for (let step = 0; step < maxMeses; step++) {
+            if (contasPagarItemVisivelNaGrade(item, y, m)) {
+              const cell = getCellContaFixa(y, m, item.id);
+              cell[key] = valor;
+            }
+            const next = avancarMesAnoContaPagar(y, m, 1);
+            y = next.y;
+            m = next.mo;
+          }
+        }
+
+        function aplicarCampoFixaDesdeMes(item, year, monthIdx, campo, novoValor) {
+          if (campo === "nome") novoValor = String(novoValor || "").trim();
+          else if (campo === "categoria") novoValor = String(novoValor || "").trim();
+          else if (campo === "meioPagamento") novoValor = String(novoValor || "Pix").trim();
+          else if (campo === "origem") novoValor = String(novoValor || "").trim();
+          const valorAntigo = fixaCampoEfetivo(item, year, monthIdx, campo);
+          if (valorAntigo === novoValor) return;
+          snapshotCampoFixaMesesAnteriores(item, year, monthIdx, campo, valorAntigo);
+          propagarCampoFixaDesde(item, year, monthIdx, campo, novoValor);
+          item[campo] = novoValor;
+          if (campo === "meioPagamento" && novoValor !== "Crédito") {
+            const origAntigo = origemContaFixaMes(item, year, monthIdx);
+            snapshotCampoFixaMesesAnteriores(item, year, monthIdx, "origem", origAntigo);
+            propagarCampoFixaDesde(item, year, monthIdx, "origem", "");
+            item.origem = "";
+          }
+          saveContasFixasAnual();
+          saveContasFixasCatalog();
         }
 
         function propagarGastoCongeladoFixa(itemId, fromYear, fromMonthIdx, valor, isoVenRef) {
@@ -7429,7 +7568,7 @@
             const cell = peekCellContaFixa(dashboardGastosAno, dashboardGastosMesIdx, item.id);
             const v = valorFixaValorPagoEfetivo(cell);
             if (v <= 0) return;
-            const cat = categoriaContaFixa(item);
+            const cat = categoriaContaFixaMes(item, dashboardGastosAno, dashboardGastosMesIdx);
             map[cat] = (map[cat] || 0) + v;
           });
           return map;
@@ -7451,7 +7590,7 @@
             const cell = peekCellContaFixa(dashboardGastosAno, dashboardGastosMesIdx, item.id);
             const v = valorFixaValorPagoEfetivo(cell);
             if (v <= 0) return;
-            const m = (item.meioPagamento || "Pix").trim();
+            const m = meioContaFixaMes(item, dashboardGastosAno, dashboardGastosMesIdx);
             if (m === "Crédito") return;
             const k = ["Débito", "Pix", "Dinheiro", "Vale alimentação"].includes(m) ? m : "outros";
             map[k] += v;
@@ -7468,11 +7607,11 @@
           });
           contasFixasItems.forEach((item) => {
             if (!contasPagarItemVisivelNaGrade(item, dashboardGastosAno, dashboardGastosMesIdx)) return;
-            if ((item.meioPagamento || "").trim() !== "Crédito") return;
+            if (meioContaFixaMes(item, dashboardGastosAno, dashboardGastosMesIdx) !== "Crédito") return;
             const cell = peekCellContaFixa(dashboardGastosAno, dashboardGastosMesIdx, item.id);
             const v = valorFixaValorPagoEfetivo(cell);
             if (v <= 0) return;
-            const rotulo = (item.origem || "").trim() || "Sem origem";
+            const rotulo = origemContaFixaMes(item, dashboardGastosAno, dashboardGastosMesIdx) || "Sem origem";
             map[rotulo] = (map[rotulo] || 0) + v;
           });
           return map;
@@ -9259,15 +9398,14 @@
             const inNome = document.createElement("input");
             inNome.type = "text";
             inNome.className = inputCls + " font-medium text-zinc-100";
-            inNome.value = item.nome;
+            inNome.value = nomeContaFixaMes(item, year, monthIdx);
             inNome.addEventListener("blur", () => {
               const v = inNome.value.trim();
               if (!v) {
-                inNome.value = item.nome;
+                inNome.value = nomeContaFixaMes(item, year, monthIdx);
                 return;
               }
-              item.nome = v;
-              saveContasFixasCatalog();
+              aplicarCampoFixaDesdeMes(item, year, monthIdx, "nome", v);
             });
             tdN.appendChild(inNome);
 
@@ -9279,12 +9417,11 @@
               const o = document.createElement("option");
               o.value = cat;
               o.textContent = cat;
-              if (categoriaContaFixa(item) === cat) o.selected = true;
+              if (categoriaContaFixaMes(item, year, monthIdx) === cat) o.selected = true;
               selCat.appendChild(o);
             });
             selCat.addEventListener("change", () => {
-              item.categoria = selCat.value;
-              saveContasFixasCatalog();
+              aplicarCampoFixaDesdeMes(item, year, monthIdx, "categoria", selCat.value);
               updateDashboard();
             });
             tdCat.appendChild(selCat);
@@ -9293,17 +9430,16 @@
             tdMeio.className = "align-top px-3 py-1.5 sm:px-4";
             const selMeio = document.createElement("select");
             selMeio.className = inputCls;
+            const meioMes = meioContaFixaMes(item, year, monthIdx);
             MEIOS_PAGAMENTO.forEach((meio) => {
               const o = document.createElement("option");
               o.value = meio;
               o.textContent = meio;
-              if ((item.meioPagamento || "Pix") === meio) o.selected = true;
+              if (meioMes === meio) o.selected = true;
               selMeio.appendChild(o);
             });
             selMeio.addEventListener("change", () => {
-              item.meioPagamento = selMeio.value;
-              if (selMeio.value !== "Crédito") item.origem = "";
-              saveContasFixasCatalog();
+              aplicarCampoFixaDesdeMes(item, year, monthIdx, "meioPagamento", selMeio.value);
               renderContasFixas();
               updateDashboard();
             });
@@ -9311,23 +9447,23 @@
 
             const tdOrig = document.createElement("td");
             tdOrig.className = "align-top px-3 py-1.5 sm:px-4";
-            if ((item.meioPagamento || "Pix") === "Crédito") {
+            if (meioMes === "Crédito") {
               const selOrig = document.createElement("select");
               selOrig.className = inputCls;
               const oVazio = document.createElement("option");
               oVazio.value = "";
               oVazio.textContent = "Escolha origem";
               selOrig.appendChild(oVazio);
+              const origMes = origemContaFixaMes(item, year, monthIdx);
               listaOrigens.forEach((orig) => {
                 const o = document.createElement("option");
                 o.value = orig;
                 o.textContent = orig;
-                if ((item.origem || "") === orig) o.selected = true;
+                if (origMes === orig) o.selected = true;
                 selOrig.appendChild(o);
               });
               selOrig.addEventListener("change", () => {
-                item.origem = selOrig.value;
-                saveContasFixasCatalog();
+                aplicarCampoFixaDesdeMes(item, year, monthIdx, "origem", selOrig.value);
                 updateDashboard();
               });
               tdOrig.appendChild(selOrig);
@@ -9453,7 +9589,12 @@
               "inline-flex h-8 w-8 items-center justify-center rounded-lg border border-rose-500/35 text-rose-300 hover:bg-rose-500/10";
             btnDel.innerHTML = '<i data-lucide="trash-2" class="h-4 w-4"></i>';
             btnDel.addEventListener("click", () => {
-              if (!confirm('Excluir a linha "' + item.nome + '" a partir deste mês?')) return;
+              if (
+                !confirm(
+                  'Excluir a linha "' + nomeContaFixaMes(item, year, monthIdx) + '" a partir deste mês?'
+                )
+              )
+                return;
               item.ocultarAPartirDe = { year, month: monthIdx };
               removerCelulasDoItemContasFixasDesde(item.id, year, monthIdx);
               saveContasFixasCatalog();
