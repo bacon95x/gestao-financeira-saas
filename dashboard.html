@@ -9159,10 +9159,10 @@
             '<th class="min-w-[8rem] px-3 py-1.5 font-medium sm:px-4">Categoria</th>' +
             '<th class="min-w-[8rem] px-3 py-1.5 font-medium sm:px-4">Meio</th>' +
             '<th class="min-w-[8rem] px-3 py-1.5 font-medium sm:px-4">Origem</th>' +
-            '<th class="whitespace-nowrap px-3 py-1.5 font-medium sm:px-4">Última atualização</th>' +
             '<th class="whitespace-nowrap px-3 py-1.5 font-medium sm:px-4">Vencimento</th>' +
             '<th class="whitespace-nowrap px-3 py-1.5 font-medium sm:px-4">Valor pago (R$)</th>' +
             '<th class="whitespace-nowrap px-3 py-1.5 font-medium sm:px-4">Data pagamento</th>' +
+            '<th class="whitespace-nowrap px-3 py-1.5 font-medium sm:px-4">Última atualização</th>' +
             '<th class="w-14 whitespace-nowrap px-2 py-1.5 text-center font-medium sm:px-3"></th>' +
             "</tr>";
           table.appendChild(thead);
@@ -9335,13 +9335,6 @@
               tdOrig.innerHTML = '<span class="text-zinc-600">—</span>';
             }
 
-            const tdU = document.createElement("td");
-            tdU.className =
-              "cf-ultima-cell w-10 whitespace-nowrap px-2 py-1.5 text-center text-xs text-zinc-300 sm:px-3";
-            tdU.textContent = cell.ultimaAtualizacao
-              ? formatContasPagarSomenteDia(cell.ultimaAtualizacao)
-              : "—";
-
             const tdV = document.createElement("td");
             tdV.className = "align-middle px-3 py-1.5 sm:px-4";
             const inV = document.createElement("input");
@@ -9445,6 +9438,13 @@
             });
             tdDP.appendChild(inDP);
 
+            const tdU = document.createElement("td");
+            tdU.className =
+              "cf-ultima-cell w-10 whitespace-nowrap px-2 py-1.5 text-center text-xs text-zinc-300 sm:px-3";
+            tdU.textContent = cell.ultimaAtualizacao
+              ? formatContasPagarSomenteDia(cell.ultimaAtualizacao)
+              : "—";
+
             const tdDel = document.createElement("td");
             tdDel.className = "align-middle px-2 py-1.5 text-center sm:px-3";
             const btnDel = document.createElement("button");
@@ -9467,10 +9467,10 @@
             tr.appendChild(tdCat);
             tr.appendChild(tdMeio);
             tr.appendChild(tdOrig);
-            tr.appendChild(tdU);
             tr.appendChild(tdV);
             tr.appendChild(tdVP);
             tr.appendChild(tdDP);
+            tr.appendChild(tdU);
             tr.appendChild(tdDel);
             tbody.appendChild(tr);
           });
@@ -9482,12 +9482,13 @@
             '<td class="px-3 py-2 tabular-nums text-sm font-bold text-emerald-200 sm:px-4">' +
             formatMoney(totalGastoMes) +
             "</td>" +
-            '<td colspan="6" class="px-3 py-2 text-right text-[11px] font-medium uppercase tracking-wide text-bank-muted sm:px-4">' +
+            '<td colspan="5" class="px-3 py-2 text-right text-[11px] font-medium uppercase tracking-wide text-bank-muted sm:px-4">' +
             "Totais do mês · valor pago entra no dashboard" +
             "</td>" +
             '<td class="px-3 py-2 tabular-nums text-sm font-bold text-emerald-300/90 sm:px-4">' +
             formatMoney(totalValorPagoMes) +
             "</td>" +
+            '<td class="px-3 py-2 sm:px-4"></td>' +
             '<td class="px-3 py-2 sm:px-4"></td>' +
             '<td class="px-3 py-2 sm:px-4"></td>';
           tfoot.appendChild(trTot);
