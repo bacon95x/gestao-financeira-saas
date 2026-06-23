@@ -39,6 +39,7 @@
     var toggle = document.getElementById("btn-wa-toggle");
     if (!panel || !toggle) return;
     panel.classList.toggle("hidden", !open);
+    panel.classList.toggle("flex", open);
     toggle.setAttribute("aria-expanded", open ? "true" : "false");
   }
 
@@ -168,6 +169,9 @@
   }
 
   function initWhatsAppAssistant() {
+    if (window.__gfpWaInited) return;
+    window.__gfpWaInited = true;
+
     var wrap = document.getElementById("gfp-whatsapp-wrap");
     if (!wrap) return;
     var mode = (window.GFP_STORAGE_MODE || "local").toLowerCase();
@@ -178,6 +182,7 @@
     var btnDes = document.getElementById("btn-wa-desvincular");
     if (btnToggle) {
       btnToggle.addEventListener("click", function (e) {
+        e.preventDefault();
         e.stopPropagation();
         togglePanel();
       });
@@ -201,10 +206,4 @@
 
   window.gfpInitWhatsAppAssistant = initWhatsAppAssistant;
   window.gfpRefreshWhatsAppStatus = refreshStatus;
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", initWhatsAppAssistant);
-  } else {
-    initWhatsAppAssistant();
-  }
 })();
