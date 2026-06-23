@@ -893,10 +893,11 @@
           </div>
           <div
             id="gfp-whatsapp-panel"
-            class="hidden flex flex-wrap items-center gap-2 rounded-2xl border border-emerald-500/25 bg-emerald-950/20 px-2 py-2 backdrop-blur-sm"
+            class="hidden flex w-full min-w-[min(100%,280px)] flex-col gap-2 rounded-2xl border border-emerald-500/25 bg-emerald-950/20 px-2 py-2 backdrop-blur-sm sm:min-w-[320px]"
             role="group"
             aria-label="Assistente WhatsApp"
           >
+            <div class="flex flex-wrap items-center gap-2">
             <span class="pl-1 text-xs font-medium text-emerald-200">WhatsApp</span>
             <button
               type="button"
@@ -915,10 +916,32 @@
               Desvincular
             </button>
             <span id="gfp-wa-status" class="text-xs text-zinc-400">—</span>
+            </div>
+            <div
+              class="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 rounded-lg border border-emerald-500/25 bg-emerald-950/50 px-2 py-1.5 text-xs leading-snug"
+            >
+              <span class="text-emerald-100/90">Número do Capital Novo:</span>
+              <a
+                id="gfp-wa-phone-link"
+                href="https://wa.me/5511977732973"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="font-semibold text-emerald-300 underline decoration-emerald-500/50 underline-offset-2 hover:text-emerald-200"
+                >+55 11 97773-2973</a
+              >
+            </div>
             <div id="gfp-wa-code-box" class="hidden w-full rounded-lg border border-emerald-500/30 bg-bank-bg/60 px-2 py-1.5 text-xs">
-              <div class="text-bank-muted">Envie no WhatsApp do Capital Novo:</div>
+              <div class="text-bank-muted">Abra o número acima e envie esta mensagem:</div>
               <div id="gfp-wa-code-val" class="font-mono font-semibold text-emerald-200"></div>
               <div id="gfp-wa-code-exp" class="text-[10px] text-bank-muted"></div>
+              <a
+                id="gfp-wa-open-chat"
+                href="#"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="mt-1 inline-block text-[10px] font-semibold text-emerald-300 hover:underline"
+                >Abrir conversa no WhatsApp</a
+              >
             </div>
           </div>
           </div>
