@@ -28,17 +28,43 @@
     else el.classList.add("text-zinc-400");
   }
 
+  function whatsappDisplay() {
+    return window.GFP_WHATSAPP_DISPLAY || "+55 11 97773-2973";
+  }
+
+  function whatsappE164() {
+    return String(window.GFP_WHATSAPP_E164 || "5511977732973").replace(/\D/g, "");
+  }
+
+  function whatsappUrl(prefill) {
+    var url = "https://wa.me/" + whatsappE164();
+    if (prefill) url += "?text=" + encodeURIComponent(prefill);
+    return url;
+  }
+
+  function initWhatsAppPhoneLinks() {
+    var display = whatsappDisplay();
+    var link = document.getElementById("gfp-wa-phone-link");
+    if (link) {
+      link.textContent = display;
+      link.href = whatsappUrl();
+    }
+  }
+
   function setCodeBox(code, expiresAt) {
     var box = document.getElementById("gfp-wa-code-box");
     var val = document.getElementById("gfp-wa-code-val");
     var exp = document.getElementById("gfp-wa-code-exp");
+    var openChat = document.getElementById("gfp-wa-open-chat");
     if (!box || !val) return;
     if (!code) {
       box.classList.add("hidden");
       return;
     }
     box.classList.remove("hidden");
-    val.textContent = "VINCULAR " + code;
+    var msg = "VINCULAR " + code;
+    val.textContent = msg;
+    if (openChat) openChat.href = whatsappUrl(msg);
     if (exp && expiresAt) {
       try {
         var d = new Date(expiresAt);
@@ -60,10 +86,10 @@
       });
       var data = await res.json();
       if (data.linked) {
-        setStatus("WhatsApp vinculado ····" + (data.phone_masked || ""), "ok");
+        setStatus("Vinculado ····" + (data.phone_masked || ""), "ok");
         setCodeBox(null);
       } else {
-        setStatus("WhatsApp não vinculado", "warn");
+        setStatus("Não vinculado — use o número abaixo", "warn");
       }
     } catch (e) {
       setStatus("—", "");
@@ -92,7 +118,7 @@
         return;
       }
       setCodeBox(data.code, data.expires_at);
-      setStatus("Envie a mensagem abaixo no WhatsApp do Capital Novo", "ok");
+      setStatus("Envie a mensagem abaixo para " + whatsappDisplay(), "ok");
     } catch (e) {
       alert("Erro de rede. Tente de novo.");
       setStatus("Erro", "warn");
@@ -127,6 +153,7 @@
     var btnDes = document.getElementById("btn-wa-desvincular");
     if (btnGerar) btnGerar.addEventListener("click", gerarCodigo);
     if (btnDes) btnDes.addEventListener("click", desvincular);
+    initWhatsAppPhoneLinks();
 
     if (window.gfpWaitForAuth) {
       window.gfpWaitForAuth().then(refreshStatus).catch(function () {});
