@@ -28,6 +28,26 @@
     else el.classList.add("text-zinc-400");
   }
 
+  function setWaBadge(linked) {
+    var badge = document.getElementById("gfp-wa-badge");
+    if (!badge) return;
+    badge.classList.toggle("hidden", !!linked);
+  }
+
+  function setPanelOpen(open) {
+    var panel = document.getElementById("gfp-whatsapp-panel");
+    var toggle = document.getElementById("btn-wa-toggle");
+    if (!panel || !toggle) return;
+    panel.classList.toggle("hidden", !open);
+    toggle.setAttribute("aria-expanded", open ? "true" : "false");
+  }
+
+  function togglePanel() {
+    var panel = document.getElementById("gfp-whatsapp-panel");
+    if (!panel) return;
+    setPanelOpen(panel.classList.contains("hidden"));
+  }
+
   function whatsappDisplay() {
     return window.GFP_WHATSAPP_DISPLAY || "+55 11 97773-2973";
   }
@@ -88,8 +108,10 @@
       if (data.linked) {
         setStatus("Vinculado ····" + (data.phone_masked || ""), "ok");
         setCodeBox(null);
+        setWaBadge(true);
       } else {
         setStatus("Não vinculado — use o número abaixo", "warn");
+        setWaBadge(false);
       }
     } catch (e) {
       setStatus("—", "");
@@ -104,6 +126,7 @@
       return;
     }
     if (btn) btn.disabled = true;
+    setPanelOpen(true);
     setStatus("Gerando código…", "warn");
     try {
       var headers = await authHeaders();
@@ -138,22 +161,38 @@
       });
       setCodeBox(null);
       setStatus("WhatsApp não vinculado", "warn");
+      setWaBadge(false);
     } catch (e) {
       alert("Não foi possível desvincular.");
     }
   }
 
   function initWhatsAppAssistant() {
-    var wrap = document.getElementById("gfp-whatsapp-panel");
+    var wrap = document.getElementById("gfp-whatsapp-wrap");
     if (!wrap) return;
     var mode = (window.GFP_STORAGE_MODE || "local").toLowerCase();
     wrap.classList.toggle("hidden", mode === "local");
 
+    var btnToggle = document.getElementById("btn-wa-toggle");
     var btnGerar = document.getElementById("btn-wa-gerar-codigo");
     var btnDes = document.getElementById("btn-wa-desvincular");
+    if (btnToggle) {
+      btnToggle.addEventListener("click", function (e) {
+        e.stopPropagation();
+        togglePanel();
+      });
+    }
+    document.addEventListener("click", function (e) {
+      var panel = document.getElementById("gfp-whatsapp-panel");
+      if (!wrap || !panel || panel.classList.contains("hidden")) return;
+      if (!wrap.contains(e.target)) setPanelOpen(false);
+    });
     if (btnGerar) btnGerar.addEventListener("click", gerarCodigo);
     if (btnDes) btnDes.addEventListener("click", desvincular);
     initWhatsAppPhoneLinks();
+    if (window.lucide && typeof window.lucide.createIcons === "function") {
+      window.lucide.createIcons();
+    }
 
     if (window.gfpWaitForAuth) {
       window.gfpWaitForAuth().then(refreshStatus).catch(function () {});
