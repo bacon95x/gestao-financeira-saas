@@ -2994,7 +2994,7 @@
           return out;
         }
 
-        /** Categorias fixas do app (ordem); no carregamento são sempre mantidas; depois vêm as adicionadas por você. */
+        /** Categorias sugeridas no primeiro acesso (depois a lista salva é a fonte da verdade). */
         const CATEGORIAS_DEFAULT = [
           "Mercado",
           "Luz",
@@ -4550,8 +4550,20 @@
         }
 
         /**
+         * Primeiro acesso: categorias sugeridas. Depois: usa só o que o usuário salvou
+         * (exclusões persistem; não reinsere padrões removidos).
+         */
+        function carregarListaCategoriasUsuario(salva) {
+          const s = Array.isArray(salva) ? salva.map(String).filter(Boolean) : [];
+          if (!s.length) return CATEGORIAS_DEFAULT.slice();
+          const out = [...s];
+          if (!out.includes("outros")) out.push("outros");
+          return out;
+        }
+
+        /**
          * Garante todas as opções fixas em `padrao` (nessa ordem) e acrescenta do `salva` o que for extra
-         * (texto que não está no conjunto do padrão).
+         * (texto que não está no conjunto do padrão). Usado só para origens de cartão.
          */
         function normalizarPadraoMaisExtras(padrao, salva) {
           const p = padrao.map(String);
@@ -4633,10 +4645,12 @@
                 arrC = [];
               }
             }
-            listaCategorias = normalizarPadraoMaisExtras(CATEGORIAS_DEFAULT, arrC);
-            if (JSON.stringify(listaCategorias) !== JSON.stringify(arrC)) saveListaCategorias();
+            const tinhaListaSalva = arrC.length > 0;
+            listaCategorias = carregarListaCategoriasUsuario(arrC);
+            if (!tinhaListaSalva) saveListaCategorias();
           } catch {
-            listaCategorias = normalizarPadraoMaisExtras(CATEGORIAS_DEFAULT, []);
+            listaCategorias = CATEGORIAS_DEFAULT.slice();
+            saveListaCategorias();
           }
           garantirLinhasContasPagarParaOrigens();
         }
@@ -9277,7 +9291,7 @@
           const fallback =
             listaCategorias.find((x) => x !== cat) || listaCategorias[0] || "outros";
           listaCategorias = listaCategorias.filter((x) => x !== cat);
-          if (!listaCategorias.length) listaCategorias = [...CATEGORIAS_DEFAULT];
+          if (!listaCategorias.length) listaCategorias = ["outros"];
           gastos.forEach((g) => {
             if ((g.categoria || "").trim() === cat) g.categoria = fallback;
           });
