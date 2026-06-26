@@ -4921,7 +4921,7 @@
           return x.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         }
 
-        /** Formata enquanto digita: 1000 → "1.000,00". */
+        /** Formata enquanto digita (sem forçar ,00 — permite 1 → 10 → 100 → 1.000). */
         function formatValorMoedaDigitando(raw) {
           const s = String(raw || "");
           const commaIdx = s.indexOf(",");
@@ -4937,7 +4937,30 @@
           const intNum = intDigits ? parseInt(intDigits, 10) : 0;
           const intFmt = intNum.toLocaleString("pt-BR");
           if (commaIdx >= 0) return intFmt + "," + decDigits;
-          return intFmt + ",00";
+          return intFmt;
+        }
+
+        /** Ao sair do campo: completa com ,00 se não houver centavos digitados. */
+        function finalizarValorMoedaCampo(raw) {
+          const s = String(raw || "").trim();
+          if (!s) return "";
+          const commaIdx = s.indexOf(",");
+          if (commaIdx < 0) {
+            const intDigits = s.replace(/\D/g, "");
+            if (!intDigits) return "";
+            const intNum = parseInt(intDigits, 10);
+            if (!Number.isFinite(intNum)) return "";
+            return intNum.toLocaleString("pt-BR", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            });
+          }
+          const intDigits = s.slice(0, commaIdx).replace(/\D/g, "");
+          const decDigits = s.slice(commaIdx + 1).replace(/\D/g, "").slice(0, 2);
+          if (!intDigits && !decDigits) return "";
+          const intNum = intDigits ? parseInt(intDigits, 10) : 0;
+          const dec = (decDigits + "00").slice(0, 2);
+          return intNum.toLocaleString("pt-BR") + "," + dec;
         }
 
         function definirValorMoedaCampo(el, n) {
@@ -4954,21 +4977,51 @@
           delete el.dataset.moedaBr;
           el.removeEventListener("input", onInputMoedaBR);
           el.removeEventListener("blur", onBlurMoedaBR);
+          el.removeEventListener("focus", onFocusMoedaBR);
         }
 
         function onInputMoedaBR(ev) {
           const el = ev.target;
           if (!el) return;
-          el.value = formatValorMoedaDigitando(el.value);
+          const before = el.value;
+          const pos = el.selectionStart != null ? el.selectionStart : before.length;
+          const digitsBefore = before.slice(0, pos).replace(/\D/g, "").length;
+          const formatted = formatValorMoedaDigitando(before);
+          el.value = formatted;
+          if (!formatted) return;
+          let count = 0;
+          let newPos = formatted.length;
+          for (let i = 0; i < formatted.length; i++) {
+            if (/\d/.test(formatted[i])) {
+              count++;
+              if (count >= digitsBefore) {
+                newPos = i + 1;
+                break;
+              }
+            }
+          }
           try {
-            el.setSelectionRange(el.value.length, el.value.length);
+            el.setSelectionRange(newPos, newPos);
           } catch (_) {}
         }
 
         function onBlurMoedaBR(ev) {
           const el = ev.target;
           if (!el || !el.value.trim()) return;
-          el.value = formatValorMoedaDigitando(el.value);
+          el.value = finalizarValorMoedaCampo(el.value);
+        }
+
+        function onFocusMoedaBR(ev) {
+          const el = ev.target;
+          if (!el || !el.value.trim()) return;
+          const n = parseValorMonetarioLancamento(el.value);
+          if (!Number.isFinite(n)) return;
+          if (n === Math.floor(n)) {
+            el.value = Math.floor(n).toLocaleString("pt-BR");
+            try {
+              el.setSelectionRange(el.value.length, el.value.length);
+            } catch (_) {}
+          }
         }
 
         function prepararInputMoedaBR(el) {
@@ -4984,6 +5037,7 @@
           if (el.readOnly || el.disabled) return;
           el.addEventListener("input", onInputMoedaBR);
           el.addEventListener("blur", onBlurMoedaBR);
+          el.addEventListener("focus", onFocusMoedaBR);
         }
 
         let mascarasMoedaBRDelegacaoOk = false;
