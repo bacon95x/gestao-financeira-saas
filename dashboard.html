@@ -1329,11 +1329,11 @@
                 >
                 <input
                   id="modal-renda-input-valor"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  placeholder="0"
-                  class="mt-1.5 w-full rounded-xl border border-bank-border bg-bank-bg px-4 py-2.5 text-sm tabular-nums text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
+                  type="text"
+                  inputmode="decimal"
+                  autocomplete="off"
+                  placeholder="0,00"
+                  class="input-moeda-br mt-1.5 w-full rounded-xl border border-bank-border bg-bank-bg px-4 py-2.5 text-sm tabular-nums text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
                 />
               </div>
             </div>
@@ -1629,12 +1629,12 @@
               <input
                 id="gasto-valor"
                 name="valor"
-                type="number"
-                step="0.01"
-                min="0.01"
+                type="text"
+                inputmode="decimal"
+                autocomplete="off"
                 required
                 placeholder="0,00"
-                class="mt-1.5 w-full rounded-xl border border-bank-border bg-bank-bg px-4 py-3 text-white placeholder-zinc-600 outline-none ring-violet-500/50 focus:border-violet-500/50 focus:ring-2"
+                class="input-moeda-br mt-1.5 w-full rounded-xl border border-bank-border bg-bank-bg px-4 py-3 text-white placeholder-zinc-600 outline-none ring-violet-500/50 focus:border-violet-500/50 focus:ring-2"
               />
             </div>
             <div class="grid gap-5 sm:col-span-2 sm:grid-cols-2">
@@ -2124,11 +2124,11 @@
                   <span class="text-xs text-bank-muted">BRL</span>
                   <input
                     id="inv-inicial-brl"
-                    type="number"
+                    type="text"
                     inputmode="decimal"
-                    step="any"
-                    placeholder="0"
-                    class="w-36 rounded-xl border border-bank-border bg-bank-bg px-3 py-2 text-sm tabular-nums text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
+                    autocomplete="off"
+                    placeholder="0,00"
+                    class="input-moeda-br w-36 rounded-xl border border-bank-border bg-bank-bg px-3 py-2 text-sm tabular-nums text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
                   />
                 </label>
               </div>
@@ -2154,11 +2154,11 @@
                   <span class="text-xs text-bank-muted">BRL</span>
                   <input
                     id="inv-aporte-brl"
-                    type="number"
+                    type="text"
                     inputmode="decimal"
-                    step="any"
-                    placeholder="0"
-                    class="w-36 rounded-xl border border-bank-border bg-bank-bg px-3 py-2 text-sm tabular-nums text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
+                    autocomplete="off"
+                    placeholder="0,00"
+                    class="input-moeda-br w-36 rounded-xl border border-bank-border bg-bank-bg px-3 py-2 text-sm tabular-nums text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
                   />
                 </label>
               </div>
@@ -2183,11 +2183,11 @@
                     <span class="text-xs text-bank-muted">Manual</span>
                     <input
                       id="inv-cotacao-manual"
-                      type="number"
+                      type="text"
                       inputmode="decimal"
-                      step="any"
+                      autocomplete="off"
                       placeholder="5,90"
-                      class="w-32 rounded-xl border border-bank-border bg-bank-bg px-3 py-2 text-sm tabular-nums text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
+                      class="input-moeda-br w-32 rounded-xl border border-bank-border bg-bank-bg px-3 py-2 text-sm tabular-nums text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
                     />
                   </label>
                   <label class="flex cursor-pointer items-center gap-2 text-sm text-zinc-300">
@@ -2366,7 +2366,7 @@
                       inputmode="decimal"
                       placeholder="0,00"
                       autocomplete="off"
-                      class="mt-1.5 w-full rounded-xl border border-bank-border bg-bank-bg px-3 py-2.5 text-sm tabular-nums text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
+                      class="input-moeda-br mt-1.5 w-full rounded-xl border border-bank-border bg-bank-bg px-3 py-2.5 text-sm tabular-nums text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
                     />
                   </label>
                   <label class="block">
@@ -2663,13 +2663,12 @@
               </div>
               <input
                 id="btc-add-investido"
-                type="number"
+                type="text"
                 inputmode="decimal"
-                step="0.01"
-                min="0"
-                placeholder="0"
+                autocomplete="off"
+                placeholder="0,00"
                 required
-                class="rounded-xl border border-bank-border bg-bank-bg px-3 py-2 text-sm tabular-nums text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
+                class="input-moeda-br rounded-xl border border-bank-border bg-bank-bg px-3 py-2 text-sm tabular-nums text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
               />
             </div>
             <label class="flex flex-col gap-1">
@@ -2690,13 +2689,12 @@
               <span class="text-[10px] font-normal leading-tight text-bank-muted">«Atualizar BTC + USD/BRL» preenche com PTAX Banco Central (fechamento / dia útil), próximo ao widget TradingView.</span>
               <input
                 id="btc-add-cotacao"
-                type="number"
+                type="text"
                 inputmode="decimal"
-                step="any"
-                min="0"
+                autocomplete="off"
                 placeholder="5,90"
                 required
-                class="rounded-xl border border-bank-border bg-bank-bg px-3 py-2 text-sm tabular-nums text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
+                class="input-moeda-br rounded-xl border border-bank-border bg-bank-bg px-3 py-2 text-sm tabular-nums text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
               />
             </label>
             <div class="flex flex-col gap-1">
@@ -3796,30 +3794,34 @@
             const wrapJ = document.createElement("div");
             wrapJ.className = "cj-juros-celula-wrap";
             const inJ = document.createElement("input");
-            inJ.type = "number";
-            inJ.step = "any";
-            inJ.placeholder = "0";
+            inJ.type = "text";
+            inJ.inputMode = "decimal";
+            inJ.autocomplete = "off";
+            inJ.placeholder = "0,00";
             inJ.className =
-              inputCls + " cj-juros-input tabular-nums max-w-[7rem]" + (frozen ? " cursor-not-allowed opacity-80" : "");
+              inputCls + " input-moeda-br cj-juros-input tabular-nums max-w-[7rem]" + (frozen ? " cursor-not-allowed opacity-80" : "");
             inJ.readOnly = frozen;
             inJ.title = frozen
               ? "Congelado — clique no ❄️ para descongelar só este mês"
               : "Use ❄️ para congelar e copiar esta linha (valor e textos) aos meses seguintes";
-            inJ.value = row.juros != null && Number.isFinite(row.juros) ? String(row.juros) : "";
+            if (row.juros != null && Number.isFinite(row.juros)) definirValorMoedaCampo(inJ, row.juros);
+            if (!frozen) prepararInputMoedaBR(inJ);
             inJ.addEventListener("change", () => {
               if (row.congelado) {
-                inJ.value = row.juros != null && Number.isFinite(row.juros) ? String(row.juros) : "";
+                if (row.juros != null && Number.isFinite(row.juros)) definirValorMoedaCampo(inJ, row.juros);
+                else inJ.value = "";
                 return;
               }
               const v = inJ.value.trim();
-              row.juros = v === "" ? null : Number.isFinite(parseFloat(v)) ? parseFloat(v) : row.juros;
+              row.juros = v === "" ? null : Number.isFinite(parseValorMonetarioLancamento(v)) ? parseValorMonetarioLancamento(v) : row.juros;
               saveCalendarioJuros();
               renderCalendarioJurosTabela();
               updateDashboard();
             });
             inJ.addEventListener("blur", () => {
               if (row.congelado) {
-                inJ.value = row.juros != null && Number.isFinite(row.juros) ? String(row.juros) : "";
+                if (row.juros != null && Number.isFinite(row.juros)) definirValorMoedaCampo(inJ, row.juros);
+                else inJ.value = "";
               }
             });
             const btnNeve = document.createElement("button");
@@ -3851,7 +3853,7 @@
                   return;
                 }
                 const raw = inJ.value.trim();
-                row.juros = raw === "" ? null : Number.isFinite(parseFloat(raw)) ? parseFloat(raw) : row.juros;
+                row.juros = raw === "" ? null : Number.isFinite(parseValorMonetarioLancamento(raw)) ? parseValorMonetarioLancamento(raw) : row.juros;
                 row.oQueE = inQ.value;
                 row.quando = inD.value;
                 row.origem = selO.value || "";
@@ -4912,6 +4914,97 @@
           return parseFloat(s);
         }
 
+        /** Número → "1.000,00" (sem prefixo R$). */
+        function formatValorMoedaCampo(n) {
+          const x = Number(n);
+          if (!Number.isFinite(x)) return "";
+          return x.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        /** Formata enquanto digita: 1000 → "1.000,00". */
+        function formatValorMoedaDigitando(raw) {
+          const s = String(raw || "");
+          const commaIdx = s.indexOf(",");
+          let intDigits = "";
+          let decDigits = "";
+          if (commaIdx >= 0) {
+            intDigits = s.slice(0, commaIdx).replace(/\D/g, "");
+            decDigits = s.slice(commaIdx + 1).replace(/\D/g, "").slice(0, 2);
+          } else {
+            intDigits = s.replace(/\D/g, "");
+          }
+          if (!intDigits && !decDigits) return "";
+          const intNum = intDigits ? parseInt(intDigits, 10) : 0;
+          const intFmt = intNum.toLocaleString("pt-BR");
+          if (commaIdx >= 0) return intFmt + "," + decDigits;
+          return intFmt + ",00";
+        }
+
+        function definirValorMoedaCampo(el, n) {
+          if (!el) return;
+          if (n == null || n === "" || !Number.isFinite(Number(n))) {
+            el.value = "";
+            return;
+          }
+          el.value = formatValorMoedaCampo(Number(n));
+        }
+
+        function resetInputMoedaBR(el) {
+          if (!el) return;
+          delete el.dataset.moedaBr;
+          el.removeEventListener("input", onInputMoedaBR);
+          el.removeEventListener("blur", onBlurMoedaBR);
+        }
+
+        function onInputMoedaBR(ev) {
+          const el = ev.target;
+          if (!el) return;
+          el.value = formatValorMoedaDigitando(el.value);
+          try {
+            el.setSelectionRange(el.value.length, el.value.length);
+          } catch (_) {}
+        }
+
+        function onBlurMoedaBR(ev) {
+          const el = ev.target;
+          if (!el || !el.value.trim()) return;
+          el.value = formatValorMoedaDigitando(el.value);
+        }
+
+        function prepararInputMoedaBR(el) {
+          if (!el || el.dataset.moedaBr === "1") return;
+          el.dataset.moedaBr = "1";
+          el.type = "text";
+          el.inputMode = "decimal";
+          el.autocomplete = "off";
+          if (el.value && el.value.trim()) {
+            const n = parseValorMonetarioLancamento(el.value);
+            if (Number.isFinite(n)) el.value = formatValorMoedaCampo(n);
+          }
+          if (el.readOnly || el.disabled) return;
+          el.addEventListener("input", onInputMoedaBR);
+          el.addEventListener("blur", onBlurMoedaBR);
+        }
+
+        let mascarasMoedaBRDelegacaoOk = false;
+        function garantirDelegacaoMascarasMoedaBR() {
+          if (mascarasMoedaBRDelegacaoOk) return;
+          mascarasMoedaBRDelegacaoOk = true;
+          document.addEventListener("focusin", (e) => {
+            const el = e.target;
+            if (!el || el.nodeName !== "INPUT") return;
+            if (el.classList.contains("input-moeda-br") || el.hasAttribute("data-moeda-br")) {
+              prepararInputMoedaBR(el);
+            }
+          });
+        }
+
+        function initMascarasMoedaBR(root) {
+          garantirDelegacaoMascarasMoedaBR();
+          const r = root || document;
+          r.querySelectorAll(".input-moeda-br, [data-moeda-br]").forEach(prepararInputMoedaBR);
+        }
+
         /** R$ com no máximo 2 casas, sem ruído de float (soma em centavos). */
         function normalizarValorCentavosBR(n) {
           const x = Number(n);
@@ -4925,12 +5018,10 @@
           return normalizarValorCentavosBR(Math.max(0, n));
         }
 
-        /** String estável para input type="number" das subcategorias do porquinho. */
+        /** Valor formatado para campo de subcategoria do porquinho. */
         function formatarValorCampoPorquinho(v) {
           if (!Number.isFinite(v) || v === 0) return "";
-          const cents = Math.round(Number(v) * 100);
-          if (cents === 0) return "";
-          return (cents / 100).toFixed(2);
+          return formatValorMoedaCampo(v);
         }
 
         /** Divide `total` em `n` partes em centavos (soma exata). */
@@ -5381,9 +5472,8 @@
 
         function investParseNum(s) {
           if (s == null || s === "") return 0;
-          const t = String(s).trim().replace(/\s/g, "").replace(",", ".");
-          const x = parseFloat(t);
-          return Number.isFinite(x) ? x : 0;
+          const n = parseValorMonetarioLancamento(s);
+          return Number.isFinite(n) ? n : 0;
         }
 
         function investSave() {
@@ -5591,6 +5681,7 @@
         }
 
         function investSyncInputsFromState() {
+          const brlIds = new Set(["inv-inicial-brl", "inv-aporte-brl", "inv-cotacao-manual"]);
           const ids = [
             ["inv-inicial-usd", "inicialUSD"],
             ["inv-inicial-brl", "inicialBRL"],
@@ -5602,7 +5693,17 @@
           ];
           ids.forEach(([id, key]) => {
             const el = document.getElementById(id);
-            if (el) el.value = investForm[key] || "";
+            if (!el) return;
+            const raw = investForm[key] || "";
+            if (brlIds.has(id)) {
+              if (!raw) el.value = "";
+              else {
+                const n = parseValorMonetarioLancamento(raw);
+                el.value = Number.isFinite(n) ? formatValorMoedaCampo(n) : raw;
+              }
+            } else {
+              el.value = raw;
+            }
           });
           const chk = document.getElementById("inv-cotacao-auto");
           if (chk) chk.checked = investForm.cotacaoAuto;
@@ -5708,9 +5809,8 @@
 
         function bitcoinParseNum(s) {
           if (s == null || s === "") return NaN;
-          const t = String(s).trim().replace(/\s/g, "").replace(",", ".");
-          const x = parseFloat(t);
-          return Number.isFinite(x) ? x : NaN;
+          const n = parseValorMonetarioLancamento(s);
+          return Number.isFinite(n) ? n : NaN;
         }
 
         /** BTC = (R$ ÷ cotação R$/US$) ÷ preço US$/BTC */
@@ -5809,6 +5909,24 @@
             prev.title = bitcoinAddInvestidoUsd
               ? "Quantidade = valor em US$ ÷ preço BTC (US$)"
               : "(R$ investidos ÷ cotação R$/US$) ÷ preço BTC (US$)";
+          }
+          const invAdd = document.getElementById("btc-add-investido");
+          if (invAdd) {
+            resetInputMoedaBR(invAdd);
+            if (bitcoinAddInvestidoUsd) {
+              invAdd.classList.remove("input-moeda-br");
+              invAdd.type = "number";
+              invAdd.inputMode = "decimal";
+              invAdd.step = "0.01";
+              invAdd.min = "0";
+              invAdd.placeholder = "0";
+            } else {
+              invAdd.classList.add("input-moeda-br");
+              invAdd.type = "text";
+              invAdd.inputMode = "decimal";
+              invAdd.placeholder = "0,00";
+              prepararInputMoedaBR(invAdd);
+            }
           }
           bitcoinRefreshAddQtyPreview();
         }
@@ -6266,6 +6384,17 @@
                   "</span>";
               }
 
+              const investidoMoedaUsd = !!bitcoinState.tabelaInvestidoMoedaUsd;
+              const investidoInputType = investidoMoedaUsd ? "number" : "text";
+              const investidoInputCls =
+                inpCls + (investidoMoedaUsd ? "" : " input-moeda-br");
+              const investidoInputVal = investidoMoedaUsd
+                ? escapeHtml(bitcoinFormatInvestidoCampo(investidoCampoRaw))
+                : escapeHtml(formatValorMoedaCampo(investidoCampoRaw));
+              const investidoExtraAttrs = investidoMoedaUsd
+                ? ' inputmode="decimal" step="0.01" min="0"'
+                : ' inputmode="decimal" autocomplete="off"';
+
               const tr = document.createElement("tr");
               tr.className = "border-b border-bank-border/50 hover:bg-white/[0.02]";
               tr.innerHTML =
@@ -6283,12 +6412,16 @@
                 '<td class="' +
                 tdCls +
                 '">' +
-                '<input type="number" inputmode="decimal" step="0.01" min="0" class="' +
-                inpCls +
+                '<input type="' +
+                investidoInputType +
+                '"' +
+                investidoExtraAttrs +
+                ' class="' +
+                investidoInputCls +
                 '" data-btc-field="investidoBrl" data-btc-id="' +
                 escapeHtml(row.id) +
                 '" value="' +
-                escapeHtml(String(investidoCampoVal)) +
+                investidoInputVal +
                 '" />' +
                 "</td>" +
                 '<td class="' +
@@ -6337,6 +6470,8 @@
                 "</td>";
               tbody.appendChild(tr);
             });
+
+          initMascarasMoedaBR(tbody);
 
           tbody.querySelectorAll("input[data-btc-field]").forEach((inp) => {
             const commit = () => {
@@ -6577,6 +6712,7 @@
           investLoad();
           investSyncInputsFromState();
           investWireInputs();
+          initMascarasMoedaBR(document.getElementById("panel-investimentos"));
           investStopCotacaoInterval();
           renderInvestimentosTabela();
           if (investForm.cotacaoAuto) {
@@ -6772,9 +6908,9 @@
               '<p class="mb-2 text-xs font-medium text-violet-200/95">Somar ou subtrair outro aporte neste investimento</p>' +
               '<div class="flex flex-col gap-2 sm:flex-row sm:items-end">' +
               '<label class="min-w-0 flex-1"><span class="text-[10px] text-bank-muted">Valor (R$)</span>' +
-              '<input type="text" inputmode="decimal" data-pat-aporte-valor="' +
+              '<input type="text" inputmode="decimal" autocomplete="off" data-pat-aporte-valor="' +
               escapeHtml(it.id) +
-              '" class="mt-1 w-full rounded-lg border border-bank-border bg-bank-bg px-2 py-1.5 text-sm tabular-nums text-white" placeholder="0,00" />' +
+              '" class="input-moeda-br mt-1 w-full rounded-lg border border-bank-border bg-bank-bg px-2 py-1.5 text-sm tabular-nums text-white" placeholder="0,00" />' +
               "</label>" +
               '<label class="sm:w-40"><span class="text-[10px] text-bank-muted">Data</span>' +
               '<input type="date" data-pat-aporte-data="' +
@@ -6828,6 +6964,7 @@
               "</div>";
             wrap.appendChild(card);
           });
+          initMascarasMoedaBR(wrap);
         }
 
         function renderPatrimonioChart() {
@@ -8088,14 +8225,15 @@
             lab.value = p.label || "";
             lab.setAttribute("data-saldo-label-idx", String(idx));
             const val = document.createElement("input");
-            val.type = "number";
-            val.step = "any";
-            val.min = "0";
+            val.type = "text";
+            val.inputMode = "decimal";
+            val.autocomplete = "off";
             val.className =
-              "w-full rounded-lg border border-bank-border bg-bank-bg px-3 py-2 text-sm tabular-nums text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-1";
-            val.placeholder = "0";
-            val.value = formatarValorCampoPorquinho(p.valor);
+              "input-moeda-br w-full rounded-lg border border-bank-border bg-bank-bg px-3 py-2 text-sm tabular-nums text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-1";
+            val.placeholder = "0,00";
+            definirValorMoedaCampo(val, p.valor);
             val.setAttribute("data-saldo-valor-idx", String(idx));
+            prepararInputMoedaBR(val);
             val.addEventListener("input", atualizarPreviewSaldoPartesModal);
             val.addEventListener("change", atualizarPreviewSaldoPartesModal);
             row.appendChild(lab);
@@ -8545,7 +8683,7 @@
           const idxSel = parseInt(sel.value, 10);
           const idxUse = Number.isFinite(idxSel) ? idxSel : rendaDashboardMesIdx;
           const v = valorRendaMesComSomaPartes(anoSelecionadoModalRendaMes(), idxUse);
-          inp.value = v !== 0 ? String(v) : "";
+          definirValorMoedaCampo(inp, v !== 0 ? v : "");
           const modal = document.getElementById("modal-renda-mes");
           modal.classList.remove("hidden");
           modal.classList.add("flex");
@@ -8559,7 +8697,7 @@
           const idx = parseInt(sel.value, 10);
           if (!Number.isFinite(idx) || idx < 0 || idx > 11) return;
           const v = valorRendaMesComSomaPartes(anoSelecionadoModalRendaMes(), idx);
-          inp.value = v !== 0 ? String(v) : "";
+          definirValorMoedaCampo(inp, v !== 0 ? v : "");
         }
 
         function syncDashboardPizzaMeioFromForm() {
@@ -9418,23 +9556,24 @@
             const wrapG = document.createElement("div");
             wrapG.className = "cp-gasto-celula-wrap";
             const inG = document.createElement("input");
-            inG.type = "number";
-            inG.step = "0.01";
-            inG.min = "0";
+            inG.type = "text";
+            inG.inputMode = "decimal";
+            inG.autocomplete = "off";
             inG.className =
               inputClsGastoComBotao +
-              " cp-gasto-input tabular-nums" +
+              " input-moeda-br cp-gasto-input tabular-nums" +
               (frozen ? " cursor-not-allowed opacity-80" : "");
             inG.readOnly = frozen;
-            inG.value = String(cell.gastoAtual ?? 0);
+            definirValorMoedaCampo(inG, cell.gastoAtual ?? 0);
+            if (!frozen) prepararInputMoedaBR(inG);
             inG.addEventListener("blur", () => {
               if (cell.gastoCongelado) {
-                inG.value = String(cell.gastoAtual ?? 0);
+                definirValorMoedaCampo(inG, cell.gastoAtual ?? 0);
                 return;
               }
-              const v = parseFloat(inG.value);
-              if (Number.isNaN(v) || v < 0) {
-                inG.value = String(cell.gastoAtual);
+              const v = parseValorMonetarioLancamento(inG.value);
+              if (!Number.isFinite(v) || v < 0) {
+                definirValorMoedaCampo(inG, cell.gastoAtual);
                 return;
               }
               if (v !== cell.gastoAtual) {
@@ -9464,7 +9603,7 @@
                 renderContasFixas();
                 return;
               }
-              const v = parseFloat(inG.value);
+              const v = parseValorMonetarioLancamento(inG.value);
               const valor = Number.isFinite(v) && v >= 0 ? v : 0;
               cell.gastoAtual = valor;
               cell.gastoCongelado = true;
@@ -9592,21 +9731,23 @@
             const tdVP = document.createElement("td");
             tdVP.className = "align-middle px-3 py-1.5 sm:px-4";
             const inVP = document.createElement("input");
-            inVP.type = "number";
-            inVP.step = "0.01";
-            inVP.min = "0";
+            inVP.type = "text";
+            inVP.inputMode = "decimal";
+            inVP.autocomplete = "off";
             inVP.placeholder = "—";
-            inVP.className = inputCls + " tabular-nums";
-            inVP.value = cell.valorPago != null ? String(cell.valorPago) : "";
+            inVP.className = inputCls + " input-moeda-br tabular-nums";
+            if (cell.valorPago != null) definirValorMoedaCampo(inVP, cell.valorPago);
+            prepararInputMoedaBR(inVP);
             inVP.addEventListener("blur", () => {
               const raw = inVP.value.trim();
               const prevPago = cell.valorPago;
               let novoPago = null;
               if (raw !== "") {
-                const x = parseFloat(raw);
+                const x = parseValorMonetarioLancamento(raw);
                 if (Number.isFinite(x) && x >= 0) novoPago = x;
                 else {
-                  inVP.value = prevPago != null ? String(prevPago) : "";
+                  if (prevPago != null) definirValorMoedaCampo(inVP, prevPago);
+                  else inVP.value = "";
                   return;
                 }
               }
@@ -9619,7 +9760,8 @@
                   cell.dataPago || ""
                 );
                 if (dups.length && !confirmarSePossivelDuplicata(dups, "Lançamentos")) {
-                  inVP.value = prevPago != null ? String(prevPago) : "";
+                  if (prevPago != null) definirValorMoedaCampo(inVP, prevPago);
+                  else inVP.value = "";
                   return;
                 }
               }
@@ -9823,26 +9965,27 @@
             const wrapG = document.createElement("div");
             wrapG.className = "cp-gasto-celula-wrap";
             const inG = document.createElement("input");
-            inG.type = "number";
-            inG.step = "0.01";
-            inG.min = "0";
+            inG.type = "text";
+            inG.inputMode = "decimal";
+            inG.autocomplete = "off";
             inG.className =
               inputClsGastoComBotao +
-              " cp-gasto-input tabular-nums" +
+              " input-moeda-br cp-gasto-input tabular-nums" +
               (frozen ? " cursor-not-allowed opacity-80" : "");
             inG.title = frozen
               ? "Congelado — clique no ❄️ para descongelar só este mês"
               : "Editável; lançamentos vinculados também atualizam. Use ❄️ para congelar e copiar gasto e vencimento aos meses seguintes";
             inG.readOnly = frozen;
-            inG.value = String(cell.gastoAtual ?? 0);
+            definirValorMoedaCampo(inG, cell.gastoAtual ?? 0);
+            if (!frozen) prepararInputMoedaBR(inG);
             inG.addEventListener("blur", () => {
               if (cell.gastoCongelado) {
-                inG.value = String(cell.gastoAtual ?? 0);
+                definirValorMoedaCampo(inG, cell.gastoAtual ?? 0);
                 return;
               }
-              const v = parseFloat(inG.value);
-              if (Number.isNaN(v) || v < 0) {
-                inG.value = String(cell.gastoAtual);
+              const v = parseValorMonetarioLancamento(inG.value);
+              if (!Number.isFinite(v) || v < 0) {
+                definirValorMoedaCampo(inG, cell.gastoAtual);
                 return;
               }
               if (v !== cell.gastoAtual) {
@@ -9880,7 +10023,7 @@
                   renderContasPagar();
                   return;
                 }
-                const v = parseFloat(inG.value);
+                const v = parseValorMonetarioLancamento(inG.value);
                 const valor = Number.isFinite(v) && v >= 0 ? v : 0;
                 cell.gastoAtual = valor;
                 cell.gastoCongelado = true;
@@ -9981,19 +10124,21 @@
             const tdVP = document.createElement("td");
             tdVP.className = "align-middle px-3 py-1.5 sm:px-4";
             const inVP = document.createElement("input");
-            inVP.type = "number";
-            inVP.step = "0.01";
-            inVP.min = "0";
+            inVP.type = "text";
+            inVP.inputMode = "decimal";
+            inVP.autocomplete = "off";
             inVP.placeholder = "—";
-            inVP.className = inputCls + " tabular-nums";
-            inVP.value = cell.valorPago != null ? String(cell.valorPago) : "";
+            inVP.className = inputCls + " input-moeda-br tabular-nums";
+            if (cell.valorPago != null) definirValorMoedaCampo(inVP, cell.valorPago);
+            prepararInputMoedaBR(inVP);
             inVP.addEventListener("blur", () => {
               const raw = inVP.value.trim();
               if (raw === "") cell.valorPago = null;
               else {
-                const x = parseFloat(raw);
+                const x = parseValorMonetarioLancamento(raw);
                 if (Number.isFinite(x)) cell.valorPago = x;
-                else inVP.value = cell.valorPago != null ? String(cell.valorPago) : "";
+                else if (cell.valorPago != null) definirValorMoedaCampo(inVP, cell.valorPago);
+                else inVP.value = "";
               }
               saveContasPagarAnual();
               renderContasPagar();
@@ -11280,6 +11425,7 @@
           initThemeFundoPicker();
           initFundoIluminacao();
           initAppearanceToggle();
+          initMascarasMoedaBR(document);
           initInvestimentos();
           initPatrimonio();
           initBitcoin();
