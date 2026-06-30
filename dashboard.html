@@ -1606,7 +1606,7 @@
         <div
           class="rounded-2xl border border-bank-border bg-bank-card p-6 shadow-glow sm:p-8"
         >
-          <h2 class="text-lg font-semibold text-white">Novo lançamento</h2>
+          <h2 id="gasto-form-titulo" class="text-lg font-semibold text-white">Novo lançamento</h2>
           <p class="mt-1 text-sm text-bank-muted">
             Meio de pagamento é como você pagou; origem é qual cartão (quando couber). Em Crédito, a coluna em
             Cartões é o mês do vencimento da fatura (ciclo que cruza o mês anterior ao fechamento).
@@ -1823,10 +1823,18 @@
             <div class="sm:col-span-2 flex flex-wrap gap-3">
               <button
                 type="submit"
+                id="btn-salvar-gasto"
                 class="inline-flex items-center gap-2 rounded-xl bg-violet-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-violet-600/25 transition hover:bg-violet-500"
               >
                 <i data-lucide="plus-circle" class="h-4 w-4"></i>
                 Salvar lançamento
+              </button>
+              <button
+                type="button"
+                id="btn-cancelar-edicao-gasto"
+                class="hidden inline-flex items-center gap-2 rounded-xl border border-bank-border px-6 py-3 text-sm font-semibold text-zinc-300 transition hover:bg-white/5"
+              >
+                Cancelar edição
               </button>
             </div>
             <p
@@ -3016,6 +3024,8 @@
 
         /** @type {{ id: string, data: string, valor: number, descricao: string, categoria?: string, meioPagamento?: string, origem?: string, cartao?: string, parcelas?: number }[]} */
         let gastos = [];
+        /** id do gasto em edição no formulário «Novo lançamento» (null = criar novo). */
+        let gastoEditandoId = null;
         /** @type {{ id: string, descricao: string, vencimento: string, valor: number | null, cartao: string, status: string }[]} */
         let contas = [];
         /** @type {Record<string, { id: string, juros: number | null, oQueE: string, quando: string, origem: string, congelado?: boolean }[]>} chave "ano-mêsIdx" (ex.: "2026-3"). */
@@ -9059,6 +9069,77 @@
           tfoot.classList.toggle("hidden", !(sorted && sorted.length));
         }
 
+        function atualizarUiFormGasto() {
+          const titulo = document.getElementById("gasto-form-titulo");
+          const btn = document.getElementById("btn-salvar-gasto");
+          const btnCancel = document.getElementById("btn-cancelar-edicao-gasto");
+          const editando = !!gastoEditandoId;
+          if (titulo) titulo.textContent = editando ? "Editar lançamento" : "Novo lançamento";
+          if (btn) {
+            btn.innerHTML = editando
+              ? '<i data-lucide="check" class="h-4 w-4"></i> Salvar alterações'
+              : '<i data-lucide="plus-circle" class="h-4 w-4"></i> Salvar lançamento';
+          }
+          if (btnCancel) btnCancel.classList.toggle("hidden", !editando);
+          try {
+            if (typeof lucide !== "undefined" && lucide.createIcons) lucide.createIcons();
+          } catch (_) {}
+        }
+
+        function limparFormGasto(resetEdit) {
+          if (resetEdit !== false) gastoEditandoId = null;
+          const form = document.getElementById("form-gasto");
+          if (form) form.reset();
+          const valEl = document.getElementById("gasto-valor");
+          if (valEl) valEl.value = "";
+          const dataEl = document.getElementById("gasto-data");
+          if (dataEl) dataEl.value = new Date().toISOString().slice(0, 10);
+          setCategoriaSelecionada("");
+          setOrigemSelecionada("");
+          const painelCat = document.getElementById("painel-categorias");
+          const painelOrig = document.getElementById("painel-origens");
+          const btnCat = document.getElementById("btn-categoria");
+          const btnOrig = document.getElementById("btn-origem");
+          if (painelCat) painelCat.classList.add("hidden");
+          if (painelOrig) painelOrig.classList.add("hidden");
+          if (btnCat) btnCat.setAttribute("aria-expanded", "false");
+          if (btnOrig) btnOrig.setAttribute("aria-expanded", "false");
+          const parcEl = document.getElementById("gasto-parcelas");
+          if (parcEl) parcEl.value = "";
+          const errEl = document.getElementById("gasto-erro-validacao");
+          if (errEl) {
+            errEl.textContent = "";
+            errEl.classList.add("hidden");
+          }
+          atualizarUiFormGasto();
+          atualizarTotalGastoDia();
+          atualizarHintDestinoFatura();
+        }
+
+        function iniciarEdicaoGasto(id) {
+          const g = gastos.find((x) => x.id === id);
+          if (!g) return;
+          gastoEditandoId = id;
+          document.getElementById("gasto-data").value = g.data || "";
+          definirValorMoedaCampo(document.getElementById("gasto-valor"), g.valor);
+          const meioEl = document.getElementById("gasto-meio");
+          if (meioEl) meioEl.value = meioPagamentoEfetivo(g);
+          const nParc = g.parcelas != null ? Math.floor(Number(g.parcelas)) : 0;
+          document.getElementById("gasto-parcelas").value = nParc >= 2 ? String(nParc) : "";
+          document.getElementById("gasto-desc").value = (g.descricao || "").trim();
+          setCategoriaSelecionada(categoriaDoGasto(g));
+          setOrigemSelecionada(origemDoGasto(g) || "");
+          atualizarUiFormGasto();
+          atualizarHintDestinoFatura();
+          const formEl = document.getElementById("form-gasto");
+          if (formEl) formEl.scrollIntoView({ behavior: "smooth", block: "start" });
+          const errEl = document.getElementById("gasto-erro-validacao");
+          if (errEl) {
+            errEl.textContent = "";
+            errEl.classList.add("hidden");
+          }
+        }
+
         function renderTabelaGastos() {
           const tbody = document.getElementById("tbody-gastos");
           const empty = document.getElementById("empty-gastos");
@@ -9124,19 +9205,30 @@
               "<td class=\"px-6 py-3 tabular-nums text-violet-200/90\">" +
               formatMoney(totalDia) +
               "</td>" +
-              '<td class="px-6 py-3 text-right"><button type="button" class="rounded-lg p-2 text-zinc-500 hover:bg-rose-500/10 hover:text-rose-400" data-del-gasto="' +
+              '<td class="px-6 py-3 text-right"><div class="flex justify-end gap-0.5">' +
+              '<button type="button" class="rounded-lg p-2 text-zinc-500 hover:bg-violet-500/10 hover:text-violet-300" data-edit-gasto="' +
               g.id +
-              '" title="Excluir"><i data-lucide="trash-2" class="h-4 w-4"></i></button></td>';
+              '" title="Editar"><i data-lucide="pencil" class="h-4 w-4"></i></button>' +
+              '<button type="button" class="rounded-lg p-2 text-zinc-500 hover:bg-rose-500/10 hover:text-rose-400" data-del-gasto="' +
+              g.id +
+              '" title="Excluir"><i data-lucide="trash-2" class="h-4 w-4"></i></button></div></td>';
             tbody.appendChild(tr);
           });
           atualizarTotalLancamentosTabela(sorted);
           atualizarRefLancamentosRegistrados();
           lucide.createIcons();
+          tbody.querySelectorAll("[data-edit-gasto]").forEach((btn) => {
+            btn.addEventListener("click", () => {
+              const id = btn.getAttribute("data-edit-gasto");
+              if (id) iniciarEdicaoGasto(id);
+            });
+          });
           tbody.querySelectorAll("[data-del-gasto]").forEach((btn) => {
             btn.addEventListener("click", () => {
               const id = btn.getAttribute("data-del-gasto");
               const gAntes = gastos.find((x) => x.id === id);
               gastos = gastos.filter((x) => x.id !== id);
+              if (gastoEditandoId === id) limparFormGasto();
               if (gAntes) aplicarLancamentoContasPagar(gAntes, -1);
               saveGastos();
               renderTabelaGastos();
@@ -10757,6 +10849,11 @@
         document.getElementById("gasto-parcelas").addEventListener("input", atualizarHintDestinoFatura);
         document.getElementById("gasto-parcelas").addEventListener("change", atualizarHintDestinoFatura);
 
+        const btnCancelarEdicaoGasto = document.getElementById("btn-cancelar-edicao-gasto");
+        if (btnCancelarEdicaoGasto) {
+          btnCancelarEdicaoGasto.addEventListener("click", () => limparFormGasto());
+        }
+
         document.getElementById("form-gasto").addEventListener("submit", (e) => {
           e.preventDefault();
           const elErro = document.getElementById("gasto-erro-validacao");
@@ -10795,8 +10892,7 @@
           }
           const categoriaCanon = resolverCategoriaLista(categoria);
           const origemCanon = origem ? resolverOrigemLista(origem) : "";
-          const novoGasto = {
-            id: uid(),
+          const baseGasto = {
             data,
             valor,
             meioPagamento,
@@ -10804,24 +10900,31 @@
             descricao,
             categoria: categoriaCanon,
           };
-          if (Number.isFinite(parcNum) && parcNum >= 2 && parcNum <= 24) novoGasto.parcelas = parcNum;
-          const dupsFixa = buscarPossiveisDuplicatasFixaParaLancamento(novoGasto);
+          if (Number.isFinite(parcNum) && parcNum >= 2 && parcNum <= 24) baseGasto.parcelas = parcNum;
+          const dupsFixa = buscarPossiveisDuplicatasFixaParaLancamento(baseGasto);
           if (dupsFixa.length && !confirmarSePossivelDuplicata(dupsFixa, "Contas fixas")) {
             return;
           }
           try {
-            gastos.push(novoGasto);
-            aplicarLancamentoContasPagar(novoGasto, 1);
+            if (gastoEditandoId) {
+              const idx = gastos.findIndex((x) => x.id === gastoEditandoId);
+              if (idx < 0) {
+                limparFormGasto();
+                return;
+              }
+              const gAntes = gastos[idx];
+              aplicarLancamentoContasPagar(gAntes, -1);
+              const atualizado = { ...gAntes, ...baseGasto, id: gastoEditandoId };
+              if (!baseGasto.parcelas) delete atualizado.parcelas;
+              gastos[idx] = atualizado;
+              aplicarLancamentoContasPagar(gastos[idx], 1);
+            } else {
+              const novoGasto = { id: uid(), ...baseGasto };
+              gastos.push(novoGasto);
+              aplicarLancamentoContasPagar(novoGasto, 1);
+            }
             saveGastos();
-            e.target.reset();
-            const hoje = new Date().toISOString().slice(0, 10);
-            document.getElementById("gasto-data").value = hoje;
-            setCategoriaSelecionada("");
-            setOrigemSelecionada("");
-            document.getElementById("painel-categorias").classList.add("hidden");
-            document.getElementById("btn-categoria").setAttribute("aria-expanded", "false");
-            document.getElementById("painel-origens").classList.add("hidden");
-            document.getElementById("btn-origem").setAttribute("aria-expanded", "false");
+            limparFormGasto();
             renderTabelaGastos();
             atualizarTotalGastoDia();
             renderTotaisCategoriaMes();
@@ -10836,7 +10939,7 @@
             }
             atualizarHintDestinoFatura();
           } catch (err) {
-            gastos.pop();
+            if (!gastoEditandoId) gastos.pop();
             console.error(err);
             if (elErro) {
               elErro.textContent =
