@@ -9069,6 +9069,15 @@
           tfoot.classList.toggle("hidden", !(sorted && sorted.length));
         }
 
+        /** Mesmo dia: lançamento mais recente (último salvo) aparece primeiro. */
+        function compareGastosDataRecentePrimeiro(a, b) {
+          const dc = b.data.localeCompare(a.data);
+          if (dc !== 0) return dc;
+          const ia = gastos.findIndex((x) => x.id === a.id);
+          const ib = gastos.findIndex((x) => x.id === b.id);
+          return ib - ia;
+        }
+
         function atualizarUiFormGasto() {
           const titulo = document.getElementById("gasto-form-titulo");
           const btn = document.getElementById("btn-salvar-gasto");
@@ -9146,7 +9155,9 @@
           tbody.innerHTML = "";
           const gastosMes = gastos.filter(isGastoInDashboardMonth);
           syncFiltrosLancamentosUI();
-          const sorted = gastosMes.filter(gastoPassaFiltrosLancamentos).sort((a, b) => b.data.localeCompare(a.data));
+          const sorted = gastosMes
+            .filter(gastoPassaFiltrosLancamentos)
+            .sort(compareGastosDataRecentePrimeiro);
           if (sorted.length === 0) {
             atualizarTotalLancamentosTabela([]);
             empty.classList.remove("hidden");
