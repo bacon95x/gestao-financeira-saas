@@ -4980,26 +4980,43 @@
           el.removeEventListener("focus", onFocusMoedaBR);
         }
 
+        /** Reposiciona o cursor após formatar (centavos ficam à direita da vírgula). */
+        function posicaoCursorMoedaBR(raw, cursorPos, formatted) {
+          if (!formatted) return 0;
+          const s = String(raw || "");
+          const pos = Math.max(0, Math.min(cursorPos != null ? cursorPos : s.length, s.length));
+          const commaRaw = s.indexOf(",");
+          const commaFmt = formatted.indexOf(",");
+
+          if (commaRaw >= 0 && commaFmt >= 0 && pos >= commaRaw) {
+            const decDigitsBefore = s.slice(commaRaw + 1, pos).replace(/\D/g, "").length;
+            return Math.min(commaFmt + 1 + decDigitsBefore, formatted.length);
+          }
+
+          const digitsBefore = s.slice(0, pos).replace(/\D/g, "").length;
+          const searchEnd = commaFmt >= 0 ? commaFmt : formatted.length;
+          let count = 0;
+          for (let i = 0; i < searchEnd; i++) {
+            if (/\d/.test(formatted[i])) {
+              count++;
+              if (count >= digitsBefore) return i + 1;
+            }
+          }
+          if (commaFmt >= 0 && commaRaw >= 0 && pos >= commaRaw) {
+            return commaFmt + 1;
+          }
+          return searchEnd;
+        }
+
         function onInputMoedaBR(ev) {
           const el = ev.target;
           if (!el) return;
           const before = el.value;
           const pos = el.selectionStart != null ? el.selectionStart : before.length;
-          const digitsBefore = before.slice(0, pos).replace(/\D/g, "").length;
           const formatted = formatValorMoedaDigitando(before);
           el.value = formatted;
           if (!formatted) return;
-          let count = 0;
-          let newPos = formatted.length;
-          for (let i = 0; i < formatted.length; i++) {
-            if (/\d/.test(formatted[i])) {
-              count++;
-              if (count >= digitsBefore) {
-                newPos = i + 1;
-                break;
-              }
-            }
-          }
+          const newPos = posicaoCursorMoedaBR(before, pos, formatted);
           try {
             el.setSelectionRange(newPos, newPos);
           } catch (_) {}
