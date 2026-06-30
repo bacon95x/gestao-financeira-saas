@@ -3390,6 +3390,7 @@
             }
             sincronizarRendaMensalDasPartesPorMesNoAno(new Date().getFullYear());
             executarMigracaoContasFixasSeNecessario();
+            normalizarCategoriasOrigensGastosSalvos();
           } catch {
             gastos = [];
             contas = [];
@@ -4322,7 +4323,7 @@
 
         function categoriaContaFixaMes(item, year, monthIdx) {
           const c = String(fixaCampoEfetivo(item, year, monthIdx, "categoria") || "").trim();
-          if (c) return c;
+          if (c) return resolverCategoriaLista(c);
           return listaCategorias.includes("outros") ? "outros" : listaCategorias[0] || "outros";
         }
 
@@ -4561,6 +4562,80 @@
           const out = [...s];
           if (!out.includes("outros")) out.push("outros");
           return out;
+        }
+
+        function normNomeLista(s) {
+          return String(s || "")
+            .trim()
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/\p{M}/gu, "");
+        }
+
+        /** Texto canônico da lista do dashboard (ignora maiúsculas/acentos). */
+        function resolverNaLista(raw, lista) {
+          const n = normNomeLista(raw);
+          if (!n || !lista.length) return "";
+          for (let i = 0; i < lista.length; i++) {
+            const item = lista[i];
+            const itemN = normNomeLista(item);
+            if (itemN === n || itemN.startsWith(n) || n.startsWith(itemN)) return item;
+          }
+          return "";
+        }
+
+        function resolverCategoriaLista(raw) {
+          const c = String(raw || "").trim();
+          if (!c) {
+            return listaCategorias.includes("outros") ? "outros" : listaCategorias[0] || "outros";
+          }
+          const hit = resolverNaLista(c, listaCategorias);
+          if (hit) return hit;
+          return listaCategorias.includes("outros") ? "outros" : listaCategorias[0] || "outros";
+        }
+
+        function resolverOrigemLista(raw) {
+          const o = String(raw || "").trim();
+          if (!o) return "";
+          const hit = resolverNaLista(o, listaOrigens);
+          if (hit) return hit;
+          const ant = ORIGEM_TEXTO_ANTIGO_PARA_ATUAL[o] || ORIGEM_TEXTO_ANTIGO_PARA_ATUAL[normNomeLista(o)];
+          if (ant) {
+            const hitAnt = resolverNaLista(ant, listaOrigens);
+            if (hitAnt) return hitAnt;
+          }
+          const leg = CARTAO_LEGADO_PARA_ORIGEM[o] || CARTAO_LEGADO_PARA_ORIGEM[normNomeLista(o)];
+          if (leg) {
+            const hitLeg = resolverNaLista(leg, listaOrigens);
+            if (hitLeg) return hitLeg;
+          }
+          return "";
+        }
+
+        function normalizarCategoriasOrigensGastosSalvos() {
+          if (!Array.isArray(gastos) || !gastos.length) return;
+          let mudou = false;
+          gastos.forEach((g) => {
+            if (!g || typeof g !== "object") return;
+            const catRaw = g.categoria != null ? String(g.categoria).trim() : "";
+            if (catRaw) {
+              const cat = resolverCategoriaLista(catRaw);
+              if (cat !== catRaw) {
+                g.categoria = cat;
+                mudou = true;
+              }
+            }
+            const origRaw = g.origem != null ? String(g.origem).trim() : "";
+            if (origRaw) {
+              const orig = resolverOrigemLista(origRaw);
+              if (orig !== origRaw) {
+                if (orig) g.origem = orig;
+                else delete g.origem;
+                mudou = true;
+              }
+            }
+          });
+          if (mudou) saveGastos();
         }
 
         /**
@@ -7568,24 +7643,11 @@
         }
 
         function origemDoGasto(g) {
-          const os = getOrigemSet();
           const o = (g.origem || "").trim();
-          if (o) {
-            if (os.has(o)) return o;
-            const ant = ORIGEM_TEXTO_ANTIGO_PARA_ATUAL[o];
-            if (ant && os.has(ant)) return ant;
-            const leg = CARTAO_LEGADO_PARA_ORIGEM[o];
-            if (leg && os.has(leg)) return leg;
-            return o;
-          }
+          if (o) return resolverOrigemLista(o);
           const c = (g.cartao || "").trim();
           if (!c) return "";
-          if (os.has(c)) return c;
-          const antc = ORIGEM_TEXTO_ANTIGO_PARA_ATUAL[c];
-          if (antc && os.has(antc)) return antc;
-          const legc = CARTAO_LEGADO_PARA_ORIGEM[c] || "";
-          if (legc && os.has(legc)) return legc;
-          return "";
+          return resolverOrigemLista(c);
         }
 
         function meioPagamentoDoGasto(g) {
@@ -7846,9 +7908,8 @@
 
         function categoriaDoGasto(g) {
           const c = g.categoria && String(g.categoria).trim();
-          if (c) return c;
-          const fallback = listaCategorias.includes("outros") ? "outros" : listaCategorias[0] || "outros";
-          return fallback;
+          if (c) return resolverCategoriaLista(c);
+          return listaCategorias.includes("outros") ? "outros" : listaCategorias[0] || "outros";
         }
 
         function agregadoPorCategoriaMes() {
@@ -8065,9 +8126,7 @@
               "Mês: " + mesNome.charAt(0).toUpperCase() + mesNome.slice(1);
           }
           ul.innerHTML = "";
-          const mostradas = new Set();
           listaCategorias.forEach((cat) => {
-            mostradas.add(cat);
             const v = agg[cat] || 0;
             const li = document.createElement("li");
             li.className =
@@ -8080,21 +8139,6 @@
               "</span>";
             ul.appendChild(li);
           });
-          Object.keys(agg)
-            .filter((k) => !mostradas.has(k))
-            .sort()
-            .forEach((cat) => {
-              const li = document.createElement("li");
-              li.className =
-                "flex items-center justify-between gap-3 rounded-xl border border-amber-500/20 bg-amber-500/5 px-3 py-2.5";
-              li.innerHTML =
-                '<span class="truncate text-zinc-300">' +
-                escapeHtml(cat) +
-                ' <span class="text-xs text-amber-400/90">(extra)</span></span><span class="shrink-0 tabular-nums font-semibold text-violet-200">' +
-                formatMoney(agg[cat]) +
-                "</span>";
-              ul.appendChild(li);
-            });
         }
 
         /** Data formatada (pt-BR) do vencimento mais próximo, igual ao 1º item da lista do modal. */
@@ -9454,7 +9498,7 @@
 
         function adicionarOrigemLista(texto) {
           const ne = String(texto || "").trim();
-          if (!ne || listaOrigens.includes(ne)) return false;
+          if (!ne || resolverNaLista(ne, listaOrigens)) return false;
           listaOrigens.push(ne);
           contasPagarItems.push({
             id: "cpp-" + uid(),
@@ -9517,7 +9561,8 @@
 
         function adicionarCategoriaLista(texto) {
           const ne = String(texto || "").trim();
-          if (!ne || listaCategorias.includes(ne)) return false;
+          if (!ne) return false;
+          if (resolverNaLista(ne, listaCategorias)) return false;
           listaCategorias.push(ne);
           saveListaCategorias();
           refreshUiListasEContas();
@@ -10748,14 +10793,16 @@
             document.getElementById("btn-categoria").focus();
             return;
           }
+          const categoriaCanon = resolverCategoriaLista(categoria);
+          const origemCanon = origem ? resolverOrigemLista(origem) : "";
           const novoGasto = {
             id: uid(),
             data,
             valor,
             meioPagamento,
-            origem: origem || undefined,
+            origem: origemCanon || undefined,
             descricao,
-            categoria,
+            categoria: categoriaCanon,
           };
           if (Number.isFinite(parcNum) && parcNum >= 2 && parcNum <= 24) novoGasto.parcelas = parcNum;
           const dupsFixa = buscarPossiveisDuplicatasFixaParaLancamento(novoGasto);
