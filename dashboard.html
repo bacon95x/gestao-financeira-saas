@@ -4223,6 +4223,18 @@
           };
         }
 
+        function faturaContaFixaJaPaga(item, year, monthIdx, cellFixa) {
+          const fatura = faturaAlvoContaFixa(item, year, monthIdx, cellFixa);
+          const cell = fatura && fatura.cell;
+          if (!fatura || !cell) return null;
+          const temData = !!(cell.dataPago && String(cell.dataPago).trim());
+          const temValor =
+            cell.valorPago != null &&
+            Number.isFinite(Number(cell.valorPago)) &&
+            Number(cell.valorPago) > 0;
+          return temData || temValor ? fatura : null;
+        }
+
         /** Gasto do mês representado pela conta fixa: no crédito vale a cobrança; fora do crédito vale o pago. */
         function valorFixaNoDashboardMes(item, year, monthIdx, cell) {
           const c = cell || peekCellContaFixa(year, monthIdx, item.id);
@@ -4234,18 +4246,39 @@
           return valorFixaValorPagoEfetivo(c);
         }
 
-        /** Exibição da coluna «Valor pago»: no crédito o controle fica só na fatura/cartão. */
+        /** Na grade de fixas, se a fatura do crédito já foi paga, o "gasto atual" visual zera. */
+        function gastoAtualExibicaoContaFixa(item, year, monthIdx, cell) {
+          const c = cell || peekCellContaFixa(year, monthIdx, item.id);
+          if (!c) return 0;
+          if (contaFixaEhCredito(item, year, monthIdx) && faturaContaFixaJaPaga(item, year, monthIdx, c)) {
+            return 0;
+          }
+          const v = Number(c.gastoAtual);
+          return Number.isFinite(v) && v > 0 ? v : 0;
+        }
+
+        /** Exibição da coluna «Valor pago»: no crédito, puxa automaticamente quando a fatura foi quitada. */
         function valorPagoExibicaoContaFixa(item, year, monthIdx, cell) {
           const c = cell || peekCellContaFixa(year, monthIdx, item.id);
           if (!c) return 0;
-          if (contaFixaEhCredito(item, year, monthIdx)) return 0;
+          if (contaFixaEhCredito(item, year, monthIdx)) {
+            const quitada = faturaContaFixaJaPaga(item, year, monthIdx, c);
+            if (!quitada) return 0;
+            const v = Number(c.gastoAtual);
+            return Number.isFinite(v) && v > 0 ? v : 0;
+          }
           return valorFixaValorPagoEfetivo(c);
         }
 
         function dataPagamentoExibicaoContaFixa(item, year, monthIdx, cell) {
           const c = cell || peekCellContaFixa(year, monthIdx, item.id);
           if (!c) return "";
-          if (contaFixaEhCredito(item, year, monthIdx)) return "";
+          if (contaFixaEhCredito(item, year, monthIdx)) {
+            const quitada = faturaContaFixaJaPaga(item, year, monthIdx, c);
+            return quitada && quitada.cell && quitada.cell.dataPago
+              ? String(quitada.cell.dataPago).trim()
+              : "";
+          }
           return String(c.dataPago || "").trim();
         }
 
@@ -9849,7 +9882,7 @@
             const cell = getCellContaFixa(year, monthIdx, item.id);
             if (cell.gastoCongelado == null) cell.gastoCongelado = false;
             const frozen = !!cell.gastoCongelado;
-            const gVal = Number(cell.gastoAtual) || 0;
+            const gVal = gastoAtualExibicaoContaFixa(item, year, monthIdx, cell);
             const isCredito = contaFixaEhCredito(item, year, monthIdx);
             const faturaCredito = isCredito ? faturaAlvoContaFixa(item, year, monthIdx, cell) : null;
             const pVal = valorPagoExibicaoContaFixa(item, year, monthIdx, cell);
@@ -9873,16 +9906,16 @@
               " input-moeda-br cp-gasto-input tabular-nums" +
               (frozen ? " cursor-not-allowed opacity-80" : "");
             inG.readOnly = frozen;
-            definirValorMoedaCampo(inG, cell.gastoAtual ?? 0);
+            definirValorMoedaCampo(inG, gVal);
             if (!frozen) prepararInputMoedaBR(inG);
             inG.addEventListener("blur", () => {
               if (cell.gastoCongelado) {
-                definirValorMoedaCampo(inG, cell.gastoAtual ?? 0);
+                definirValorMoedaCampo(inG, gastoAtualExibicaoContaFixa(item, year, monthIdx, cell));
                 return;
               }
               const v = parseValorMonetarioLancamento(inG.value);
               if (!Number.isFinite(v) || v < 0) {
-                definirValorMoedaCampo(inG, cell.gastoAtual);
+                definirValorMoedaCampo(inG, gastoAtualExibicaoContaFixa(item, year, monthIdx, cell));
                 return;
               }
               if (v !== cell.gastoAtual) {
@@ -10052,7 +10085,11 @@
             if (isCredito) {
               inVP.readOnly = true;
               inVP.title =
-                faturaCredito && faturaCredito.vencimento
+                dataPagoExib
+                  ? "Quitada automaticamente pela fatura do cartão em " +
+                    formatDateBR(dataPagoExib) +
+                    "."
+                  : faturaCredito && faturaCredito.vencimento
                   ? "Cobranças em Crédito são quitadas pela fatura com vencimento em " +
                     formatDateBR(faturaCredito.vencimento) +
                     "."
@@ -10109,7 +10146,9 @@
             if (isCredito) {
               inDP.readOnly = true;
               inDP.title =
-                faturaCredito && faturaCredito.vencimento
+                dataPagoExib
+                  ? "Data real de quitação herdada do pagamento da fatura desta origem."
+                  : faturaCredito && faturaCredito.vencimento
                   ? "Quitação controlada na fatura com vencimento em " +
                     formatDateBR(faturaCredito.vencimento) +
                     "."
