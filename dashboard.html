@@ -1971,8 +1971,9 @@
             <p class="mt-1 max-w-3xl text-sm text-bank-muted">
               Despesas que repetem todo mês (aluguel, assinaturas, planos). Assinatura no cartão: meio
               <strong class="font-medium text-zinc-300">Crédito</strong> + origem do cartão — não precisa lançar de
-              novo em Lançamentos. Compras avulsas no cartão continuam em Lançamentos. Preencha
-              <strong class="font-medium text-zinc-300">valor pago</strong> quando pagar; entra no dashboard.
+              novo em Lançamentos. Compras avulsas no cartão continuam em Lançamentos. Fora do crédito, preencha
+              <strong class="font-medium text-zinc-300">valor pago</strong> quando pagar; em
+              <strong class="font-medium text-zinc-300">Crédito</strong>, o gasto entra pela cobrança do mês.
             </p>
           </div>
           <div class="flex shrink-0 flex-wrap items-end gap-3">
@@ -1991,6 +1992,17 @@
               ></select>
             </div>
           </div>
+        </div>
+
+        <div
+          class="rounded-2xl border border-emerald-500/20 bg-emerald-500/8 px-4 py-3 text-sm leading-relaxed text-emerald-100/95"
+          role="note"
+        >
+          <strong class="font-semibold text-emerald-200">Como o dashboard soma:</strong> fixas em
+          <strong class="font-semibold text-emerald-200"> Crédito</strong> entram pelo
+          <strong class="font-semibold text-emerald-200"> gasto atual</strong>; fixas fora do crédito entram pelo
+          <strong class="font-semibold text-emerald-200"> valor pago</strong>. A quitação do cartão fica em
+          <strong class="font-semibold text-emerald-200"> Cartões</strong> e não duplica o gasto do mês.
         </div>
 
         <div id="contas-fixas-meses-wrapper" class="space-y-6"></div>
@@ -11561,7 +11573,7 @@
             seletor: "#tour-alvo-total-gastos",
             titulo: "Total de gastos no mês",
             texto:
-              "Lançamentos + fixas com valor pago + juros/taxas do mês. Pagar fatura de cartões não entra aqui.",
+              "Lançamentos + fixas pagas fora do crédito + fixas em crédito pela cobrança do mês + juros/taxas. Pagar fatura de cartões não entra aqui.",
           },
           {
             seletor: '[data-tab="lancamentos"]',
