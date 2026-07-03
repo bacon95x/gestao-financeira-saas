@@ -2001,7 +2001,9 @@
           <strong class="font-semibold text-emerald-200">Como o dashboard soma:</strong> fixas em
           <strong class="font-semibold text-emerald-200"> Crédito</strong> entram pelo
           <strong class="font-semibold text-emerald-200"> gasto atual</strong>; fixas fora do crédito entram pelo
-          <strong class="font-semibold text-emerald-200"> valor pago</strong>. A quitação do cartão fica em
+          <strong class="font-semibold text-emerald-200"> valor pago</strong>. Em crédito, os campos
+          <strong class="font-semibold text-emerald-200"> valor pago</strong> e
+          <strong class="font-semibold text-emerald-200"> data pagamento</strong> ficam só como referência à fatura. A quitação do cartão fica em
           <strong class="font-semibold text-emerald-200"> Cartões</strong> e não duplica o gasto do mês.
         </div>
 
@@ -4232,30 +4234,19 @@
           return valorFixaValorPagoEfetivo(c);
         }
 
-        /** Exibição da coluna «Valor pago»: no crédito ela espelha a quitação da fatura do cartão. */
+        /** Exibição da coluna «Valor pago»: no crédito o controle fica só na fatura/cartão. */
         function valorPagoExibicaoContaFixa(item, year, monthIdx, cell) {
           const c = cell || peekCellContaFixa(year, monthIdx, item.id);
           if (!c) return 0;
-          if (!contaFixaEhCredito(item, year, monthIdx)) return valorFixaValorPagoEfetivo(c);
-          const fatura = faturaAlvoContaFixa(item, year, monthIdx, c);
-          const pagFatura = fatura && fatura.cell;
-          const quitada =
-            !!pagFatura &&
-            ((pagFatura.dataPago && String(pagFatura.dataPago).trim()) ||
-              (pagFatura.valorPago != null && Number.isFinite(Number(pagFatura.valorPago)) && Number(pagFatura.valorPago) > 0));
-          if (!quitada) return 0;
-          const v = Number(c.gastoAtual);
-          return Number.isFinite(v) && v > 0 ? v : 0;
+          if (contaFixaEhCredito(item, year, monthIdx)) return 0;
+          return valorFixaValorPagoEfetivo(c);
         }
 
         function dataPagamentoExibicaoContaFixa(item, year, monthIdx, cell) {
           const c = cell || peekCellContaFixa(year, monthIdx, item.id);
           if (!c) return "";
-          if (!contaFixaEhCredito(item, year, monthIdx)) return String(c.dataPago || "").trim();
-          const fatura = faturaAlvoContaFixa(item, year, monthIdx, c);
-          const pagFatura = fatura && fatura.cell;
-          if (pagFatura && pagFatura.dataPago) return String(pagFatura.dataPago).trim();
-          return fatura && fatura.vencimento ? String(fatura.vencimento).trim() : "";
+          if (contaFixaEhCredito(item, year, monthIdx)) return "";
+          return String(c.dataPago || "").trim();
         }
 
         function valoresProximosDuplicata(v1, v2) {
@@ -9840,7 +9831,7 @@
             '<th class="min-w-[8rem] px-3 py-1.5 font-medium sm:px-4">Categoria</th>' +
             '<th class="min-w-[8rem] px-3 py-1.5 font-medium sm:px-4">Meio</th>' +
             '<th class="min-w-[8rem] px-3 py-1.5 font-medium sm:px-4">Origem</th>' +
-            '<th class="whitespace-nowrap px-3 py-1.5 font-medium sm:px-4">Vencimento</th>' +
+            '<th class="whitespace-nowrap px-3 py-1.5 font-medium sm:px-4">Dia venc./cobrança</th>' +
             '<th class="whitespace-nowrap px-3 py-1.5 font-medium sm:px-4">Valor pago (R$)</th>' +
             '<th class="whitespace-nowrap px-3 py-1.5 font-medium sm:px-4">Data pagamento</th>' +
             '<th class="whitespace-nowrap px-3 py-1.5 font-medium sm:px-4">Última atualização</th>' +
@@ -10061,15 +10052,11 @@
             if (isCredito) {
               inVP.readOnly = true;
               inVP.title =
-                pVal > 0 && faturaCredito && faturaCredito.cell && faturaCredito.cell.dataPago
-                  ? "Quitada automaticamente pela fatura do cartão em " +
-                    formatDateBR(String(faturaCredito.cell.dataPago).trim()) +
+                faturaCredito && faturaCredito.vencimento
+                  ? "Cobranças em Crédito são quitadas pela fatura com vencimento em " +
+                    formatDateBR(faturaCredito.vencimento) +
                     "."
-                  : faturaCredito && faturaCredito.vencimento
-                    ? "Cobrança quitada pela fatura com vencimento em " +
-                      formatDateBR(faturaCredito.vencimento) +
-                      "."
-                    : "Cobranças em Crédito são quitadas pela fatura do cartão; este campo não é editado aqui.";
+                  : "Cobranças em Crédito são quitadas pela fatura do cartão; este campo não é editado aqui.";
             } else {
               prepararInputMoedaBR(inVP);
               inVP.addEventListener("blur", () => {
@@ -10122,11 +10109,11 @@
             if (isCredito) {
               inDP.readOnly = true;
               inDP.title =
-                pVal > 0 && faturaCredito && faturaCredito.cell && faturaCredito.cell.dataPago
-                  ? "Data real de quitação herdada do pagamento da fatura desta origem."
-                  : faturaCredito && faturaCredito.vencimento
-                    ? "Vencimento previsto da fatura que quita esta cobrança."
-                    : "A quitação vem da fatura do cartão em Cartões.";
+                faturaCredito && faturaCredito.vencimento
+                  ? "Quitação controlada na fatura com vencimento em " +
+                    formatDateBR(faturaCredito.vencimento) +
+                    "."
+                  : "A quitação vem da fatura do cartão em Cartões.";
             } else {
               inDP.addEventListener("blur", () => {
                 const raw = inDP.value.trim();
@@ -10200,7 +10187,7 @@
             formatMoney(totalGastoMes) +
             "</td>" +
             '<td colspan="5" class="px-3 py-2 text-right text-[11px] font-medium uppercase tracking-wide text-bank-muted sm:px-4">' +
-            "Totais do mês · não-crédito usa valor pago · crédito entra pela cobrança" +
+            "Totais do mês · valor pago só fora do crédito · não somar os dois lados" +
             "</td>" +
             '<td class="px-3 py-2 tabular-nums text-sm font-bold text-emerald-300/90 sm:px-4">' +
             formatMoney(totalValorPagoMes) +
