@@ -1428,8 +1428,8 @@
             <div class="mb-6 flex flex-col gap-1">
               <h2 class="text-lg font-semibold text-white">Gastos fora do crédito</h2>
               <p class="text-sm text-bank-muted">
-                Lançamentos (sem Crédito) e contas fixas com valor pago preenchido, por meio: Débito, Pix,
-                Dinheiro, Vale alimentação e outros.
+                Lançamentos (sem Crédito) e contas fixas fora do crédito com valor pago preenchido, por
+                meio: Débito, Pix, Dinheiro, Vale alimentação e outros.
               </p>
             </div>
             <div class="relative mx-auto h-[min(16rem,42vw)] w-full min-h-[14rem] max-w-md">
@@ -1448,7 +1448,7 @@
               id="chart-sem-credito-empty"
               class="hidden py-10 text-center text-sm text-bank-muted"
             >
-              Nenhum gasto fora do crédito neste mês (lançamentos ou contas fixas pagas).
+              Nenhum gasto fora do crédito neste mês (lançamentos ou contas fixas não-crédito pagas).
             </p>
           </div>
           <div
@@ -1457,7 +1457,7 @@
             <div class="mb-6 flex flex-col gap-1">
               <h2 class="text-lg font-semibold text-white">Gastos no cartão</h2>
               <p class="text-sm text-bank-muted">
-                Só lançamentos com meio Crédito e contas fixas em Crédito (valor pago), por origem (cartão). Pagar a
+                Lançamentos com meio Crédito e contas fixas em Crédito, por origem (cartão). Pagar a
                 fatura não entra aqui.
               </p>
             </div>
@@ -1487,7 +1487,7 @@
               <div>
                 <h2 class="text-lg font-semibold text-white">Gastos por categoria</h2>
                 <p id="dashboard-gastos-categoria-desc" class="text-sm text-bank-muted">
-                  Lançamentos do mês + contas fixas com valor pago preenchido, por categoria
+                  Lançamentos do mês + contas fixas pagas fora do crédito + contas fixas em crédito
                 </p>
               </div>
             </div>
@@ -4169,11 +4169,58 @@
           return listaCategorias.includes("outros") ? "outros" : listaCategorias[0] || "outros";
         }
 
-        /** Contas fixas contabilizadas: só entram com valor pago preenchido (o que de fato foi pago). */
+        /** Contas fixas fora do crédito: só entram com valor pago preenchido (o que de fato foi pago). */
         function valorFixaValorPagoEfetivo(cell) {
           if (!cell || cell.valorPago == null || !Number.isFinite(Number(cell.valorPago))) return 0;
           const v = Number(cell.valorPago);
           return v > 0 ? v : 0;
+        }
+
+        function contaFixaEhCredito(item, year, monthIdx) {
+          return meioContaFixaMes(item, year, monthIdx) === "Crédito";
+        }
+
+        function pagamentoFaturaDaContaFixa(item, year, monthIdx) {
+          if (!contaFixaEhCredito(item, year, monthIdx)) return null;
+          const origem = origemContaFixaMes(item, year, monthIdx);
+          if (!origem) return null;
+          const cartao = contasPagarItemPorNomeOrigem(origem, year, monthIdx);
+          if (!cartao) return null;
+          return peekCellContaPagar(year, monthIdx, cartao.id);
+        }
+
+        /** Gasto do mês representado pela conta fixa: no crédito vale a cobrança; fora do crédito vale o pago. */
+        function valorFixaNoDashboardMes(item, year, monthIdx, cell) {
+          const c = cell || peekCellContaFixa(year, monthIdx, item.id);
+          if (!c) return 0;
+          if (contaFixaEhCredito(item, year, monthIdx)) {
+            const v = Number(c.gastoAtual);
+            return Number.isFinite(v) && v > 0 ? v : 0;
+          }
+          return valorFixaValorPagoEfetivo(c);
+        }
+
+        /** Exibição da coluna «Valor pago»: no crédito ela espelha a quitação da fatura do cartão. */
+        function valorPagoExibicaoContaFixa(item, year, monthIdx, cell) {
+          const c = cell || peekCellContaFixa(year, monthIdx, item.id);
+          if (!c) return 0;
+          if (!contaFixaEhCredito(item, year, monthIdx)) return valorFixaValorPagoEfetivo(c);
+          const pagFatura = pagamentoFaturaDaContaFixa(item, year, monthIdx);
+          const quitada =
+            !!pagFatura &&
+            ((pagFatura.dataPago && String(pagFatura.dataPago).trim()) ||
+              (pagFatura.valorPago != null && Number.isFinite(Number(pagFatura.valorPago)) && Number(pagFatura.valorPago) > 0));
+          if (!quitada) return 0;
+          const v = Number(c.gastoAtual);
+          return Number.isFinite(v) && v > 0 ? v : 0;
+        }
+
+        function dataPagamentoExibicaoContaFixa(item, year, monthIdx, cell) {
+          const c = cell || peekCellContaFixa(year, monthIdx, item.id);
+          if (!c) return "";
+          if (!contaFixaEhCredito(item, year, monthIdx)) return String(c.dataPago || "").trim();
+          const pagFatura = pagamentoFaturaDaContaFixa(item, year, monthIdx);
+          return pagFatura && pagFatura.dataPago ? String(pagFatura.dataPago).trim() : "";
         }
 
         function valoresProximosDuplicata(v1, v2) {
@@ -4218,7 +4265,7 @@
           contasFixasItems.forEach((item) => {
             if (!contasPagarItemVisivelNaGrade(item, ma.y, ma.m)) return;
             const cell = peekCellContaFixa(ma.y, ma.m, item.id);
-            const vFixa = valorFixaValorPagoEfetivo(cell);
+            const vFixa = valorFixaNoDashboardMes(item, ma.y, ma.m, cell);
             if (vFixa <= 0) return;
             const catF = categoriaContaFixaMes(item, ma.y, ma.m);
             const nomeF = nomeContaFixaMes(item, ma.y, ma.m);
@@ -4257,6 +4304,20 @@
 
         function defaultCellContaFixa() {
           return defaultCellContaPagar();
+        }
+
+        function limparPagamentoContaFixaDesde(itemId, fromYear, fromMonthIdx) {
+          let y = fromYear;
+          let m = fromMonthIdx;
+          const maxMeses = 12 * 15;
+          for (let i = 0; i < maxMeses; i++) {
+            const cell = getCellContaFixa(y, m, itemId);
+            cell.valorPago = null;
+            cell.dataPago = "";
+            const next = avancarMesAnoContaPagar(y, m, 1);
+            y = next.y;
+            m = next.mo;
+          }
         }
 
         function getCellContaFixa(year, monthIdx, contaId) {
@@ -4411,6 +4472,9 @@
             propagarCampoFixaDesde(item, year, monthIdx, "origem", "");
             item.origem = "";
           }
+          if (campo === "meioPagamento" && novoValor === "Crédito") {
+            limparPagamentoContaFixaDesde(item.id, year, monthIdx);
+          }
           saveContasFixasAnual();
           saveContasFixasCatalog();
         }
@@ -4496,7 +4560,7 @@
           contasFixasItems.forEach((item) => {
             if (!contasPagarItemVisivelNaGrade(item, y, m)) return;
             const cell = peekCellContaFixa(y, m, item.id);
-            s += valorFixaValorPagoEfetivo(cell);
+            s += valorFixaNoDashboardMes(item, y, m, cell);
           });
           return s;
         }
@@ -7931,7 +7995,7 @@
           contasFixasItems.forEach((item) => {
             if (!contasPagarItemVisivelNaGrade(item, dashboardGastosAno, dashboardGastosMesIdx)) return;
             const cell = peekCellContaFixa(dashboardGastosAno, dashboardGastosMesIdx, item.id);
-            const v = valorFixaValorPagoEfetivo(cell);
+            const v = valorFixaNoDashboardMes(item, dashboardGastosAno, dashboardGastosMesIdx, cell);
             if (v <= 0) return;
             const cat = categoriaContaFixaMes(item, dashboardGastosAno, dashboardGastosMesIdx);
             map[cat] = (map[cat] || 0) + v;
@@ -7974,7 +8038,7 @@
             if (!contasPagarItemVisivelNaGrade(item, dashboardGastosAno, dashboardGastosMesIdx)) return;
             if (meioContaFixaMes(item, dashboardGastosAno, dashboardGastosMesIdx) !== "Crédito") return;
             const cell = peekCellContaFixa(dashboardGastosAno, dashboardGastosMesIdx, item.id);
-            const v = valorFixaValorPagoEfetivo(cell);
+            const v = valorFixaNoDashboardMes(item, dashboardGastosAno, dashboardGastosMesIdx, cell);
             if (v <= 0) return;
             const rotulo = origemContaFixaMes(item, dashboardGastosAno, dashboardGastosMesIdx) || "Sem origem";
             map[rotulo] = (map[rotulo] || 0) + v;
@@ -8689,8 +8753,8 @@
 
         function textoExplicacaoTotalGastosMes() {
           return (
-            "Lançamentos (todos os meios) + fixas pagas + juros/taxas do mês. " +
-            "Pagar fatura de cartões não entra aqui, porque o gasto já foi adicionado em lançamentos."
+            "Lançamentos (todos os meios) + fixas pagas fora do crédito + fixas em crédito pela cobrança do mês + juros/taxas. " +
+            "Pagar fatura de cartões não entra aqui, porque o gasto já foi adicionado no lançamento ou na conta fixa em crédito."
           );
         }
 
@@ -8962,7 +9026,7 @@
           const descCat = document.getElementById("dashboard-gastos-categoria-desc");
           if (descCat) {
             const sufixoFixas =
-              " · Lançamentos do mês + contas fixas com valor pago preenchido";
+              " · Lançamentos do mês + fixas pagas fora do crédito + fixas em crédito";
             descCat.textContent = isMesAtual
               ? "Percentual por categoria no mês atual" + sufixoFixas
               : "Percentual por categoria em " +
@@ -9760,10 +9824,9 @@
             if (cell.gastoCongelado == null) cell.gastoCongelado = false;
             const frozen = !!cell.gastoCongelado;
             const gVal = Number(cell.gastoAtual) || 0;
-            const pVal =
-              cell.valorPago != null && Number.isFinite(Number(cell.valorPago))
-                ? Number(cell.valorPago)
-                : 0;
+            const isCredito = contaFixaEhCredito(item, year, monthIdx);
+            const pVal = valorPagoExibicaoContaFixa(item, year, monthIdx, cell);
+            const dataPagoExib = dataPagamentoExibicaoContaFixa(item, year, monthIdx, cell);
             totalGastoMes += gVal;
             totalValorPagoMes += pVal;
 
@@ -9953,43 +10016,53 @@
             inVP.type = "text";
             inVP.inputMode = "decimal";
             inVP.autocomplete = "off";
-            inVP.placeholder = "—";
-            inVP.className = inputCls + " input-moeda-br tabular-nums";
-            if (cell.valorPago != null) definirValorMoedaCampo(inVP, cell.valorPago);
-            prepararInputMoedaBR(inVP);
-            inVP.addEventListener("blur", () => {
-              const raw = inVP.value.trim();
-              const prevPago = cell.valorPago;
-              let novoPago = null;
-              if (raw !== "") {
-                const x = parseValorMonetarioLancamento(raw);
-                if (Number.isFinite(x) && x >= 0) novoPago = x;
-                else {
-                  if (prevPago != null) definirValorMoedaCampo(inVP, prevPago);
-                  else inVP.value = "";
-                  return;
+            inVP.placeholder = isCredito ? "Pela fatura" : "—";
+            inVP.className =
+              inputCls +
+              " input-moeda-br tabular-nums" +
+              (isCredito ? " cursor-not-allowed opacity-70" : "");
+            if (pVal > 0) definirValorMoedaCampo(inVP, pVal);
+            if (isCredito) {
+              inVP.readOnly = true;
+              inVP.title = dataPagoExib
+                ? "Quitada automaticamente pela fatura do cartão em " + formatDateBR(dataPagoExib) + "."
+                : "Cobranças em Crédito são quitadas pela fatura do cartão; este campo não é editado aqui.";
+            } else {
+              prepararInputMoedaBR(inVP);
+              inVP.addEventListener("blur", () => {
+                const raw = inVP.value.trim();
+                const prevPago = cell.valorPago;
+                let novoPago = null;
+                if (raw !== "") {
+                  const x = parseValorMonetarioLancamento(raw);
+                  if (Number.isFinite(x) && x >= 0) novoPago = x;
+                  else {
+                    if (prevPago != null) definirValorMoedaCampo(inVP, prevPago);
+                    else inVP.value = "";
+                    return;
+                  }
                 }
-              }
-              if (novoPago != null && novoPago > 0) {
-                const dups = buscarPossiveisDuplicatasLancamentoParaFixa(
-                  item,
-                  year,
-                  monthIdx,
-                  novoPago,
-                  cell.dataPago || ""
-                );
-                if (dups.length && !confirmarSePossivelDuplicata(dups, "Lançamentos")) {
-                  if (prevPago != null) definirValorMoedaCampo(inVP, prevPago);
-                  else inVP.value = "";
-                  return;
+                if (novoPago != null && novoPago > 0) {
+                  const dups = buscarPossiveisDuplicatasLancamentoParaFixa(
+                    item,
+                    year,
+                    monthIdx,
+                    novoPago,
+                    cell.dataPago || ""
+                  );
+                  if (dups.length && !confirmarSePossivelDuplicata(dups, "Lançamentos")) {
+                    if (prevPago != null) definirValorMoedaCampo(inVP, prevPago);
+                    else inVP.value = "";
+                    return;
+                  }
                 }
-              }
-              cell.valorPago = novoPago;
-              saveContasFixasAnual();
-              renderContasFixas();
-              renderTotaisCategoriaMes();
-              updateDashboard();
-            });
+                cell.valorPago = novoPago;
+                saveContasFixasAnual();
+                renderContasFixas();
+                renderTotaisCategoriaMes();
+                updateDashboard();
+              });
+            }
             tdVP.appendChild(inVP);
 
             const tdDP = document.createElement("td");
@@ -9997,28 +10070,38 @@
             const inDP = document.createElement("input");
             inDP.type = "text";
             inDP.inputMode = "numeric";
-            inDP.className = inputCls + " max-w-[4.5rem] tabular-nums text-center";
-            inDP.placeholder = "dd/mm";
-            inDP.value = cell.dataPago ? isoParaDiaMesBR(cell.dataPago) : "";
-            inDP.addEventListener("blur", () => {
-              const raw = inDP.value.trim();
-              if (raw === "") {
-                cell.dataPago = "";
+            inDP.className =
+              inputCls +
+              " max-w-[4.5rem] tabular-nums text-center" +
+              (isCredito ? " cursor-not-allowed opacity-70" : "");
+            inDP.placeholder = isCredito ? "fatura" : "dd/mm";
+            inDP.value = dataPagoExib ? isoParaDiaMesBR(dataPagoExib) : "";
+            if (isCredito) {
+              inDP.readOnly = true;
+              inDP.title = dataPagoExib
+                ? "Data herdada do pagamento da fatura desta origem."
+                : "A data de pagamento vem da fatura do cartão em Cartões.";
+            } else {
+              inDP.addEventListener("blur", () => {
+                const raw = inDP.value.trim();
+                if (raw === "") {
+                  cell.dataPago = "";
+                  saveContasFixasAnual();
+                  updateDashboard();
+                  renderContasFixas();
+                  return;
+                }
+                const parsed = parseDiaMesOuIsoParaISO(raw, year);
+                if (parsed === null) {
+                  inDP.value = cell.dataPago ? isoParaDiaMesBR(cell.dataPago) : "";
+                  return;
+                }
+                cell.dataPago = parsed;
                 saveContasFixasAnual();
+                inDP.value = isoParaDiaMesBR(parsed);
                 updateDashboard();
-                renderContasFixas();
-                return;
-              }
-              const parsed = parseDiaMesOuIsoParaISO(raw, year);
-              if (parsed === null) {
-                inDP.value = cell.dataPago ? isoParaDiaMesBR(cell.dataPago) : "";
-                return;
-              }
-              cell.dataPago = parsed;
-              saveContasFixasAnual();
-              inDP.value = isoParaDiaMesBR(parsed);
-              updateDashboard();
-            });
+              });
+            }
             tdDP.appendChild(inDP);
 
             const tdU = document.createElement("td");
@@ -10071,7 +10154,7 @@
             formatMoney(totalGastoMes) +
             "</td>" +
             '<td colspan="5" class="px-3 py-2 text-right text-[11px] font-medium uppercase tracking-wide text-bank-muted sm:px-4">' +
-            "Totais do mês · valor pago entra no dashboard" +
+            "Totais do mês · não-crédito usa valor pago · crédito entra pela cobrança" +
             "</td>" +
             '<td class="px-3 py-2 tabular-nums text-sm font-bold text-emerald-300/90 sm:px-4">' +
             formatMoney(totalValorPagoMes) +
@@ -10527,7 +10610,8 @@
             '<i data-lucide="plus-circle" class="h-4 w-4"></i><span>Adicionar cartão (origem)</span>';
           btnAddLinha.addEventListener("click", () => {
             alert(
-              "Cartões servem para fatura e vencimento. O gasto do mês vem dos lançamentos e das fixas com valor pago preenchido.\n\n" +
+              "Cartões servem para fatura e vencimento. O gasto do mês vem dos lançamentos, das fixas pagas fora do crédito e das fixas em crédito pela cobrança do mês.\n\n" +
+                "Em contas fixas com Crédito, o gasto entra pela cobrança da linha e a quitação vem da fatura do cartão.\n\n" +
                 "Compras em cartão que não passaram por lançamentos não entram no total do dashboard — registre em Lançamentos ou em conta fixa se quiser que entrem no gasto do mês.\n\n" +
                 "Ação recomendada temporariamente somente para faturas antigas que não foram registradas em lançamento."
             );
@@ -11455,7 +11539,7 @@
             seletor: '[data-tab="contas-fixas"]',
             titulo: "Contas fixas",
             texto:
-              "Todo mês, mesmo valor: aluguel, internet, assinatura no cartão. Use Crédito + origem para Netflix no Nubank — sem lançar de novo todo mês. Preencha valor pago quando cobrar.",
+              "Todo mês, mesmo valor: aluguel, internet, assinatura no cartão. Use Crédito + origem para Netflix no Nubank — sem lançar de novo todo mês. Em Crédito, a quitação vem da fatura do cartão.",
           },
           {
             seletor: '[data-tab="contas-pagar"]',
@@ -11467,7 +11551,7 @@
             seletor: "#tour-alvo-graficos",
             titulo: "Gráficos",
             texto:
-              "Lançamentos + fixas pagas. Gastos no cartão: lançamentos em Crédito + fixas em Crédito com valor pago.",
+              "Lançamentos + fixas pagas fora do crédito. Gastos no cartão: lançamentos em Crédito + fixas em Crédito pela cobrança do mês.",
           },
           {
             seletor: "#btn-wa-toggle",
