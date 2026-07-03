@@ -4180,13 +4180,33 @@
           return meioContaFixaMes(item, year, monthIdx) === "Crédito";
         }
 
-        function pagamentoFaturaDaContaFixa(item, year, monthIdx) {
+        function faturaAlvoContaFixa(item, year, monthIdx, cellFixa) {
           if (!contaFixaEhCredito(item, year, monthIdx)) return null;
           const origem = origemContaFixaMes(item, year, monthIdx);
           if (!origem) return null;
-          const cartao = contasPagarItemPorNomeOrigem(origem, year, monthIdx);
+          const cartao = contasPagarItemPorNomeOrigem(origem);
           if (!cartao) return null;
-          return peekCellContaPagar(year, monthIdx, cartao.id);
+          const cell = cellFixa || peekCellContaFixa(year, monthIdx, item.id) || defaultCellContaFixa();
+          const dataCobranca = vencimentoCampoValor(year, monthIdx, item, cell);
+          if (!dataCobranca) return null;
+          const gastoRef = {
+            data: dataCobranca,
+            meioPagamento: "Crédito",
+            origem,
+          };
+          const alvo = mesAnoColunaContasPagarParaLancamento(cartao, gastoRef);
+          if (!alvo) return null;
+          const cellCartao = peekCellContaPagar(alvo.y, alvo.mo, cartao.id);
+          const vencimentoFatura = cellCartao
+            ? vencimentoCampoValor(alvo.y, alvo.mo, cartao, cellCartao)
+            : vencimentoPadraoISO(alvo.y, alvo.mo, cartao);
+          return {
+            cartao,
+            year: alvo.y,
+            monthIdx: alvo.mo,
+            cell: cellCartao,
+            vencimento: String(vencimentoFatura || "").trim(),
+          };
         }
 
         /** Gasto do mês representado pela conta fixa: no crédito vale a cobrança; fora do crédito vale o pago. */
@@ -4205,7 +4225,8 @@
           const c = cell || peekCellContaFixa(year, monthIdx, item.id);
           if (!c) return 0;
           if (!contaFixaEhCredito(item, year, monthIdx)) return valorFixaValorPagoEfetivo(c);
-          const pagFatura = pagamentoFaturaDaContaFixa(item, year, monthIdx);
+          const fatura = faturaAlvoContaFixa(item, year, monthIdx, c);
+          const pagFatura = fatura && fatura.cell;
           const quitada =
             !!pagFatura &&
             ((pagFatura.dataPago && String(pagFatura.dataPago).trim()) ||
@@ -4219,8 +4240,10 @@
           const c = cell || peekCellContaFixa(year, monthIdx, item.id);
           if (!c) return "";
           if (!contaFixaEhCredito(item, year, monthIdx)) return String(c.dataPago || "").trim();
-          const pagFatura = pagamentoFaturaDaContaFixa(item, year, monthIdx);
-          return pagFatura && pagFatura.dataPago ? String(pagFatura.dataPago).trim() : "";
+          const fatura = faturaAlvoContaFixa(item, year, monthIdx, c);
+          const pagFatura = fatura && fatura.cell;
+          if (pagFatura && pagFatura.dataPago) return String(pagFatura.dataPago).trim();
+          return fatura && fatura.vencimento ? String(fatura.vencimento).trim() : "";
         }
 
         function valoresProximosDuplicata(v1, v2) {
@@ -9825,6 +9848,7 @@
             const frozen = !!cell.gastoCongelado;
             const gVal = Number(cell.gastoAtual) || 0;
             const isCredito = contaFixaEhCredito(item, year, monthIdx);
+            const faturaCredito = isCredito ? faturaAlvoContaFixa(item, year, monthIdx, cell) : null;
             const pVal = valorPagoExibicaoContaFixa(item, year, monthIdx, cell);
             const dataPagoExib = dataPagamentoExibicaoContaFixa(item, year, monthIdx, cell);
             totalGastoMes += gVal;
@@ -10024,9 +10048,16 @@
             if (pVal > 0) definirValorMoedaCampo(inVP, pVal);
             if (isCredito) {
               inVP.readOnly = true;
-              inVP.title = dataPagoExib
-                ? "Quitada automaticamente pela fatura do cartão em " + formatDateBR(dataPagoExib) + "."
-                : "Cobranças em Crédito são quitadas pela fatura do cartão; este campo não é editado aqui.";
+              inVP.title =
+                pVal > 0 && faturaCredito && faturaCredito.cell && faturaCredito.cell.dataPago
+                  ? "Quitada automaticamente pela fatura do cartão em " +
+                    formatDateBR(String(faturaCredito.cell.dataPago).trim()) +
+                    "."
+                  : faturaCredito && faturaCredito.vencimento
+                    ? "Cobrança quitada pela fatura com vencimento em " +
+                      formatDateBR(faturaCredito.vencimento) +
+                      "."
+                    : "Cobranças em Crédito são quitadas pela fatura do cartão; este campo não é editado aqui.";
             } else {
               prepararInputMoedaBR(inVP);
               inVP.addEventListener("blur", () => {
@@ -10078,9 +10109,12 @@
             inDP.value = dataPagoExib ? isoParaDiaMesBR(dataPagoExib) : "";
             if (isCredito) {
               inDP.readOnly = true;
-              inDP.title = dataPagoExib
-                ? "Data herdada do pagamento da fatura desta origem."
-                : "A data de pagamento vem da fatura do cartão em Cartões.";
+              inDP.title =
+                pVal > 0 && faturaCredito && faturaCredito.cell && faturaCredito.cell.dataPago
+                  ? "Data real de quitação herdada do pagamento da fatura desta origem."
+                  : faturaCredito && faturaCredito.vencimento
+                    ? "Vencimento previsto da fatura que quita esta cobrança."
+                    : "A quitação vem da fatura do cartão em Cartões.";
             } else {
               inDP.addEventListener("blur", () => {
                 const raw = inDP.value.trim();
