@@ -2831,7 +2831,7 @@
           <div>
             <h2 id="titulo-ativos" class="text-lg font-semibold text-white">Meus Ativos</h2>
             <p class="mt-1 max-w-2xl text-sm text-bank-muted">
-              Acompanhe ações, FIIs e ETFs com cotações atualizadas, metas de alocação e proventos.
+              Acompanhe ações, FIIs, ETFs e ativos no exterior. Cotações ao vivo na B3 (Brapi); exterior com preço manual.
             </p>
           </div>
           <div class="rounded-xl border border-bank-border bg-bank-card px-4 py-2.5">
@@ -2966,7 +2966,7 @@
                 name="ticker"
                 type="text"
                 required
-                placeholder="PETR4"
+                placeholder="PETR4 ou TSLA"
                 class="rounded-xl border border-bank-border bg-bank-bg px-3 py-2 text-sm uppercase text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
               />
             </label>
@@ -2976,10 +2976,14 @@
                 name="classe"
                 class="rounded-xl border border-bank-border bg-bank-bg px-3 py-2 text-sm text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
               >
-                <option value="acao">Ação</option>
+                <option value="acao">Ação (B3)</option>
                 <option value="fii">FII</option>
                 <option value="etf">ETF</option>
+                <option value="exterior">Exterior (EUA etc.)</option>
               </select>
+              <p class="mt-1 text-[10px] leading-snug text-bank-muted">
+                BDR na B3: use Ação (ex. TSLA34). Corretora no exterior: Exterior (ex. TSLA).
+              </p>
             </label>
             <label class="flex flex-col gap-1">
               <span class="text-xs text-bank-muted">Valor investido (R$)</span>
