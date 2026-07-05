@@ -601,26 +601,24 @@
       var r = resumoClasse(cl.id);
       var meta = metaClasse(cl.id);
       var atualPct = totalPat > 0 && Number.isFinite(r.atual) ? (r.atual / totalPat) * 100 : 0;
-      var barW = meta > 0 ? Math.min(100, (atualPct / meta) * 100) : atualPct > 0 ? 100 : 0;
+      var barW = Math.min(100, Math.max(0, atualPct));
 
       var row = document.createElement("div");
-      row.className = "rounded-xl border border-bank-border/60 bg-bank-bg/30 p-3";
       row.innerHTML =
-        '<div class="flex flex-wrap items-center justify-between gap-2">' +
-        '<span class="text-sm font-medium text-zinc-200">' +
+        '<div class="mb-1 flex justify-between text-xs">' +
+        '<span class="text-zinc-400">' +
         cl.label +
         "</span>" +
-        '<div class="flex items-center gap-2">' +
-        '<label class="flex items-center gap-1.5 text-xs text-bank-muted">Meta %' +
+        '<span class="tabular-nums text-zinc-300">' +
+        (totalPat > 0 ? Math.round(atualPct) + "%" : "—") +
+        " / " +
         '<input type="number" min="0" max="100" step="1" data-meta-classe="' +
         cl.id +
-        '" class="w-14 rounded-lg border border-bank-border bg-bank-bg px-2 py-1 text-right text-sm tabular-nums text-white outline-none focus:border-violet-500/50" value="' +
+        '" class="w-9 border-0 border-b border-transparent bg-transparent p-0 text-right tabular-nums text-zinc-300 outline-none transition hover:border-zinc-600 focus:border-violet-500/70" value="' +
         meta +
-        '" /></label>' +
-        '<span class="text-xs tabular-nums text-zinc-500">Atual: <span class="text-zinc-300">' +
-        (totalPat > 0 ? atualPct.toFixed(1) + "%" : "—") +
-        "</span></span></div></div>" +
-        '<div class="mt-2 h-2 overflow-hidden rounded-full bg-bank-bg">' +
+        '" title="Meta %" />' +
+        "%</span></div>" +
+        '<div class="h-2 rounded-full bg-bank-bg">' +
         '<div class="h-2 rounded-full ' +
         cl.bar +
         '" style="width:' +
@@ -640,15 +638,16 @@
         ativosState.metasAlocacao[k] = v;
         inp.value = String(v);
         ativosSave();
-        renderAtivosUI();
+        renderResumoClasses();
+        renderMetasAlocacao();
       });
     });
 
     if (elSoma) {
       var s = somaMetasAlocacao();
-      elSoma.textContent = "Soma das metas: " + s + "%";
-      elSoma.classList.toggle("text-amber-300", s > 100);
-      elSoma.classList.toggle("text-zinc-400", s <= 100);
+      elSoma.textContent = "Metas: " + s + "%";
+      elSoma.classList.toggle("text-amber-400", s > 100);
+      elSoma.classList.toggle("text-zinc-500", s <= 100);
     }
   }
 
