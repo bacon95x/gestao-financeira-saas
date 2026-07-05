@@ -679,7 +679,14 @@
       html[data-appearance="light"] #tour-dashboard-spotlight {
         box-shadow: 0 0 0 9999px rgba(15, 15, 25, 0.55);
       }
-      /* Apresentação: só spotlight + HUD — card de roteiro nunca aparece na gravação */
+      /* Apresentação: tela limpa para gravar — sem escurecer, painéis inteiros visíveis */
+      #tour-dashboard-overlay.tour-apresentacao-ativa {
+        background: transparent !important;
+        pointer-events: none;
+      }
+      #tour-dashboard-overlay.tour-apresentacao-ativa #tour-dashboard-spotlight {
+        display: none !important;
+      }
       #tour-dashboard-overlay.tour-apresentacao-ativa #tour-dashboard-card {
         display: none !important;
         visibility: hidden !important;
@@ -687,6 +694,7 @@
       }
       #tour-dashboard-overlay.tour-apresentacao-ativa #tour-apresentacao-hud {
         display: flex !important;
+        pointer-events: auto;
       }
       #tour-apresentacao-hud {
         pointer-events: auto;
@@ -711,7 +719,7 @@
     </div>
     <div class="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
       <header class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div class="flex items-center gap-3">
+        <div id="tour-alvo-marca" class="flex items-center gap-3">
           <div
             class="flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-600/20 ring-1 ring-violet-500/30"
           >
@@ -851,7 +859,7 @@
             type="button"
             id="btn-tour-apresentacao"
             class="inline-flex shrink-0 items-center gap-2 rounded-2xl border border-cyan-500/35 bg-cyan-600/10 px-3 py-2 text-xs font-semibold text-cyan-200 transition hover:bg-cyan-600/20"
-            title="Gravar tela: só destaca cada área. Roteiro em APRESENTACAO-CAPITAL-NOVO-ROTEIRO.txt"
+            title="Gravar tela: troca de abas automática, painéis inteiros visíveis. Roteiro em APRESENTACAO-CAPITAL-NOVO-ROTEIRO.txt"
           >
             <i data-lucide="clapperboard" class="h-4 w-4"></i>
             Apresentação
@@ -12035,11 +12043,12 @@
           },
         ];
 
-        /** Apresentação completa — gravar tela: só spotlight + HUD mínimo. Roteiro em APRESENTACAO-CAPITAL-NOVO-ROTEIRO.txt */
+        /** Apresentação completa — gravar tela: troca abas, painéis inteiros, sem overlay escuro. Roteiro em APRESENTACAO-CAPITAL-NOVO-ROTEIRO.txt */
         const TOUR_APRESENTACAO_PASSOS = [
           {
-            seletor: "#tour-alvo-total-gastos",
+            seletor: "#panel-dashboard",
             tab: "dashboard",
+            scrollAlvo: "#tour-alvo-total-gastos",
             segundos: 16,
             titulo: "Visão geral do mês",
             texto: "Resumo de gastos, saldo e indicadores principais.",
@@ -12047,43 +12056,44 @@
               "Este é o Capital Novo — sua organização financeira em um só lugar. Aqui você enxerga o total de gastos do mês, o que sobrou e para onde está indo seu dinheiro.",
           },
           {
-            seletor: "#gasto-form-titulo",
+            seletor: "#panel-lancamentos",
             tab: "lancamentos",
-            segundos: 14,
+            segundos: 16,
             titulo: "Lançamentos",
             texto: "Registre compras do dia a dia com categoria, meio e cartão.",
             fala:
               "Em Lançamentos você registra o dia a dia: mercado, transporte, lazer. Escolha categoria, meio de pagamento e, se for no cartão, qual banco.",
           },
           {
-            seletor: "#titulo-contas-fixas",
+            seletor: "#panel-contas-fixas",
             tab: "contas-fixas",
-            segundos: 14,
+            segundos: 15,
             titulo: "Contas fixas",
             texto: "Despesas que se repetem todo mês.",
             fala:
               "Contas fixas são as despesas previsíveis: aluguel, internet, assinaturas. Cadastre uma vez e acompanhe mês a mês.",
           },
           {
-            seletor: "#titulo-contas-pagar",
+            seletor: "#panel-contas-pagar",
             tab: "contas-pagar",
-            segundos: 14,
+            segundos: 15,
             titulo: "Cartões",
             texto: "Faturas, vencimentos e controle por cartão.",
             fala:
               "Na aba Cartões você controla faturas e vencimentos. O gasto já entrou nos lançamentos — pagar a fatura aqui não duplica o valor.",
           },
           {
-            seletor: "#tour-alvo-graficos",
+            seletor: "#panel-dashboard",
             tab: "dashboard",
-            segundos: 14,
+            scrollAlvo: "#tour-alvo-graficos",
+            segundos: 15,
             titulo: "Gráficos",
             texto: "Distribuição de gastos por categoria e meio.",
             fala:
               "Os gráficos traduzem seus números em visual: categorias, meios de pagamento e evolução — fácil de entender de relance.",
           },
           {
-            seletor: "#titulo-patrimonio",
+            seletor: "#panel-patrimonio",
             tab: "patrimonio",
             segundos: 15,
             titulo: "Patrimônio",
@@ -12092,35 +12102,36 @@
               "Em Patrimônio você consolida casas, veículos, reservas e outros bens. Veja quanto vale hoje e como evoluiu ao longo do tempo.",
           },
           {
-            seletor: "#titulo-investimentos",
+            seletor: "#panel-investimentos",
             tab: "investimentos",
-            segundos: 14,
+            segundos: 15,
             titulo: "Renda e juros compostos",
             texto: "Simulador e acompanhamento de renda variável.",
             fala:
               "Em Investimentos você encontra simulações de juros compostos e espaço para acompanhar sua renda variável.",
           },
           {
-            seletor: "#titulo-bitcoin",
+            seletor: "#panel-bitcoin",
             tab: "bitcoin",
-            segundos: 14,
+            segundos: 15,
             titulo: "Bitcoin",
             texto: "Compras em BTC, cotação e resultado em reais.",
             fala:
               "No módulo Bitcoin você registra compras, acompanha a cotação e vê o resultado em reais, com câmbio incluso.",
           },
           {
-            seletor: "#titulo-ativos",
+            seletor: "#panel-ativos",
             tab: "ativos",
-            segundos: 16,
+            segundos: 17,
             titulo: "Meus Ativos",
             texto: "Ações, FIIs, ETFs e exterior — cotações, metas e proventos.",
             fala:
               "Meus Ativos reúne ações, FIIs e ETFs com cotações da B3, metas de alocação, proventos automáticos e até posições no exterior.",
           },
           {
-            seletor: "#btn-wa-toggle",
+            seletor: "#header-tema-aparencia",
             tab: "dashboard",
+            scrollAlvo: "#gfp-whatsapp-wrap",
             segundos: 16,
             titulo: "WhatsApp Bot",
             texto: "Lance gastos pelo celular em linguagem natural.",
@@ -12128,7 +12139,7 @@
               "E pelo WhatsApp Bot você lança gastos pelo celular — basta escrever em linguagem natural, como se estivesse conversando.",
           },
           {
-            seletor: "#btn-tour-apresentacao",
+            seletor: "#tour-alvo-marca",
             tab: "dashboard",
             segundos: 14,
             titulo: "Comece agora",
@@ -12263,10 +12274,28 @@
           }
         }
 
+        function scrollParaPassoApresentacao(passo, el) {
+          let alvo = el;
+          if (passo.scrollAlvo) {
+            const inner = document.querySelector(passo.scrollAlvo);
+            if (inner && !inner.classList.contains("hidden") && inner.offsetParent !== null) {
+              alvo = inner;
+            }
+          }
+          if (!alvo) return;
+          const block = passo.scrollBlock || "start";
+          alvo.scrollIntoView({ block, behavior: "smooth" });
+        }
+
         function posicionarTourDashboardSpotlight(el) {
           const spot = document.getElementById("tour-dashboard-spotlight");
           const card = document.getElementById("tour-dashboard-card");
           if (!spot || !el) return;
+          if (tourModoApresentacao) {
+            spot.style.display = "none";
+            return;
+          }
+          spot.style.display = "";
           const pad = 8;
           const r = el.getBoundingClientRect();
           spot.style.top = Math.max(0, r.top - pad) + "px";
@@ -12274,7 +12303,6 @@
           spot.style.width = r.width + pad * 2 + "px";
           spot.style.height = r.height + pad * 2 + "px";
           if (!card) return;
-          if (tourModoApresentacao) return;
           const margin = 14;
           const cardRect = card.getBoundingClientRect();
           const cardH = cardRect.height || 200;
@@ -12311,18 +12339,17 @@
           const passo = passos[idx];
           if (!passo) return;
           tourDashboardPassoIdx = idx;
-          const el = document.querySelector(passo.seletor);
-          const titulo = document.getElementById("tour-dashboard-titulo");
-          const texto = document.getElementById("tour-dashboard-texto");
-          const contador = document.getElementById("tour-dashboard-contador");
-          const btnProx = document.getElementById("tour-dashboard-proximo");
-          if (!el) return;
 
           if (passo.tab && typeof setTab === "function") {
             setTab(passo.tab);
           } else if (idx === 0) {
             setTab("dashboard");
           }
+
+          const titulo = document.getElementById("tour-dashboard-titulo");
+          const texto = document.getElementById("tour-dashboard-texto");
+          const contador = document.getElementById("tour-dashboard-contador");
+          const btnProx = document.getElementById("tour-dashboard-proximo");
 
           if (!tourModoApresentacao) {
             if (titulo) titulo.textContent = passo.titulo;
@@ -12331,15 +12358,29 @@
             if (btnProx) btnProx.textContent = idx >= passos.length - 1 ? "Concluir" : "Próximo";
             renderTourDashboardDots();
           }
-          atualizarHudApresentacao(idx, passo);
 
-          const atraso = tourModoApresentacao ? 520 : 380;
-          el.scrollIntoView({ block: "center", behavior: "smooth" });
-          const aplicar = () => posicionarTourDashboardSpotlight(el);
-          aplicar();
+          const atraso = tourModoApresentacao ? 720 : 380;
           window.setTimeout(() => {
+            const el = document.querySelector(passo.seletor);
+            if (!el) return;
+
+            atualizarHudApresentacao(idx, passo);
+
+            if (tourModoApresentacao) {
+              window.scrollTo({ top: 0, behavior: "instant" });
+              scrollParaPassoApresentacao(passo, el);
+              posicionarTourDashboardSpotlight(el);
+              agendarAutoAvancoTour(passo);
+              return;
+            }
+
+            el.scrollIntoView({ block: "center", behavior: "smooth" });
+            const aplicar = () => posicionarTourDashboardSpotlight(el);
             aplicar();
-            agendarAutoAvancoTour(passo);
+            window.setTimeout(() => {
+              aplicar();
+              agendarAutoAvancoTour(passo);
+            }, atraso);
           }, atraso);
         }
 
@@ -12390,7 +12431,7 @@
           tourDashboardPassoIdx = 0;
           overlay.classList.remove("hidden");
           overlay.setAttribute("aria-hidden", "false");
-          document.body.style.overflow = "hidden";
+          document.body.style.overflow = "";
           setTab("dashboard");
           mostrarPassoTourDashboard(0);
           try {
