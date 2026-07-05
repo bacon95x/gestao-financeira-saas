@@ -21,6 +21,16 @@
   var cotacaoFetchedAt = 0;
   var cotacaoIntervalId = null;
   var compraEditandoId = null;
+  var proventosSyncDebounce = null;
+  var PROVENTOS_SYNC_MIN_MS = 30 * 60 * 1000;
+
+  var chartAtivosRosca = null;
+
+  var CORES_ATIVOS_CLASSE = {
+    acao: "#3b82f6",
+    fii: "#8b5cf6",
+    etf: "#06b6d4",
+  };
 
   function uid() {
     return "a" + Date.now().toString(36) + Math.random().toString(36).slice(2, 9);
@@ -120,6 +130,7 @@
       ativosState.posicoes = Array.isArray(o.posicoes) ? o.posicoes : [];
       ativosState.proventos = Array.isArray(o.proventos) ? o.proventos : [];
       ativosState.proventosPendentes = Array.isArray(o.proventosPendentes) ? o.proventosPendentes : [];
+      ativosState.ultimoProventosSyncAt = Number(o.ultimoProventosSyncAt) || 0;
       ativosState.metasAlocacao = normalizarMetas(o.metasAlocacao);
     } catch (e) {}
   }
@@ -421,6 +432,61 @@
       .join("");
   }
 
+  function dataPrimeiraCompraAtivos() {
+    var min = null;
+    ativosState.posicoes.forEach(function (p) {
+      (p.compras || []).forEach(function (c) {
+        var d = String(c.data || "").trim();
+        if (/^\d{4}-\d{2}-\d{2}$/.test(d) && (!min || d < min)) min = d;
+      });
+    });
+    return min;
+  }
+
+  function dataInicioProventosSync() {
+    var min = dataPrimeiraCompraAtivos();
+    if (min) return min;
+    var d = new Date();
+    d.setMonth(d.getMonth() - 12);
+    return d.toISOString().slice(0, 10);
+  }
+
+  function registrarProventoConfirmado(pend) {
+    if (proventoJaRegistrado(pend.brapiKey)) return false;
+    var pr = {
+      id: uid(),
+      brapiKey: pend.brapiKey,
+      ticker: pend.ticker,
+      data: pend.data,
+      tipo: pend.tipo,
+      valor: pend.valor,
+      qty: pend.qty,
+      reinvestido: false,
+      cotasReinvestidas: null,
+    };
+    ativosState.proventos.push(pr);
+    if (ativosState.reinvestirAuto) reinvestirProvento(pr);
+    return true;
+  }
+
+  function aplicarProventosPendentes(lista) {
+    var n = 0;
+    (lista || []).forEach(function (pend) {
+      if (registrarProventoConfirmado(pend)) n++;
+    });
+    return n;
+  }
+
+  function ativosAgendarSyncProventos() {
+    if (!todosTickers().length) return;
+    if (proventosSyncDebounce) clearTimeout(proventosSyncDebounce);
+    proventosSyncDebounce = setTimeout(function () {
+      var ultimo = Number(ativosState.ultimoProventosSyncAt) || 0;
+      if (Date.now() - ultimo < PROVENTOS_SYNC_MIN_MS) return;
+      ativosSincronizarProventos({ silencioso: true, autoConfirmar: true });
+    }, 2000);
+  }
+
   function proventoJaRegistrado(chave) {
     return ativosState.proventos.some(function (pr) {
       return pr.brapiKey === chave;
@@ -497,7 +563,12 @@
     return out;
   }
 
-  async function ativosSincronizarProventos() {
+  async function ativosSincronizarProventos(opts) {
+    opts = opts || {};
+    var silencioso = !!opts.silencioso;
+    var autoConfirmar = opts.autoConfirmar !== false;
+    var forcar = !!opts.forcar;
+
     var acoes = tickersPorClasse("acao").concat(tickersPorClasse("etf")).map(function (p) {
       return normTicker(p.ticker);
     });
@@ -512,15 +583,18 @@
     });
 
     if (!acoes.length && !fiis.length) {
-      alert("Cadastre ações ou FIIs antes de sincronizar proventos.");
+      if (!silencioso) alert("Cadastre ações ou FIIs antes de sincronizar proventos.");
       return;
     }
 
-    ativosUpdateStatus("Sincronizando proventos…", "warn");
+    if (!forcar) {
+      var ultimo = Number(ativosState.ultimoProventosSyncAt) || 0;
+      if (Date.now() - ultimo < PROVENTOS_SYNC_MIN_MS) return;
+    }
+
+    if (!silencioso) ativosUpdateStatus("Sincronizando proventos…", "warn");
     var pendentes = [];
-    var startDate = new Date();
-    startDate.setMonth(startDate.getMonth() - 12);
-    var startStr = startDate.toISOString().slice(0, 10);
+    var startStr = dataInicioProventosSync();
 
     try {
       if (acoes.length) {
@@ -544,18 +618,40 @@
           if (!acoes.length) throw fiiErr;
         }
       }
+
+      ativosState.ultimoProventosSyncAt = Date.now();
+
+      if (pendentes.length && autoConfirmar) {
+        var importados = aplicarProventosPendentes(pendentes);
+        ativosState.proventosPendentes = [];
+        ativosSave();
+        var msg =
+          importados > 0
+            ? importados + " provento(s) importado(s) automaticamente."
+            : "Nenhum provento novo encontrado.";
+        if (!silencioso) ativosUpdateStatus(msg, importados > 0 ? "ok" : "warn");
+        renderAtivosUI();
+        return;
+      }
+
       ativosState.proventosPendentes = pendentes;
       ativosSave();
-      ativosUpdateStatus(
-        pendentes.length
-          ? pendentes.length + " provento(s) novo(s) — confirme abaixo."
-          : "Nenhum provento novo encontrado.",
-        pendentes.length ? "ok" : "warn"
-      );
+      if (!silencioso) {
+        ativosUpdateStatus(
+          pendentes.length
+            ? pendentes.length + " provento(s) novo(s) — confirme abaixo."
+            : "Nenhum provento novo encontrado.",
+          pendentes.length ? "ok" : "warn"
+        );
+      }
       renderAtivosUI();
     } catch (e) {
-      ativosUpdateStatus(e.message || String(e), "err");
-      alert(e.message || String(e));
+      if (!silencioso) {
+        ativosUpdateStatus(e.message || String(e), "err");
+        alert(e.message || String(e));
+      } else {
+        console.warn("Sync proventos:", e);
+      }
     }
   }
 
@@ -564,42 +660,16 @@
       return x.id === id;
     });
     if (!pend) return;
-    ativosState.proventos.push({
-      id: uid(),
-      brapiKey: pend.brapiKey,
-      ticker: pend.ticker,
-      data: pend.data,
-      tipo: pend.tipo,
-      valor: pend.valor,
-      qty: pend.qty,
-      reinvestido: false,
-    });
+    registrarProventoConfirmado(pend);
     ativosState.proventosPendentes = ativosState.proventosPendentes.filter(function (x) {
       return x.id !== id;
     });
-
-    if (ativosState.reinvestirAuto) {
-      reinvestirProvento(pend);
-    }
     ativosSave();
     renderAtivosUI();
   }
 
   function confirmarTodosProventosPendentes() {
-    var copy = ativosState.proventosPendentes.slice();
-    copy.forEach(function (pend) {
-      ativosState.proventos.push({
-        id: uid(),
-        brapiKey: pend.brapiKey,
-        ticker: pend.ticker,
-        data: pend.data,
-        tipo: pend.tipo,
-        valor: pend.valor,
-        qty: pend.qty,
-        reinvestido: false,
-      });
-      if (ativosState.reinvestirAuto) reinvestirProvento(pend);
-    });
+    aplicarProventosPendentes(ativosState.proventosPendentes.slice());
     ativosState.proventosPendentes = [];
     ativosSave();
     renderAtivosUI();
@@ -700,19 +770,35 @@
     renderAtivosRoscaAlocacao();
   }
 
-  var chartAtivosRosca = null;
-
-  var CORES_ATIVOS_CLASSE = {
-    acao: "rgba(59, 130, 246, 0.78)",
-    fii: "rgba(139, 92, 246, 0.78)",
-    etf: "rgba(6, 182, 212, 0.78)",
-  };
+  function renderAtivosRoscaLegenda(labels, data, cores, totalPat) {
+    var leg = document.getElementById("ativos-rosca-legenda");
+    if (!leg) return;
+    if (!labels.length) {
+      leg.innerHTML = "";
+      return;
+    }
+    leg.innerHTML = labels
+      .map(function (label, i) {
+        var pct = totalPat > 0 ? ((data[i] / totalPat) * 100).toFixed(0) : "0";
+        return (
+          '<span class="inline-flex items-center gap-1.5 text-zinc-400">' +
+          '<span class="h-2 w-2 shrink-0 rounded-full" style="background:' +
+          cores[i] +
+          '"></span>' +
+          label +
+          ' <span class="tabular-nums text-zinc-500">' +
+          pct +
+          "%</span></span>"
+        );
+      })
+      .join("");
+  }
 
   function renderAtivosRoscaAlocacao() {
     var canvas = document.getElementById("chart-ativos-rosca");
     var emptyEl = document.getElementById("chart-ativos-rosca-empty");
+    var wrapAll = document.getElementById("ativos-rosca-wrap");
     var centroEl = document.getElementById("ativos-rosca-centro-valor");
-    var wrapCanvas = canvas ? canvas.parentElement : null;
     if (!canvas || !emptyEl) return;
 
     var classes = [
@@ -737,9 +823,9 @@
     if (centroEl) centroEl.textContent = totalPat > 0 ? formatMoney(totalPat) : "—";
 
     if (!labels.length || totalPat <= 0) {
-      canvas.classList.add("hidden");
-      if (wrapCanvas) wrapCanvas.classList.add("hidden");
+      if (wrapAll) wrapAll.classList.add("hidden");
       emptyEl.classList.remove("hidden");
+      renderAtivosRoscaLegenda([], [], [], 0);
       if (chartAtivosRosca) {
         chartAtivosRosca.destroy();
         chartAtivosRosca = null;
@@ -747,15 +833,15 @@
       return;
     }
 
-    canvas.classList.remove("hidden");
-    if (wrapCanvas) wrapCanvas.classList.remove("hidden");
+    if (wrapAll) wrapAll.classList.remove("hidden");
     emptyEl.classList.add("hidden");
+    renderAtivosRoscaLegenda(labels, data, cores, totalPat);
 
     if (typeof Chart === "undefined") return;
 
     var light = document.documentElement.getAttribute("data-appearance") === "light";
-    var pieBorder = light ? "#e4e4e7" : "#12121a";
-    var legendColor = light ? "#52525b" : "#a1a1aa";
+    var pieBorder = light ? "#fafafa" : "#0c0c10";
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
 
     if (chartAtivosRosca) chartAtivosRosca.destroy();
 
@@ -769,26 +855,28 @@
             backgroundColor: cores,
             borderColor: pieBorder,
             borderWidth: 2,
-            hoverOffset: 4,
+            hoverOffset: 6,
+            spacing: 1,
           },
         ],
       },
       options: {
         responsive: true,
         maintainAspectRatio: true,
-        cutout: "62%",
+        aspectRatio: 1,
+        devicePixelRatio: dpr,
+        cutout: "68%",
+        layout: { padding: 2 },
+        animation: { duration: 350 },
         plugins: {
-          legend: {
-            display: true,
-            position: "bottom",
-            labels: {
-              color: legendColor,
-              padding: 8,
-              boxWidth: 10,
-              font: { family: "'DM Sans', sans-serif", size: 11 },
-            },
-          },
+          legend: { display: false },
           tooltip: {
+            backgroundColor: light ? "rgba(255,255,255,0.96)" : "rgba(18,18,26,0.96)",
+            titleColor: light ? "#18181b" : "#fafafa",
+            bodyColor: light ? "#52525b" : "#d4d4d8",
+            borderColor: light ? "#e4e4e7" : "#27272a",
+            borderWidth: 1,
+            padding: 10,
             callbacks: {
               label: function (ctx) {
                 var v = ctx.raw;
@@ -1245,6 +1333,7 @@
     ativosSave();
     renderAtivosUI();
     ativosFetchCotacoes(false);
+    ativosAgendarSyncProventos();
     return true;
   }
 
@@ -1318,7 +1407,9 @@
     var btnProv = document.getElementById("ativos-btn-sync-proventos");
     if (btnProv && !btnProv._wired) {
       btnProv._wired = true;
-      btnProv.addEventListener("click", ativosSincronizarProventos);
+      btnProv.addEventListener("click", function () {
+        ativosSincronizarProventos({ forcar: true, autoConfirmar: true, silencioso: false });
+      });
     }
     var chkAuto = document.getElementById("ativos-cotacao-auto");
     if (chkAuto && !chkAuto._wired) {
@@ -1400,6 +1491,7 @@
       ativosFetchCotacoes(false);
       ativosStartCotacaoInterval();
     }
+    ativosAgendarSyncProventos();
   }
 
   window.gfpInitAtivos = gfpInitAtivos;
