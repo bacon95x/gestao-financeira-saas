@@ -646,28 +646,64 @@
         touch-action: manipulation;
         -webkit-tap-highlight-color: transparent;
       }
-      /* Contas fixas: colunas compactas (gasto + dia venc.) para caber sem scroll horizontal */
+      /* Contas fixas: larguras mínimas por coluna — scroll horizontal OK */
       #contas-fixas-meses-wrapper table.cf-tabela-fixas {
-        min-width: 1000px;
+        min-width: 1180px;
+        width: max-content;
+      }
+      #contas-fixas-meses-wrapper table.cf-tabela-fixas th {
+        white-space: nowrap;
       }
       #contas-fixas-meses-wrapper table.cf-tabela-fixas th.cf-col-gasto,
       #contas-fixas-meses-wrapper table.cf-tabela-fixas td.cf-col-gasto {
-        width: 6.75rem;
-        max-width: 6.75rem;
-        padding-left: 0.375rem;
-        padding-right: 0.375rem;
+        min-width: 7.5rem;
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+      }
+      #contas-fixas-meses-wrapper table.cf-tabela-fixas th.cf-col-conta,
+      #contas-fixas-meses-wrapper table.cf-tabela-fixas td.cf-col-conta {
+        min-width: 9rem;
+      }
+      #contas-fixas-meses-wrapper table.cf-tabela-fixas th.cf-col-categoria,
+      #contas-fixas-meses-wrapper table.cf-tabela-fixas td.cf-col-categoria {
+        min-width: 7.5rem;
+      }
+      #contas-fixas-meses-wrapper table.cf-tabela-fixas th.cf-col-meio,
+      #contas-fixas-meses-wrapper table.cf-tabela-fixas td.cf-col-meio {
+        min-width: 6.5rem;
+      }
+      #contas-fixas-meses-wrapper table.cf-tabela-fixas th.cf-col-origem,
+      #contas-fixas-meses-wrapper table.cf-tabela-fixas td.cf-col-origem {
+        min-width: 7.5rem;
       }
       #contas-fixas-meses-wrapper table.cf-tabela-fixas th.cf-col-vencimento,
       #contas-fixas-meses-wrapper table.cf-tabela-fixas td.cf-col-vencimento {
-        width: 5.5rem;
-        max-width: 5.5rem;
-        padding-left: 0.375rem;
-        padding-right: 0.375rem;
+        min-width: 9.5rem;
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+      }
+      #contas-fixas-meses-wrapper table.cf-tabela-fixas th.cf-col-valor-pago,
+      #contas-fixas-meses-wrapper table.cf-tabela-fixas td.cf-col-valor-pago {
+        min-width: 8.5rem;
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
       }
       #contas-fixas-meses-wrapper table.cf-tabela-fixas th.cf-col-data,
       #contas-fixas-meses-wrapper table.cf-tabela-fixas td.cf-col-data {
-        width: 4.75rem;
-        max-width: 4.75rem;
+        min-width: 7rem;
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+      }
+      #contas-fixas-meses-wrapper table.cf-tabela-fixas th.cf-col-ultima,
+      #contas-fixas-meses-wrapper table.cf-tabela-fixas td.cf-col-ultima {
+        min-width: 8.5rem;
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+      }
+      #contas-fixas-meses-wrapper table.cf-tabela-fixas th.cf-col-del,
+      #contas-fixas-meses-wrapper table.cf-tabela-fixas td.cf-col-del {
+        min-width: 2.75rem;
+        width: 2.75rem;
         padding-left: 0.375rem;
         padding-right: 0.375rem;
       }
@@ -677,14 +713,16 @@
       }
       #contas-fixas-meses-wrapper table.cf-tabela-fixas .cp-gasto-input {
         flex: 0 1 auto;
-        width: 4.75rem;
-        max-width: 4.75rem;
+        width: 5rem;
+        min-width: 4.75rem;
+        max-width: 5.5rem;
         padding-left: 0.375rem;
         padding-right: 0.375rem;
       }
       #contas-fixas-meses-wrapper table.cf-tabela-fixas .cp-vencimento-input {
         flex: 0 1 auto;
         width: 4.5rem;
+        min-width: 4.5rem;
         max-width: 4.5rem;
         padding-left: 0.25rem;
         padding-right: 0.25rem;
@@ -698,6 +736,7 @@
       }
       #contas-fixas-meses-wrapper table.cf-tabela-fixas td.cf-col-data input {
         width: 4.5rem;
+        min-width: 4.5rem;
         max-width: 4.5rem;
         padding-left: 0.25rem;
         padding-right: 0.25rem;
@@ -10346,20 +10385,20 @@
           const scroll = document.createElement("div");
           scroll.className = "overflow-x-auto";
           const table = document.createElement("table");
-          table.className = "cf-tabela-fixas w-full min-w-[1000px] text-left text-xs";
+          table.className = "cf-tabela-fixas w-full text-left text-xs";
           const thead = document.createElement("thead");
           thead.innerHTML =
             '<tr class="border-b border-bank-border bg-bank-bg/40 text-bank-muted">' +
-            '<th class="cf-col-gasto whitespace-nowrap px-2 py-1.5 font-medium">Gasto atual (R$)</th>' +
-            '<th class="min-w-[9rem] px-3 py-1.5 font-medium sm:px-4">Conta</th>' +
-            '<th class="min-w-[7rem] px-3 py-1.5 font-medium sm:px-4">Categoria</th>' +
-            '<th class="min-w-[7rem] px-3 py-1.5 font-medium sm:px-4">Meio</th>' +
-            '<th class="min-w-[7rem] px-3 py-1.5 font-medium sm:px-4">Origem</th>' +
-            '<th class="cf-col-vencimento whitespace-nowrap px-2 py-1.5 font-medium">Dia venc./cobrança</th>' +
-            '<th class="whitespace-nowrap px-2 py-1.5 font-medium">Valor pago (R$)</th>' +
-            '<th class="cf-col-data whitespace-nowrap px-2 py-1.5 font-medium">Data pagamento</th>' +
-            '<th class="whitespace-nowrap px-2 py-1.5 font-medium">Última atualização</th>' +
-            '<th class="w-12 whitespace-nowrap px-1 py-1.5 text-center font-medium"></th>' +
+            '<th class="cf-col-gasto px-2 py-1.5 font-medium">Gasto atual (R$)</th>' +
+            '<th class="cf-col-conta px-3 py-1.5 font-medium sm:px-4">Conta</th>' +
+            '<th class="cf-col-categoria px-3 py-1.5 font-medium sm:px-4">Categoria</th>' +
+            '<th class="cf-col-meio px-3 py-1.5 font-medium sm:px-4">Meio</th>' +
+            '<th class="cf-col-origem px-3 py-1.5 font-medium sm:px-4">Origem</th>' +
+            '<th class="cf-col-vencimento px-2 py-1.5 font-medium">Dia venc./cobrança</th>' +
+            '<th class="cf-col-valor-pago px-2 py-1.5 font-medium">Valor pago (R$)</th>' +
+            '<th class="cf-col-data px-2 py-1.5 font-medium">Data pagamento</th>' +
+            '<th class="cf-col-ultima px-2 py-1.5 font-medium">Última atualização</th>' +
+            '<th class="cf-col-del px-1 py-1.5 text-center font-medium"></th>' +
             "</tr>";
           table.appendChild(thead);
           const tbody = document.createElement("tbody");
@@ -10454,7 +10493,7 @@
             tdG.appendChild(wrapG);
 
             const tdN = document.createElement("td");
-            tdN.className = "align-top px-3 py-1.5 sm:px-4";
+            tdN.className = "cf-col-conta align-top px-3 py-1.5 sm:px-4";
             const inNome = document.createElement("input");
             inNome.type = "text";
             inNome.className = inputCls + " font-medium text-zinc-100";
@@ -10470,7 +10509,7 @@
             tdN.appendChild(inNome);
 
             const tdCat = document.createElement("td");
-            tdCat.className = "align-top px-3 py-1.5 sm:px-4";
+            tdCat.className = "cf-col-categoria align-top px-3 py-1.5 sm:px-4";
             const selCat = document.createElement("select");
             selCat.className = inputCls;
             listaCategorias.forEach((cat) => {
@@ -10487,7 +10526,7 @@
             tdCat.appendChild(selCat);
 
             const tdMeio = document.createElement("td");
-            tdMeio.className = "align-top px-3 py-1.5 sm:px-4";
+            tdMeio.className = "cf-col-meio align-top px-3 py-1.5 sm:px-4";
             const selMeio = document.createElement("select");
             selMeio.className = inputCls;
             const meioMes = meioContaFixaMes(item, year, monthIdx);
@@ -10506,7 +10545,7 @@
             tdMeio.appendChild(selMeio);
 
             const tdOrig = document.createElement("td");
-            tdOrig.className = "align-top px-3 py-1.5 sm:px-4";
+            tdOrig.className = "cf-col-origem align-top px-3 py-1.5 sm:px-4";
             if (meioMes === "Crédito") {
               const selOrig = document.createElement("select");
               selOrig.className = inputCls;
@@ -10624,7 +10663,7 @@
             tdV.appendChild(wrapV);
 
             const tdVP = document.createElement("td");
-            tdVP.className = "align-middle px-3 py-1.5 sm:px-4";
+            tdVP.className = "cf-col-valor-pago align-middle px-2 py-1.5";
             const inVP = document.createElement("input");
             inVP.type = "text";
             inVP.inputMode = "decimal";
@@ -10731,13 +10770,13 @@
 
             const tdU = document.createElement("td");
             tdU.className =
-              "cf-ultima-cell w-10 whitespace-nowrap px-2 py-1.5 text-center text-xs text-zinc-300 sm:px-3";
+              "cf-col-ultima cf-ultima-cell whitespace-nowrap px-2 py-1.5 text-center text-xs text-zinc-300";
             tdU.textContent = cell.ultimaAtualizacao
               ? formatContasPagarSomenteDia(cell.ultimaAtualizacao)
               : "—";
 
             const tdDel = document.createElement("td");
-            tdDel.className = "align-middle px-2 py-1.5 text-center sm:px-3";
+            tdDel.className = "cf-col-del align-middle px-1 py-1.5 text-center";
             const btnDel = document.createElement("button");
             btnDel.type = "button";
             btnDel.className =
