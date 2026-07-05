@@ -619,7 +619,8 @@
 
       /* Contas fixas / Cartões: input + botão ❄ em linha (sem sobreposição) */
       #contas-fixas-meses-wrapper table tbody td:first-child .cp-gasto-celula-wrap,
-      #contas-pagar-meses-wrapper table tbody td:first-child .cp-gasto-celula-wrap {
+      #contas-pagar-meses-wrapper table tbody td:first-child .cp-gasto-celula-wrap,
+      #contas-fixas-meses-wrapper table tbody td .cp-vencimento-celula-wrap {
         display: flex;
         flex-direction: row;
         align-items: center;
@@ -628,7 +629,8 @@
         width: 100%;
       }
       #contas-fixas-meses-wrapper table tbody td:first-child .cp-gasto-input,
-      #contas-pagar-meses-wrapper table tbody td:first-child .cp-gasto-input {
+      #contas-pagar-meses-wrapper table tbody td:first-child .cp-gasto-input,
+      #contas-fixas-meses-wrapper table tbody td .cp-vencimento-input {
         flex: 1 1 0%;
         min-width: 0;
         width: auto;
@@ -636,7 +638,8 @@
         box-sizing: border-box;
       }
       #contas-fixas-meses-wrapper table tbody td:first-child button.cp-btn-congelar-gasto,
-      #contas-pagar-meses-wrapper table tbody td:first-child button.cp-btn-congelar-gasto {
+      #contas-pagar-meses-wrapper table tbody td:first-child button.cp-btn-congelar-gasto,
+      #contas-fixas-meses-wrapper table tbody td button.cp-btn-congelar-vencimento {
         flex-shrink: 0;
         margin: 0;
         box-sizing: border-box;
@@ -3293,7 +3296,7 @@
         let contasPagarItems = [];
         /** Contas fixas: despesas recorrentes fora do crédito/cartão. */
         let contasFixasItems = [];
-        /** @type {Record<string, Record<string, Record<string, { gastoAtual: number, ultimaAtualizacao: string, vencimento: string, valorPago: number | null, dataPago: string, gastoCongelado?: boolean }>>>} */
+        /** @type {Record<string, Record<string, Record<string, { gastoAtual: number, ultimaAtualizacao: string, vencimento: string, valorPago: number | null, dataPago: string, gastoCongelado?: boolean, vencimentoCongelado?: boolean }>>>} */
         let contasFixasAnual = {};
 
         const MEIOS_PAGAMENTO = [
@@ -4974,6 +4977,54 @@
               String(m + 1).padStart(2, "0") +
               "-" +
               String(d).padStart(2, "0");
+            m++;
+            if (m > 11) {
+              m = 0;
+              y++;
+            }
+          }
+        }
+
+        /** Limpa vencimento no mês editado e nos meses seguintes (quando congelado). */
+        function limparVencimentoContaFixaDesde(itemId, fromYear, fromMonthIdx) {
+          let y = fromYear;
+          let m = fromMonthIdx;
+          const maxMeses = 12 * 15;
+          for (let step = 0; step < maxMeses; step++) {
+            getCellContaFixa(y, m, itemId).vencimento = "";
+            m++;
+            if (m > 11) {
+              m = 0;
+              y++;
+            }
+          }
+        }
+
+        /** Copia dia de vencimento congelado aos meses seguintes (a partir do mês seguinte ao congelamento). */
+        function propagarVencimentoCongeladoFixa(itemId, fromYear, fromMonthIdx, isoRef) {
+          const venRef = String(isoRef || "").trim();
+          if (!/^\d{4}-\d{2}-\d{2}$/.test(venRef)) return;
+          const dtVen = parseISODateLocal(venRef);
+          if (!dtVen || Number.isNaN(dtVen.getTime())) return;
+          const diaVen = dtVen.getDate();
+          let y = fromYear;
+          let m = fromMonthIdx + 1;
+          if (m > 11) {
+            m = 0;
+            y++;
+          }
+          const maxMeses = 12 * 15;
+          for (let step = 0; step < maxMeses; step++) {
+            const cell = getCellContaFixa(y, m, itemId);
+            const dim = daysInMonth(y, m);
+            const d = Math.min(diaVen, dim);
+            cell.vencimento =
+              String(y) +
+              "-" +
+              String(m + 1).padStart(2, "0") +
+              "-" +
+              String(d).padStart(2, "0");
+            cell.vencimentoCongelado = true;
             m++;
             if (m > 11) {
               m = 0;
@@ -10265,7 +10316,9 @@
             if (!contasPagarItemVisivelNaGrade(item, year, monthIdx)) return;
             const cell = getCellContaFixa(year, monthIdx, item.id);
             if (cell.gastoCongelado == null) cell.gastoCongelado = false;
+            if (cell.vencimentoCongelado == null) cell.vencimentoCongelado = false;
             const frozen = !!cell.gastoCongelado;
+            const venFrozen = !!cell.vencimentoCongelado;
             const gVal = gastoAtualExibicaoContaFixa(item, year, monthIdx, cell);
             const isCredito = contaFixaEhCredito(item, year, monthIdx);
             const faturaCredito = isCredito ? faturaAlvoContaFixa(item, year, monthIdx, cell) : null;
@@ -10424,17 +10477,25 @@
 
             const tdV = document.createElement("td");
             tdV.className = "align-middle px-3 py-1.5 sm:px-4";
+            const wrapV = document.createElement("div");
+            wrapV.className = "cp-vencimento-celula-wrap";
             const inV = document.createElement("input");
             inV.type = "text";
             inV.inputMode = "numeric";
-            inV.className = inputCls + " max-w-[4.5rem] tabular-nums text-center";
+            inV.className = inputCls + " cp-vencimento-input max-w-[4.5rem] tabular-nums text-center";
             inV.placeholder = "dd/mm";
             const isoVenEfetivo = vencimentoCampoValor(year, monthIdx, item, cell);
             inV.value = isoVenEfetivo ? isoParaDiaMesBR(isoVenEfetivo) : "";
+            inV.title = venFrozen
+              ? "Congelado — alterações replicam aos meses seguintes. Clique no ❄️ para editar só este mês."
+              : "Editável só neste mês. Use ❄️ para congelar e replicar o dia aos meses seguintes.";
             inV.addEventListener("blur", () => {
               const raw = inV.value.trim();
               if (raw === "") {
                 cell.vencimento = "";
+                if (cell.vencimentoCongelado) {
+                  limparVencimentoContaFixaDesde(item.id, year, monthIdx);
+                }
                 saveContasFixasAnual();
                 renderContasFixas();
                 updateDashboard();
@@ -10447,12 +10508,64 @@
                 return;
               }
               cell.vencimento = parsed;
-              propagarVencimentoContaFixa(item.id, year, monthIdx, parsed);
+              if (cell.vencimentoCongelado) {
+                propagarVencimentoContaFixa(item.id, year, monthIdx, parsed);
+              }
               saveContasFixasAnual();
               inV.value = isoParaDiaMesBR(parsed);
               updateDashboard();
             });
-            tdV.appendChild(inV);
+            const btnVenNeve = document.createElement("button");
+            btnVenNeve.type = "button";
+            btnVenNeve.className =
+              "cp-btn-congelar-vencimento flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border text-base leading-none transition " +
+              (venFrozen
+                ? "border-cyan-400/50 bg-cyan-500/20 text-cyan-100"
+                : "border-bank-border bg-bank-bg/80 text-zinc-400 hover:border-cyan-500/40 hover:bg-cyan-500/10 hover:text-cyan-200");
+            btnVenNeve.setAttribute("aria-pressed", venFrozen ? "true" : "false");
+            btnVenNeve.title = venFrozen
+              ? "Descongelar dia — editar só neste mês"
+              : "Congelar dia de cobrança e copiar aos meses seguintes";
+            btnVenNeve.setAttribute(
+              "aria-label",
+              venFrozen
+                ? "Descongelar dia de cobrança deste mês"
+                : "Congelar dia de cobrança e copiar para os meses seguintes"
+            );
+            btnVenNeve.textContent = "❄️";
+            btnVenNeve.addEventListener("click", function (ev) {
+              ev.preventDefault();
+              ev.stopPropagation();
+              if (cell.vencimentoCongelado) {
+                cell.vencimentoCongelado = false;
+                saveContasFixasAnual();
+                renderContasFixas();
+                return;
+              }
+              const raw = inV.value.trim();
+              let isoVenRef = "";
+              if (raw !== "") {
+                const parsed = parseDiaMesOuIsoParaISO(raw, year);
+                if (parsed) isoVenRef = parsed;
+              }
+              if (!isoVenRef) {
+                isoVenRef = vencimentoCampoValor(year, monthIdx, item, cell);
+              }
+              if (isoVenRef) {
+                cell.vencimento = isoVenRef;
+                inV.value = isoParaDiaMesBR(isoVenRef);
+              }
+              cell.vencimentoCongelado = true;
+              if (isoVenRef) {
+                propagarVencimentoCongeladoFixa(item.id, year, monthIdx, isoVenRef);
+              }
+              saveContasFixasAnual();
+              renderContasFixas();
+              updateDashboard();
+            });
+            wrapV.appendChild(inV);
+            wrapV.appendChild(btnVenNeve);
+            tdV.appendChild(wrapV);
 
             const tdVP = document.createElement("td");
             tdVP.className = "align-middle px-3 py-1.5 sm:px-4";
