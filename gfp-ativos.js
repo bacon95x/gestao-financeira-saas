@@ -4,10 +4,13 @@
   var STORAGE_ATIVOS = "gfp_ativos_v1";
   var COTACAO_INTERVAL_MS = 120000;
 
+  var METAS_DEFAULT = { acao: 30, fii: 25, etf: 15 };
+
   var ativosDefaults = {
     cotacaoAuto: true,
     reinvestirAuto: false,
     tickerSelecionado: "",
+    metasAlocacao: { acao: 30, fii: 25, etf: 15 },
     posicoes: [],
     proventos: [],
     proventosPendentes: [],
@@ -17,6 +20,7 @@
   var cotacoesCache = {};
   var cotacaoFetchedAt = 0;
   var cotacaoIntervalId = null;
+  var compraEditandoId = null;
 
   function uid() {
     return "a" + Date.now().toString(36) + Math.random().toString(36).slice(2, 9);
@@ -36,11 +40,42 @@
     return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
   }
 
+  function formatValorInput(n) {
+    var v = Number(n);
+    if (!Number.isFinite(v)) return "";
+    return v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function setInputMoeda(el, n) {
+    if (!el) return;
+    el.value = formatValorInput(n);
+  }
+
+  function metaClasse(classe) {
+    var m = ativosState.metasAlocacao || METAS_DEFAULT;
+    var v = Number(m[classe]);
+    return Number.isFinite(v) && v >= 0 ? v : 0;
+  }
+
+  function normalizarMetas(raw) {
+    var out = { acao: 30, fii: 25, etf: 15 };
+    if (!raw || typeof raw !== "object") return out;
+    ["acao", "fii", "etf"].forEach(function (k) {
+      var v = Number(raw[k]);
+      out[k] = Number.isFinite(v) && v >= 0 ? Math.min(100, Math.round(v)) : out[k];
+    });
+    return out;
+  }
+
   function formatPct(n) {
     var v = Number(n);
     if (!Number.isFinite(v)) return "—";
     var sign = v > 0 ? "+" : "";
     return sign + v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "%";
+  }
+
+  function somaMetasAlocacao() {
+    return metaClasse("acao") + metaClasse("fii") + metaClasse("etf");
   }
 
   function normTicker(t) {
@@ -85,6 +120,7 @@
       ativosState.posicoes = Array.isArray(o.posicoes) ? o.posicoes : [];
       ativosState.proventos = Array.isArray(o.proventos) ? o.proventos : [];
       ativosState.proventosPendentes = Array.isArray(o.proventosPendentes) ? o.proventosPendentes : [];
+      ativosState.metasAlocacao = normalizarMetas(o.metasAlocacao);
     } catch (e) {}
   }
 
@@ -494,8 +530,14 @@
     classes.forEach(function (cl) {
       var r = resumoClasse(cl.id);
       var pctCarteira = totalPat > 0 && Number.isFinite(r.atual) ? (r.atual / totalPat) * 100 : 0;
+      var meta = metaClasse(cl.id);
       var plCls =
         Number.isFinite(r.plVal) && r.plVal >= 0 ? "text-emerald-300" : "text-red-300";
+      var pctMetaCls = "text-zinc-400";
+      if (totalPat > 0 && meta > 0) {
+        if (pctCarteira > meta + 2) pctMetaCls = "text-amber-300";
+        else if (pctCarteira < meta - 2 && r.count > 0) pctMetaCls = "text-cyan-300";
+      }
       var tr = document.createElement("tr");
       tr.className = "border-b border-bank-border/60 cursor-pointer hover:bg-white/[0.02]";
       tr.innerHTML =
@@ -519,9 +561,13 @@
         '">' +
         (Number.isFinite(r.plPct) ? formatPct(r.plPct) : "—") +
         "</td>" +
-        '<td class="px-3 py-3 text-right tabular-nums text-zinc-400">' +
+        '<td class="px-3 py-3 text-right tabular-nums ' +
+        pctMetaCls +
+        '">' +
         (totalPat > 0 ? pctCarteira.toFixed(0) + "%" : "—") +
-        "</td>";
+        ' <span class="text-zinc-600">/ ' +
+        meta +
+        "%</span></td>";
       tr.addEventListener("click", function () {
         ativosState.tickerSelecionado =
           tickersPorClasse(cl.id)[0] && tickersPorClasse(cl.id)[0].ticker
@@ -536,6 +582,74 @@
 
     var elPat = document.getElementById("ativos-patrimonio-total");
     if (elPat) elPat.textContent = formatMoney(totalPat);
+  }
+
+  function renderMetasAlocacao() {
+    var wrap = document.getElementById("ativos-metas-wrap");
+    var elSoma = document.getElementById("ativos-metas-soma");
+    if (!wrap) return;
+
+    var classes = [
+      { id: "acao", label: "Ações", bar: "bg-blue-500/70" },
+      { id: "fii", label: "FIIs", bar: "bg-violet-500/70" },
+      { id: "etf", label: "ETFs", bar: "bg-cyan-500/70" },
+    ];
+    var totalPat = patrimonioTotalAtivos();
+    wrap.innerHTML = "";
+
+    classes.forEach(function (cl) {
+      var r = resumoClasse(cl.id);
+      var meta = metaClasse(cl.id);
+      var atualPct = totalPat > 0 && Number.isFinite(r.atual) ? (r.atual / totalPat) * 100 : 0;
+      var barW = meta > 0 ? Math.min(100, (atualPct / meta) * 100) : atualPct > 0 ? 100 : 0;
+
+      var row = document.createElement("div");
+      row.className = "rounded-xl border border-bank-border/60 bg-bank-bg/30 p-3";
+      row.innerHTML =
+        '<div class="flex flex-wrap items-center justify-between gap-2">' +
+        '<span class="text-sm font-medium text-zinc-200">' +
+        cl.label +
+        "</span>" +
+        '<div class="flex items-center gap-2">' +
+        '<label class="flex items-center gap-1.5 text-xs text-bank-muted">Meta %' +
+        '<input type="number" min="0" max="100" step="1" data-meta-classe="' +
+        cl.id +
+        '" class="w-14 rounded-lg border border-bank-border bg-bank-bg px-2 py-1 text-right text-sm tabular-nums text-white outline-none focus:border-violet-500/50" value="' +
+        meta +
+        '" /></label>' +
+        '<span class="text-xs tabular-nums text-zinc-500">Atual: <span class="text-zinc-300">' +
+        (totalPat > 0 ? atualPct.toFixed(1) + "%" : "—") +
+        "</span></span></div></div>" +
+        '<div class="mt-2 h-2 overflow-hidden rounded-full bg-bank-bg">' +
+        '<div class="h-2 rounded-full ' +
+        cl.bar +
+        '" style="width:' +
+        barW.toFixed(1) +
+        '%"></div></div>';
+      wrap.appendChild(row);
+    });
+
+    wrap.querySelectorAll("[data-meta-classe]").forEach(function (inp) {
+      inp.addEventListener("change", function () {
+        var k = inp.getAttribute("data-meta-classe");
+        var v = Math.round(Number(inp.value));
+        if (!k) return;
+        if (!Number.isFinite(v) || v < 0) v = 0;
+        if (v > 100) v = 100;
+        if (!ativosState.metasAlocacao) ativosState.metasAlocacao = normalizarMetas(null);
+        ativosState.metasAlocacao[k] = v;
+        inp.value = String(v);
+        ativosSave();
+        renderAtivosUI();
+      });
+    });
+
+    if (elSoma) {
+      var s = somaMetasAlocacao();
+      elSoma.textContent = "Soma das metas: " + s + "%";
+      elSoma.classList.toggle("text-amber-300", s > 100);
+      elSoma.classList.toggle("text-zinc-400", s <= 100);
+    }
   }
 
   function renderListaPosicoes() {
@@ -571,6 +685,13 @@
         "</span>";
       btn.addEventListener("click", function () {
         ativosState.tickerSelecionado = t;
+        if (!compraEditandoId) {
+          var form = document.getElementById("form-ativos-compra");
+          if (form) {
+            form.ticker.value = t;
+            form.classe.value = p.classe || inferirClasse(t);
+          }
+        }
         renderAtivosUI();
       });
       wrap.appendChild(btn);
@@ -633,13 +754,24 @@
         "</td>" +
         '<td class="px-3 py-2 text-right text-xs text-bank-muted">' +
         (c.origem === "provento" ? "Provento" : "Compra") +
-        '</td><td class="px-3 py-2 text-right"><button type="button" class="text-red-400 hover:text-red-300" data-del-compra="' +
+        '</td><td class="px-3 py-2 text-center">' +
+        '<button type="button" class="mr-1 inline-flex rounded p-1 text-violet-300 hover:bg-violet-500/15" title="Editar" data-edit-compra="' +
+        c.id +
+        '"><i data-lucide="pencil" class="h-3.5 w-3.5"></i></button>' +
+        '<button type="button" class="inline-flex rounded p-1 text-red-400 hover:bg-red-500/15" title="Excluir" data-del-compra="' +
         c.id +
         '"><i data-lucide="trash-2" class="h-3.5 w-3.5"></i></button></td>';
       tbody.appendChild(tr);
     });
+    tbody.querySelectorAll("[data-edit-compra]").forEach(function (btn) {
+      btn.addEventListener("click", function (ev) {
+        ev.stopPropagation();
+        iniciarEdicaoCompra(t, btn.getAttribute("data-edit-compra"));
+      });
+    });
     tbody.querySelectorAll("[data-del-compra]").forEach(function (btn) {
-      btn.addEventListener("click", function () {
+      btn.addEventListener("click", function (ev) {
+        ev.stopPropagation();
         var cid = btn.getAttribute("data-del-compra");
         p.compras = (p.compras || []).filter(function (x) {
           return x.id !== cid;
@@ -650,6 +782,7 @@
           });
           ativosState.tickerSelecionado = "";
         }
+        if (compraEditandoId === cid) limparEdicaoCompra();
         ativosSave();
         renderAtivosUI();
         ativosFetchCotacoes(false);
@@ -738,8 +871,67 @@
     });
   }
 
+  function atualizarUiFormCompra() {
+    var titulo = document.getElementById("ativos-form-titulo");
+    var submit = document.getElementById("ativos-form-submit");
+    var cancel = document.getElementById("ativos-btn-cancelar-edicao");
+    var editando = !!compraEditandoId;
+    if (titulo) titulo.textContent = editando ? "Editar compra" : "Nova compra";
+    if (submit) submit.textContent = editando ? "Salvar alterações" : "Registrar compra";
+    if (cancel) cancel.classList.toggle("hidden", !editando);
+    var tickerIn = document.getElementById("ativos-add-ticker");
+    var classeSel = document.querySelector("#form-ativos-compra select[name=classe]");
+    if (tickerIn) tickerIn.readOnly = editando;
+    if (classeSel) classeSel.disabled = editando;
+  }
+
+  function limparEdicaoCompra(resetForm) {
+    compraEditandoId = null;
+    atualizarUiFormCompra();
+    if (resetForm !== false) {
+      var form = document.getElementById("form-ativos-compra");
+      if (form) {
+        form.investido.value = "";
+        form.preco.value = "";
+        var tickerIn = document.getElementById("ativos-add-ticker");
+        if (tickerIn) tickerIn.readOnly = false;
+        var classeSel = form.classe;
+        if (classeSel) classeSel.disabled = false;
+      }
+    }
+  }
+
+  function iniciarEdicaoCompra(ticker, compraId) {
+    var t = normTicker(ticker);
+    var p = posicaoPorTicker(t);
+    if (!p) return;
+    var c = (p.compras || []).find(function (x) {
+      return x.id === compraId;
+    });
+    if (!c) return;
+
+    compraEditandoId = compraId;
+    ativosState.tickerSelecionado = t;
+
+    var form = document.getElementById("form-ativos-compra");
+    if (form) {
+      form.data.value = c.data || "";
+      form.ticker.value = t;
+      form.classe.value = p.classe || inferirClasse(t);
+      setInputMoeda(form.investido, c.investido);
+      setInputMoeda(form.preco, c.preco);
+    }
+    atualizarUiFormCompra();
+    renderDetalheTicker();
+
+    var bloco = document.getElementById("form-ativos-compra");
+    if (bloco && bloco.closest(".rounded-2xl"))
+      bloco.closest(".rounded-2xl").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
   function renderAtivosUI() {
     renderResumoClasses();
+    renderMetasAlocacao();
     renderListaPosicoes();
     renderDetalheTicker();
     renderProventosPendentes();
@@ -747,51 +939,85 @@
     if (typeof lucide !== "undefined" && lucide.createIcons) lucide.createIcons();
   }
 
-  function registrarCompra(form) {
+  function salvarCompraForm(form) {
     var ticker = normTicker(form.ticker.value);
     var data = String(form.data.value || "").trim();
     var investido = parseNum(form.investido.value);
     var preco = parseNum(form.preco.value);
     if (!ticker || !/^[A-Z]{4}\d{1,2}$/.test(ticker)) {
       alert("Ticker inválido (ex.: PETR4, MXRF11).");
-      return;
+      return false;
     }
     if (!/^\d{4}-\d{2}-\d{2}$/.test(data)) {
       alert("Informe a data da compra.");
-      return;
+      return false;
     }
     if (!Number.isFinite(investido) || investido <= 0) {
       alert("Informe o valor investido.");
-      return;
+      return false;
     }
     if (!Number.isFinite(preco) || preco <= 0) {
       alert("Informe o preço na compra.");
-      return;
+      return false;
     }
     var qty = investido / preco;
-    var p = posicaoPorTicker(ticker);
-    if (!p) {
-      p = {
+
+    if (compraEditandoId) {
+      var pEdit = null;
+      var cEdit = null;
+      ativosState.posicoes.forEach(function (pos) {
+        (pos.compras || []).forEach(function (cx) {
+          if (cx.id === compraEditandoId) {
+            pEdit = pos;
+            cEdit = cx;
+          }
+        });
+      });
+      if (!cEdit || !pEdit) {
+        alert("Compra não encontrada.");
+        limparEdicaoCompra();
+        return false;
+      }
+      cEdit.data = data;
+      cEdit.investido = investido;
+      cEdit.preco = preco;
+      cEdit.qty = qty;
+      pEdit.classe = form.classe.value || inferirClasse(ticker);
+      ativosState.tickerSelecionado = normTicker(pEdit.ticker);
+      limparEdicaoCompra();
+    } else {
+      var p = posicaoPorTicker(ticker);
+      if (!p) {
+        p = {
+          id: uid(),
+          ticker: ticker,
+          classe: form.classe.value || inferirClasse(ticker),
+          compras: [],
+        };
+        ativosState.posicoes.push(p);
+      } else {
+        p.classe = form.classe.value || inferirClasse(ticker);
+      }
+      p.compras.push({
         id: uid(),
-        ticker: ticker,
-        classe: form.classe.value || inferirClasse(ticker),
-        compras: [],
-      };
-      ativosState.posicoes.push(p);
+        data: data,
+        investido: investido,
+        preco: preco,
+        qty: qty,
+      });
+      ativosState.tickerSelecionado = ticker;
+      form.investido.value = "";
+      form.preco.value = "";
     }
-    p.compras.push({
-      id: uid(),
-      data: data,
-      investido: investido,
-      preco: preco,
-      qty: qty,
-    });
-    ativosState.tickerSelecionado = ticker;
+
     ativosSave();
-    form.investido.value = "";
-    form.preco.value = "";
     renderAtivosUI();
     ativosFetchCotacoes(false);
+    return true;
+  }
+
+  function registrarCompra(form) {
+    salvarCompraForm(form);
   }
 
   function wireAtivosForm() {
@@ -841,10 +1067,21 @@
     }
     var dataIn = document.getElementById("ativos-add-data");
     if (dataIn && !dataIn.value) dataIn.value = new Date().toISOString().slice(0, 10);
+
+    var btnCancel = document.getElementById("ativos-btn-cancelar-edicao");
+    if (btnCancel && !btnCancel._wired) {
+      btnCancel._wired = true;
+      btnCancel.addEventListener("click", function () {
+        limparEdicaoCompra();
+      });
+    }
+
+    atualizarUiFormCompra();
   }
 
   function gfpInitAtivos() {
     ativosLoad();
+    compraEditandoId = null;
     wireAtivosForm();
     renderAtivosUI();
     if (ativosState.cotacaoAuto && todosTickers().length) {
