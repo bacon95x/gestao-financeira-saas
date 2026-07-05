@@ -60,7 +60,7 @@
         msg:
           "«" +
           t +
-          "» é ticker americano. Escolha a classe «Exterior (EUA)» ou use o BDR na B3 (ex.: TSLA34).",
+          "» é ticker americano. Escolha a classe «Exterior» ou use o BDR na B3 (ex.: TSLA34).",
       };
     }
     return { ok: false, msg: "Ticker B3 inválido (ex.: PETR4, MXRF11, TSLA34)." };
