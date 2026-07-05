@@ -174,11 +174,18 @@
   function rehidratarCotacoesManuais() {
     ativosState.posicoes.forEach(function (p) {
       if (!isClasseExterior(p.classe || inferirClasse(p.ticker))) return;
+      if (Number.isFinite(precoManualPosicao(p))) {
+        syncCotacaoManualPosicao(p);
+        return;
+      }
       var melhor = null;
       (p.compras || []).forEach(function (c) {
         if (!melhor || String(c.data || "") >= String(melhor.data || "")) melhor = c;
       });
-      if (melhor && Number(melhor.preco) > 0) aplicarCotacaoManual(p.ticker, melhor.preco);
+      if (melhor && Number(melhor.preco) > 0) {
+        p.precoManual = Number(melhor.preco);
+        syncCotacaoManualPosicao(p);
+      }
     });
   }
 
@@ -230,8 +237,46 @@
     return investidoTotalPosicao(p) / qty;
   }
 
+  function precoManualPosicao(p) {
+    if (!p) return NaN;
+    var v = Number(p.precoManual);
+    return Number.isFinite(v) && v > 0 ? v : NaN;
+  }
+
+  function syncCotacaoManualPosicao(p) {
+    if (!p || !isClasseExterior(p.classe || inferirClasse(p.ticker))) return;
+    var pm = precoManualPosicao(p);
+    if (Number.isFinite(pm)) aplicarCotacaoManual(p.ticker, pm);
+  }
+
+  function salvarPrecoManualExterior(ticker, raw) {
+    var p = posicaoPorTicker(ticker);
+    if (!p || !isClasseExterior(p.classe)) return false;
+    var preco = parseNum(raw);
+    if (!Number.isFinite(preco) || preco <= 0) {
+      alert("Informe o preço de mercado atual.");
+      return false;
+    }
+    p.precoManual = preco;
+    syncCotacaoManualPosicao(p);
+    ativosSave();
+    renderAtivosUI();
+    return true;
+  }
+
+  function refreshAtivosDetalheIcons() {
+    var bloco = document.getElementById("ativos-bloco-detalhe");
+    if (!bloco || typeof lucide === "undefined" || !lucide.createIcons) return;
+    lucide.createIcons({ nodes: bloco.querySelectorAll("[data-lucide]") });
+  }
+
   function precoAtualTicker(ticker) {
     var t = normTicker(ticker);
+    var pos = posicaoPorTicker(t);
+    if (pos && isClasseExterior(pos.classe || inferirClasse(t))) {
+      var pm = precoManualPosicao(pos);
+      if (Number.isFinite(pm)) return pm;
+    }
     var q = cotacoesCache[t];
     if (!q) return NaN;
     var p = Number(q.regularMarketPrice != null ? q.regularMarketPrice : q.price);
@@ -1105,7 +1150,8 @@
     var q = cotacoesCache[t];
     var nome = q && q.shortName ? q.shortName : "";
     var exterior = isClasseExterior(p.classe);
-    var precoLabel = exterior && q && q.manual ? "Preço manual" : "Preço atual";
+    var precoLabel = exterior ? "Preço manual" : "Preço atual";
+    var precoManualVal = exterior && Number.isFinite(preco) ? formatValorInput(preco) : "";
 
     box.innerHTML =
       '<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">' +
@@ -1128,7 +1174,16 @@
       "</p></div></div>" +
       (nome ? '<p class="mt-2 text-xs text-bank-muted">' + nome + "</p>" : "") +
       (exterior
-        ? '<p class="mt-2 text-xs text-amber-300/90">Exterior: sem cotação ao vivo. Atualize o preço editando a compra.</p>'
+        ? '<div class="mt-3 flex flex-wrap items-end gap-2 rounded-xl border border-amber-500/20 bg-amber-950/15 px-3 py-3">' +
+          '<label class="flex min-w-[8rem] flex-1 flex-col gap-1">' +
+          '<span class="text-xs text-amber-200/90">Atualizar preço de mercado (R$)</span>' +
+          '<input id="ativos-preco-manual-input" type="text" inputmode="decimal" placeholder="0,00" value="' +
+          precoManualVal +
+          '" class="rounded-lg border border-bank-border bg-bank-bg px-3 py-2 text-sm tabular-nums text-white outline-none ring-amber-500/30 focus:border-amber-500/40 focus:ring-2" />' +
+          "</label>" +
+          '<button type="button" id="ativos-btn-salvar-preco-manual" class="rounded-lg bg-amber-600/80 px-3 py-2 text-xs font-semibold text-white transition hover:bg-amber-600">Atualizar P/L</button>' +
+          "</div>" +
+          '<p class="mt-1 text-[10px] text-bank-muted">O preço registrado na compra não muda — só o valor de mercado para calcular lucro/prejuízo.</p>'
         : "");
 
     var tbody = document.getElementById("ativos-tbody-compras");
@@ -1186,6 +1241,22 @@
         ativosFetchCotacoes(false);
       });
     });
+
+    var btnPrecoManual = document.getElementById("ativos-btn-salvar-preco-manual");
+    var inpPrecoManual = document.getElementById("ativos-preco-manual-input");
+    if (btnPrecoManual && inpPrecoManual) {
+      btnPrecoManual.addEventListener("click", function () {
+        salvarPrecoManualExterior(t, inpPrecoManual.value);
+      });
+      inpPrecoManual.addEventListener("keydown", function (ev) {
+        if (ev.key === "Enter") {
+          ev.preventDefault();
+          salvarPrecoManualExterior(t, inpPrecoManual.value);
+        }
+      });
+    }
+
+    refreshAtivosDetalheIcons();
   }
 
   function renderProventosPendentes() {
@@ -1306,6 +1377,7 @@
         if (classeSel) classeSel.disabled = false;
       }
     }
+    renderDetalheTicker();
   }
 
   function iniciarEdicaoCompra(ticker, compraId) {
@@ -1396,7 +1468,6 @@
       cEdit.qty = qty;
       pEdit.classe = classe || inferirClasse(ticker);
       ativosState.tickerSelecionado = normTicker(pEdit.ticker);
-      if (isClasseExterior(pEdit.classe)) aplicarCotacaoManual(pEdit.ticker, preco);
       limparEdicaoCompra();
     } else {
       var p = posicaoPorTicker(ticker);
@@ -1418,7 +1489,10 @@
         preco: preco,
         qty: qty,
       });
-      if (isClasseExterior(p.classe)) aplicarCotacaoManual(ticker, preco);
+      if (isClasseExterior(p.classe) && !Number.isFinite(precoManualPosicao(p))) {
+        p.precoManual = preco;
+        syncCotacaoManualPosicao(p);
+      }
       ativosState.tickerSelecionado = ticker;
       form.investido.value = "";
       form.preco.value = "";
