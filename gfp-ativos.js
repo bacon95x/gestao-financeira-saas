@@ -310,6 +310,117 @@
     return qty;
   }
 
+  function formatDataBR(iso) {
+    if (!iso || typeof iso !== "string") return "—";
+    var m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!m) return iso;
+    return m[3] + "/" + m[2] + "/" + m[1];
+  }
+
+  function badgeReinvestido(sim) {
+    if (sim) {
+      return '<span class="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold text-emerald-300">Sim</span>';
+    }
+    return '<span class="rounded-full bg-zinc-700/50 px-2 py-0.5 text-[10px] font-semibold text-zinc-400">Não</span>';
+  }
+
+  function calcReinvestPreview(ticker, valorRaw, dataIso) {
+    var tickerNorm = normTicker(ticker);
+    var valor = parseNum(valorRaw);
+    if (!tickerNorm || !Number.isFinite(valor) || valor <= 0) return "";
+    var preco = precoAtualTicker(tickerNorm);
+    if (!Number.isFinite(preco) || preco <= 0) {
+      return "Atualize as cotações para calcular as cotas.";
+    }
+    var cotas = Math.floor(valor / preco);
+    if (cotas < 1) {
+      return "Valor insuficiente para 1 cota a " + formatMoney(preco) + ".";
+    }
+    return (
+      "→ cria compra de <strong class=\"text-emerald-300\">" +
+      cotas +
+      " cotas</strong> a " +
+      formatMoney(preco) +
+      " em " +
+      formatDataBR(dataIso)
+    );
+  }
+
+  function updateReinvestPreview() {
+    var el = document.getElementById("ativos-prov-reinvest-preview");
+    var chk = document.getElementById("ativos-prov-reinvestir");
+    if (!el) return;
+    if (chk && !chk.checked) {
+      el.innerHTML = "";
+      return;
+    }
+    var tickerIn = document.getElementById("ativos-prov-ticker");
+    var valorIn = document.getElementById("ativos-prov-valor");
+    var dataIn = document.getElementById("ativos-prov-data");
+    el.innerHTML = calcReinvestPreview(
+      tickerIn ? tickerIn.value : "",
+      valorIn ? valorIn.value : "",
+      dataIn ? dataIn.value : ""
+    );
+  }
+
+  function renderProventosDatalist() {
+    var dl = document.getElementById("ativos-tickers-datalist");
+    if (!dl) return;
+    dl.innerHTML = "";
+    todosTickers().forEach(function (t) {
+      var opt = document.createElement("option");
+      opt.value = t;
+      dl.appendChild(opt);
+    });
+  }
+
+  function renderResumoProventosAnual() {
+    var totalEl = document.getElementById("ativos-prov-resumo-total");
+    var anoEl = document.getElementById("ativos-prov-resumo-ano");
+    var breakdownEl = document.getElementById("ativos-prov-resumo-breakdown");
+    if (!totalEl) return;
+
+    var ano = new Date().getFullYear();
+    var porClasse = { fii: 0, acao: 0, etf: 0 };
+    var total = 0;
+
+    (ativosState.proventos || []).forEach(function (pr) {
+      if (!pr.data || String(pr.data).slice(0, 4) !== String(ano)) return;
+      var v = Number(pr.valor);
+      if (!Number.isFinite(v)) return;
+      total += v;
+      var pos = posicaoPorTicker(pr.ticker);
+      var cl = pos ? pos.classe : inferirClasse(pr.ticker);
+      if (porClasse[cl] != null) porClasse[cl] += v;
+    });
+
+    totalEl.textContent = formatMoney(total);
+    if (anoEl) anoEl.textContent = "proventos recebidos em " + ano;
+
+    if (!breakdownEl) return;
+    var rows = [];
+    if (porClasse.fii > 0) rows.push({ label: "FIIs", val: porClasse.fii });
+    if (porClasse.acao > 0) rows.push({ label: "Ações", val: porClasse.acao });
+    if (porClasse.etf > 0) rows.push({ label: "ETFs", val: porClasse.etf });
+    if (!rows.length) {
+      breakdownEl.innerHTML = '<p class="text-xs text-bank-muted">Sem proventos neste ano.</p>';
+      return;
+    }
+    breakdownEl.innerHTML = rows
+      .map(function (r) {
+        return (
+          '<div class="flex items-center justify-between text-zinc-300">' +
+          "<span>" +
+          r.label +
+          '</span><span class="tabular-nums text-zinc-200">' +
+          formatMoney(r.val) +
+          "</span></div>"
+        );
+      })
+      .join("");
+  }
+
   function proventoJaRegistrado(chave) {
     return ativosState.proventos.some(function (pr) {
       return pr.brapiKey === chave;
@@ -496,12 +607,12 @@
 
   function reinvestirProvento(pend) {
     var p = posicaoPorTicker(pend.ticker);
-    if (!p) return;
+    if (!p) return false;
     var preco = precoAtualTicker(pend.ticker);
     if (!Number.isFinite(preco) || preco <= 0) preco = Number(pend.rate) || NaN;
-    if (!Number.isFinite(preco) || preco <= 0) return;
+    if (!Number.isFinite(preco) || preco <= 0) return false;
     var valor = Number(pend.valor);
-    if (!Number.isFinite(valor) || valor <= 0) return;
+    if (!Number.isFinite(valor) || valor <= 0) return false;
     var qty = valor / preco;
     p.compras.push({
       id: uid(),
@@ -512,9 +623,13 @@
       origem: "provento",
     });
     var pr = ativosState.proventos.find(function (x) {
-      return x.brapiKey === pend.brapiKey;
+      return (pend.id && x.id === pend.id) || (pend.brapiKey && x.brapiKey === pend.brapiKey);
     });
-    if (pr) pr.reinvestido = true;
+    if (pr) {
+      pr.reinvestido = true;
+      pr.cotasReinvestidas = qty;
+    }
+    return true;
   }
 
   function renderResumoClasses() {
@@ -582,6 +697,112 @@
 
     var elPat = document.getElementById("ativos-patrimonio-total");
     if (elPat) elPat.textContent = formatMoney(totalPat);
+    renderAtivosRoscaAlocacao();
+  }
+
+  var chartAtivosRosca = null;
+
+  var CORES_ATIVOS_CLASSE = {
+    acao: "rgba(59, 130, 246, 0.78)",
+    fii: "rgba(139, 92, 246, 0.78)",
+    etf: "rgba(6, 182, 212, 0.78)",
+  };
+
+  function renderAtivosRoscaAlocacao() {
+    var canvas = document.getElementById("chart-ativos-rosca");
+    var emptyEl = document.getElementById("chart-ativos-rosca-empty");
+    var centroEl = document.getElementById("ativos-rosca-centro-valor");
+    var wrapCanvas = canvas ? canvas.parentElement : null;
+    if (!canvas || !emptyEl) return;
+
+    var classes = [
+      { id: "acao", label: "Ações" },
+      { id: "fii", label: "FIIs" },
+      { id: "etf", label: "ETFs" },
+    ];
+    var labels = [];
+    var data = [];
+    var cores = [];
+    var totalPat = patrimonioTotalAtivos();
+
+    classes.forEach(function (cl) {
+      var r = resumoClasse(cl.id);
+      var val = Number.isFinite(r.atual) && r.atual > 0 ? r.atual : r.investido;
+      if (!Number.isFinite(val) || val <= 0) return;
+      labels.push(cl.label);
+      data.push(val);
+      cores.push(CORES_ATIVOS_CLASSE[cl.id]);
+    });
+
+    if (centroEl) centroEl.textContent = totalPat > 0 ? formatMoney(totalPat) : "—";
+
+    if (!labels.length || totalPat <= 0) {
+      canvas.classList.add("hidden");
+      if (wrapCanvas) wrapCanvas.classList.add("hidden");
+      emptyEl.classList.remove("hidden");
+      if (chartAtivosRosca) {
+        chartAtivosRosca.destroy();
+        chartAtivosRosca = null;
+      }
+      return;
+    }
+
+    canvas.classList.remove("hidden");
+    if (wrapCanvas) wrapCanvas.classList.remove("hidden");
+    emptyEl.classList.add("hidden");
+
+    if (typeof Chart === "undefined") return;
+
+    var light = document.documentElement.getAttribute("data-appearance") === "light";
+    var pieBorder = light ? "#e4e4e7" : "#12121a";
+    var legendColor = light ? "#52525b" : "#a1a1aa";
+
+    if (chartAtivosRosca) chartAtivosRosca.destroy();
+
+    chartAtivosRosca = new Chart(canvas, {
+      type: "doughnut",
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            data: data,
+            backgroundColor: cores,
+            borderColor: pieBorder,
+            borderWidth: 2,
+            hoverOffset: 4,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        cutout: "62%",
+        plugins: {
+          legend: {
+            display: true,
+            position: "bottom",
+            labels: {
+              color: legendColor,
+              padding: 8,
+              boxWidth: 10,
+              font: { family: "'DM Sans', sans-serif", size: 11 },
+            },
+          },
+          tooltip: {
+            callbacks: {
+              label: function (ctx) {
+                var v = ctx.raw;
+                var sum = ctx.dataset.data.reduce(function (a, b) {
+                  return a + b;
+                }, 0);
+                var pct = sum ? ((v / sum) * 100).toFixed(1) : 0;
+                return " " + formatMoney(v) + " (" + pct + "%)";
+              },
+            },
+          },
+        },
+      },
+    });
   }
 
   function renderMetasAlocacao() {
@@ -842,29 +1063,38 @@
     var list = (ativosState.proventos || []).slice().reverse();
     if (!list.length) {
       tbody.innerHTML =
-        '<tr><td colspan="5" class="px-4 py-4 text-sm text-bank-muted">Nenhum provento confirmado. Use «Sincronizar proventos».</td></tr>';
+        '<tr><td colspan="6" class="px-4 py-6 text-sm text-bank-muted sm:px-5">Nenhum provento ainda. Registre manualmente ou use «Sincronizar proventos».</td></tr>';
       return;
     }
     list.forEach(function (pr) {
+      var cotasCell = '<span class="text-zinc-600">—</span>';
+      if (pr.reinvestido) {
+        var q = Number(pr.cotasReinvestidas);
+        if (Number.isFinite(q) && q > 0) {
+          var c = Math.floor(q);
+          cotasCell = c >= 1 ? '<span class="tabular-nums text-zinc-300">+' + c + "</span>" : cotasCell;
+        }
+      }
       var tr = document.createElement("tr");
       tr.className = "border-b border-bank-border/50";
       tr.innerHTML =
-        '<td class="px-3 py-2 tabular-nums">' +
-        pr.data +
+        '<td class="px-4 py-3 tabular-nums text-zinc-300 sm:px-5">' +
+        formatDataBR(pr.data) +
         "</td>" +
-        '<td class="px-3 py-2 font-medium">' +
+        '<td class="px-3 py-3 font-medium text-white">' +
         pr.ticker +
         "</td>" +
-        '<td class="px-3 py-2 text-bank-muted">' +
+        '<td class="px-3 py-3 text-zinc-400">' +
         (pr.tipo || "—") +
         "</td>" +
-        '<td class="px-3 py-2 text-right tabular-nums text-cyan-200">' +
+        '<td class="px-3 py-3 text-right tabular-nums text-cyan-200">' +
         formatMoney(pr.valor) +
         "</td>" +
-        '<td class="px-3 py-2 text-center text-xs">' +
-        (pr.reinvestido
-          ? '<span class="text-emerald-300">Sim</span>'
-          : '<span class="text-zinc-500">Não</span>') +
+        '<td class="px-3 py-3 text-center">' +
+        badgeReinvestido(!!pr.reinvestido) +
+        "</td>" +
+        '<td class="px-3 py-3 text-right">' +
+        cotasCell +
         "</td>";
       tbody.appendChild(tr);
     });
@@ -933,8 +1163,11 @@
     renderMetasAlocacao();
     renderListaPosicoes();
     renderDetalheTicker();
+    renderProventosDatalist();
+    renderResumoProventosAnual();
     renderProventosPendentes();
     renderHistoricoProventos();
+    updateReinvestPreview();
     if (typeof lucide !== "undefined" && lucide.createIcons) lucide.createIcons();
   }
 
@@ -1015,6 +1248,53 @@
     return true;
   }
 
+  function salvarProventoManual(form) {
+    var ticker = normTicker(form.ticker.value);
+    var data = String(form.data.value || "").trim();
+    var valor = parseNum(form.valor.value);
+    var tipo = String(form.tipo.value || "Outro").trim();
+    if (!ticker || !/^[A-Z]{4}\d{1,2}$/.test(ticker)) {
+      alert("Ticker inválido (ex.: PETR4, MXRF11).");
+      return false;
+    }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(data)) {
+      alert("Informe a data de crédito.");
+      return false;
+    }
+    if (!Number.isFinite(valor) || valor <= 0) {
+      alert("Informe o valor do provento.");
+      return false;
+    }
+    var brapiKey = "manual-" + ticker + "-" + data + "-" + valor.toFixed(2);
+    if (proventoJaRegistrado(brapiKey)) {
+      alert("Este provento já está registrado.");
+      return false;
+    }
+    var chkReinvEl = document.getElementById("ativos-prov-reinvestir");
+    var reinvestir = !!(chkReinvEl && chkReinvEl.checked);
+    var pr = {
+      id: uid(),
+      brapiKey: brapiKey,
+      ticker: ticker,
+      data: data,
+      tipo: tipo,
+      valor: valor,
+      reinvestido: false,
+      cotasReinvestidas: null,
+    };
+    ativosState.proventos.push(pr);
+    if (reinvestir) {
+      if (!reinvestirProvento(pr)) {
+        alert("Provento salvo, mas não foi possível reinvestir — cadastre uma posição em " + ticker + " e atualize as cotações.");
+      }
+    }
+    ativosSave();
+    form.valor.value = "";
+    renderAtivosUI();
+    ativosFetchCotacoes(false);
+    return true;
+  }
+
   function registrarCompra(form) {
     salvarCompraForm(form);
   }
@@ -1055,15 +1335,30 @@
         }
       });
     }
-    var chkReinv = document.getElementById("ativos-reinvestir-auto");
+    var chkReinv = document.getElementById("ativos-prov-reinvestir");
     if (chkReinv && !chkReinv._wired) {
       chkReinv._wired = true;
       chkReinv.checked = !!ativosState.reinvestirAuto;
       chkReinv.addEventListener("change", function () {
         ativosState.reinvestirAuto = chkReinv.checked;
         ativosSave();
+        updateReinvestPreview();
       });
     }
+    var formProv = document.getElementById("form-ativos-provento");
+    if (formProv && !formProv._wired) {
+      formProv._wired = true;
+      formProv.addEventListener("submit", function (ev) {
+        ev.preventDefault();
+        salvarProventoManual(formProv);
+      });
+      ["input", "change"].forEach(function (evt) {
+        formProv.addEventListener(evt, updateReinvestPreview);
+      });
+    }
+    var provDataIn = document.getElementById("ativos-prov-data");
+    if (provDataIn && !provDataIn.value) provDataIn.value = new Date().toISOString().slice(0, 10);
+
     var dataIn = document.getElementById("ativos-add-data");
     if (dataIn && !dataIn.value) dataIn.value = new Date().toISOString().slice(0, 10);
 
