@@ -648,7 +648,7 @@
       }
       /* Contas fixas: larguras mínimas por coluna — scroll horizontal OK */
       #contas-fixas-meses-wrapper table.cf-tabela-fixas {
-        min-width: 1230px;
+        min-width: 1180px;
         width: max-content;
       }
       #contas-fixas-meses-wrapper table.cf-tabela-fixas th {
@@ -656,9 +656,29 @@
       }
       #contas-fixas-meses-wrapper table.cf-tabela-fixas th.cf-col-gasto,
       #contas-fixas-meses-wrapper table.cf-tabela-fixas td.cf-col-gasto {
-        min-width: 12.5rem;
-        width: 12.5rem;
+        width: 1px;
+        white-space: nowrap;
         padding-left: 0.5rem;
+        padding-right: 0.375rem;
+      }
+      #contas-fixas-meses-wrapper table.cf-tabela-fixas .cf-gasto-th-label {
+        display: inline-block;
+      }
+      #contas-fixas-meses-wrapper table.cf-tabela-fixas .cp-gasto-celula-wrap {
+        display: inline-flex;
+        gap: 0.25rem;
+        align-items: center;
+        vertical-align: middle;
+      }
+      #contas-fixas-meses-wrapper table.cf-tabela-fixas .cf-gasto-input-slot {
+        flex-shrink: 0;
+      }
+      #contas-fixas-meses-wrapper table.cf-tabela-fixas .cp-gasto-input {
+        width: 100%;
+        min-width: 0;
+        max-width: none;
+        box-sizing: border-box;
+        padding-left: 0.375rem;
         padding-right: 0.375rem;
       }
       #contas-fixas-meses-wrapper table.cf-tabela-fixas th.cf-col-conta,
@@ -708,20 +728,8 @@
         padding-left: 0.375rem;
         padding-right: 0.375rem;
       }
-      #contas-fixas-meses-wrapper table.cf-tabela-fixas .cp-gasto-celula-wrap {
-        gap: 0.25rem;
-        justify-content: flex-start;
-      }
       #contas-fixas-meses-wrapper table.cf-tabela-fixas .cp-vencimento-celula-wrap {
         gap: 0.25rem;
-      }
-      #contas-fixas-meses-wrapper table.cf-tabela-fixas .cp-gasto-input {
-        flex: 1 1 auto;
-        width: 10rem;
-        min-width: 10rem;
-        max-width: 10rem;
-        padding-left: 0.375rem;
-        padding-right: 0.375rem;
       }
       #contas-fixas-meses-wrapper table.cf-tabela-fixas .cp-vencimento-input {
         flex: 0 1 auto;
@@ -10357,6 +10365,17 @@
           });
         }
 
+        function syncCfGastoInputWidths(tableEl) {
+          if (!tableEl) return;
+          const label = tableEl.querySelector(".cf-gasto-th-label");
+          if (!label) return;
+          const w = Math.ceil(label.getBoundingClientRect().width);
+          if (w <= 0) return;
+          tableEl.querySelectorAll(".cf-gasto-input-slot").forEach((slot) => {
+            slot.style.width = w + "px";
+          });
+        }
+
         function renderContasFixas() {
           const wrap = document.getElementById("contas-fixas-meses-wrapper");
           if (!wrap) return;
@@ -10369,7 +10388,7 @@
           const inputCls =
             "w-full min-w-[5rem] rounded-lg border border-bank-border bg-bank-bg px-2 py-1.5 text-xs text-white outline-none ring-emerald-500/40 focus:border-emerald-500/50 focus:ring-1";
           const inputClsGastoComBotao =
-            "min-w-0 flex-1 max-w-full rounded-lg border border-bank-border bg-bank-bg px-2 py-1.5 text-xs text-white outline-none ring-emerald-500/40 focus:border-emerald-500/50 focus:ring-1";
+            "min-w-0 w-full rounded-lg border border-bank-border bg-bank-bg px-2 py-1.5 text-xs text-white outline-none ring-emerald-500/40 focus:border-emerald-500/50 focus:ring-1";
 
           wrap.innerHTML = "";
           const section = document.createElement("section");
@@ -10393,7 +10412,7 @@
           const thead = document.createElement("thead");
           thead.innerHTML =
             '<tr class="border-b border-bank-border bg-bank-bg/40 text-bank-muted">' +
-            '<th class="cf-col-gasto px-2 py-1.5 font-medium">Gasto atual (R$)</th>' +
+            '<th class="cf-col-gasto px-2 py-1.5 font-medium"><span class="cf-gasto-th-label">Gasto atual (R$)</span></th>' +
             '<th class="cf-col-conta px-3 py-1.5 font-medium sm:px-4">Conta</th>' +
             '<th class="cf-col-categoria px-3 py-1.5 font-medium sm:px-4">Categoria</th>' +
             '<th class="cf-col-meio px-3 py-1.5 font-medium sm:px-4">Meio</th>' +
@@ -10464,6 +10483,9 @@
                 updateDashboard();
               }
             });
+            const slotG = document.createElement("div");
+            slotG.className = "cf-gasto-input-slot";
+            slotG.appendChild(inG);
             const btnNeve = document.createElement("button");
             btnNeve.type = "button";
             btnNeve.className =
@@ -10492,7 +10514,7 @@
               renderContasFixas();
               updateDashboard();
             });
-            wrapG.appendChild(inG);
+            wrapG.appendChild(slotG);
             wrapG.appendChild(btnNeve);
             tdG.appendChild(wrapG);
 
@@ -10856,7 +10878,12 @@
           addRowBar.appendChild(btnAdd);
           section.appendChild(addRowBar);
           wrap.appendChild(section);
-          setTimeout(() => lucide.createIcons(), 0);
+          setTimeout(() => {
+            try {
+              if (typeof lucide !== "undefined" && lucide.createIcons) lucide.createIcons();
+            } catch (_) {}
+            syncCfGastoInputWidths(table);
+          }, 0);
         }
 
         function renderContasPagar() {
