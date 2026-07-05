@@ -4,13 +4,16 @@
   var STORAGE_ATIVOS = "gfp_ativos_v1";
   var COTACAO_INTERVAL_MS = 120000;
 
-  var METAS_DEFAULT = { acao: 30, fii: 25, etf: 15 };
+  var METAS_DEFAULT = { acao: 30, fii: 25, etf: 15, exterior: 10 };
+
+  var TICKER_B3_RE = /^[A-Z]{4}\d{1,2}$/;
+  var TICKER_EXTERIOR_RE = /^[A-Z][A-Z0-9.\-]{1,9}$/;
 
   var ativosDefaults = {
     cotacaoAuto: true,
     reinvestirAuto: false,
     tickerSelecionado: "",
-    metasAlocacao: { acao: 30, fii: 25, etf: 15 },
+    metasAlocacao: { acao: 30, fii: 25, etf: 15, exterior: 10 },
     posicoes: [],
     proventos: [],
     proventosPendentes: [],
@@ -29,8 +32,58 @@
   var CORES_ATIVOS_CLASSE = {
     acao: "#3b82f6",
     fii: "#8b5cf6",
-    etf: "#06b6d4",
+    exterior: "#f59e0b",
   };
+
+  function isClasseExterior(classe) {
+    return classe === "exterior";
+  }
+
+  function isTickerB3(ticker) {
+    return TICKER_B3_RE.test(normTicker(ticker));
+  }
+
+  function validarTickerAtivo(ticker, classe) {
+    var t = normTicker(ticker);
+    if (!t) return { ok: false, msg: "Informe o ticker." };
+    if (isClasseExterior(classe)) {
+      if (TICKER_EXTERIOR_RE.test(t)) return { ok: true };
+      return {
+        ok: false,
+        msg: "Ticker exterior inválido (ex.: TSLA, AAPL, NVDA). Use letras e números, sem espaços.",
+      };
+    }
+    if (TICKER_B3_RE.test(t)) return { ok: true };
+    if (/^[A-Z]{2,5}$/.test(t) && !/\d/.test(t)) {
+      return {
+        ok: false,
+        msg:
+          "«" +
+          t +
+          "» é ticker americano. Escolha a classe «Exterior (EUA)» ou use o BDR na B3 (ex.: TSLA34).",
+      };
+    }
+    return { ok: false, msg: "Ticker B3 inválido (ex.: PETR4, MXRF11, TSLA34)." };
+  }
+
+  function tickersB3Cotacao() {
+    return todosTickers().filter(function (t) {
+      var p = posicaoPorTicker(t);
+      var cl = p ? p.classe || inferirClasse(t) : inferirClasse(t);
+      return !isClasseExterior(cl) && isTickerB3(t);
+    });
+  }
+
+  function aplicarCotacaoManual(ticker, preco, nome) {
+    var t = normTicker(ticker);
+    if (!t || !Number.isFinite(Number(preco)) || Number(preco) <= 0) return;
+    cotacoesCache[t] = {
+      symbol: t,
+      shortName: nome || t + " (exterior)",
+      regularMarketPrice: Number(preco),
+      manual: true,
+    };
+  }
 
   function uid() {
     return "a" + Date.now().toString(36) + Math.random().toString(36).slice(2, 9);
@@ -68,9 +121,9 @@
   }
 
   function normalizarMetas(raw) {
-    var out = { acao: 30, fii: 25, etf: 15 };
+    var out = { acao: 30, fii: 25, etf: 15, exterior: 10 };
     if (!raw || typeof raw !== "object") return out;
-    ["acao", "fii", "etf"].forEach(function (k) {
+    ["acao", "fii", "etf", "exterior"].forEach(function (k) {
       var v = Number(raw[k]);
       out[k] = Number.isFinite(v) && v >= 0 ? Math.min(100, Math.round(v)) : out[k];
     });
@@ -85,7 +138,7 @@
   }
 
   function somaMetasAlocacao() {
-    return metaClasse("acao") + metaClasse("fii") + metaClasse("etf");
+    return metaClasse("acao") + metaClasse("fii") + metaClasse("etf") + metaClasse("exterior");
   }
 
   function normTicker(t) {
@@ -98,6 +151,7 @@
   function classeLabel(c) {
     if (c === "fii") return "FII";
     if (c === "etf") return "ETF";
+    if (c === "exterior") return "Exterior";
     return "Ação";
   }
 
@@ -117,6 +171,17 @@
     }
   }
 
+  function rehidratarCotacoesManuais() {
+    ativosState.posicoes.forEach(function (p) {
+      if (!isClasseExterior(p.classe || inferirClasse(p.ticker))) return;
+      var melhor = null;
+      (p.compras || []).forEach(function (c) {
+        if (!melhor || String(c.data || "") >= String(melhor.data || "")) melhor = c;
+      });
+      if (melhor && Number(melhor.preco) > 0) aplicarCotacaoManual(p.ticker, melhor.preco);
+    });
+  }
+
   function ativosLoad() {
     ativosState = JSON.parse(JSON.stringify(ativosDefaults));
     try {
@@ -133,6 +198,7 @@
       ativosState.ultimoProventosSyncAt = Number(o.ultimoProventosSyncAt) || 0;
       ativosState.metasAlocacao = normalizarMetas(o.metasAlocacao);
     } catch (e) {}
+    rehidratarCotacoesManuais();
   }
 
   function posicaoPorTicker(ticker) {
@@ -258,7 +324,10 @@
     var results = data && data.data && data.data.results;
     if (!Array.isArray(results)) return;
     results.forEach(function (r) {
-      if (r && r.symbol) cotacoesCache[normTicker(r.symbol)] = r;
+      if (!r || !r.symbol) return;
+      var t = normTicker(r.symbol);
+      if (cotacoesCache[t] && cotacoesCache[t].manual) return;
+      cotacoesCache[t] = r;
     });
     cotacaoFetchedAt = Date.now();
   }
@@ -275,9 +344,18 @@
   }
 
   async function ativosFetchCotacoes(showAlert) {
-    var tickers = todosTickers();
-    if (!tickers.length) {
+    var tickers = tickersB3Cotacao();
+    var total = todosTickers().length;
+    if (!total) {
       ativosUpdateStatus("Cadastre um ativo para buscar cotações.", "warn");
+      return;
+    }
+    if (!tickers.length) {
+      ativosUpdateStatus(
+        total + " ativo(s) · exterior usa preço manual (edite a compra para atualizar).",
+        "warn"
+      );
+      renderAtivosUI();
       return;
     }
     ativosUpdateStatus("Buscando cotações…", "warn");
@@ -285,7 +363,8 @@
       var data = await ativosApiCall({ action: "quote", symbols: tickers });
       aplicarQuotesNoCache(data);
       var hora = new Date(cotacaoFetchedAt).toLocaleString("pt-BR");
-      ativosUpdateStatus(tickers.length + " ativo(s) · atualizado " + hora, "ok");
+      var extra = total > tickers.length ? " · exterior manual" : "";
+      ativosUpdateStatus(tickers.length + " ativo(s) B3 · atualizado " + hora + extra, "ok");
       renderAtivosUI();
     } catch (e) {
       ativosUpdateStatus(e.message || String(e), "err");
@@ -393,7 +472,7 @@
     if (!totalEl) return;
 
     var ano = new Date().getFullYear();
-    var porClasse = { fii: 0, acao: 0, etf: 0 };
+    var porClasse = { fii: 0, acao: 0, etf: 0, exterior: 0 };
     var total = 0;
 
     (ativosState.proventos || []).forEach(function (pr) {
@@ -414,6 +493,7 @@
     if (porClasse.fii > 0) rows.push({ label: "FIIs", val: porClasse.fii });
     if (porClasse.acao > 0) rows.push({ label: "Ações", val: porClasse.acao });
     if (porClasse.etf > 0) rows.push({ label: "ETFs", val: porClasse.etf });
+    if (porClasse.exterior > 0) rows.push({ label: "Exterior", val: porClasse.exterior });
     if (!rows.length) {
       breakdownEl.innerHTML = '<p class="text-xs text-bank-muted">Sem proventos neste ano.</p>';
       return;
@@ -710,6 +790,7 @@
       { id: "acao", label: "Ações", icon: "line-chart", iconClass: "bg-blue-500/15 text-blue-300" },
       { id: "fii", label: "FIIs", icon: "building-2", iconClass: "bg-violet-500/15 text-violet-300" },
       { id: "etf", label: "ETFs", icon: "bar-chart-3", iconClass: "bg-cyan-500/15 text-cyan-300" },
+      { id: "exterior", label: "Exterior", icon: "globe", iconClass: "bg-amber-500/15 text-amber-300" },
     ];
     tbody.innerHTML = "";
     classes.forEach(function (cl) {
@@ -805,6 +886,7 @@
       { id: "acao", label: "Ações" },
       { id: "fii", label: "FIIs" },
       { id: "etf", label: "ETFs" },
+      { id: "exterior", label: "Exterior" },
     ];
     var labels = [];
     var data = [];
@@ -902,6 +984,7 @@
       { id: "acao", label: "Ações", bar: "bg-blue-500/70" },
       { id: "fii", label: "FIIs", bar: "bg-violet-500/70" },
       { id: "etf", label: "ETFs", bar: "bg-cyan-500/70" },
+      { id: "exterior", label: "Exterior", bar: "bg-amber-500/70" },
     ];
     var totalPat = patrimonioTotalAtivos();
     wrap.innerHTML = "";
@@ -1021,10 +1104,14 @@
     var qty = qtyTotalPosicao(p);
     var q = cotacoesCache[t];
     var nome = q && q.shortName ? q.shortName : "";
+    var exterior = isClasseExterior(p.classe);
+    var precoLabel = exterior && q && q.manual ? "Preço manual" : "Preço atual";
 
     box.innerHTML =
       '<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">' +
-      '<div class="rounded-xl border border-bank-border/80 bg-bank-bg/50 px-4 py-3"><p class="text-xs text-bank-muted">Preço atual</p><p class="mt-1 text-xl font-bold tabular-nums text-blue-200">' +
+      '<div class="rounded-xl border border-bank-border/80 bg-bank-bg/50 px-4 py-3"><p class="text-xs text-bank-muted">' +
+      precoLabel +
+      '</p><p class="mt-1 text-xl font-bold tabular-nums text-blue-200">' +
       (Number.isFinite(preco) ? formatMoney(preco) : "—") +
       '</p></div><div class="rounded-xl border border-bank-border/80 bg-bank-bg/50 px-4 py-3"><p class="text-xs text-bank-muted">Quantidade</p><p class="mt-1 text-xl font-bold tabular-nums">' +
       qty.toLocaleString("pt-BR", { maximumFractionDigits: 4 }) +
@@ -1039,7 +1126,10 @@
       " " +
       (Number.isFinite(pl.pct) ? '<span class="text-sm">' + formatPct(pl.pct) + "</span>" : "") +
       "</p></div></div>" +
-      (nome ? '<p class="mt-2 text-xs text-bank-muted">' + nome + "</p>" : "");
+      (nome ? '<p class="mt-2 text-xs text-bank-muted">' + nome + "</p>" : "") +
+      (exterior
+        ? '<p class="mt-2 text-xs text-amber-300/90">Exterior: sem cotação ao vivo. Atualize o preço editando a compra.</p>'
+        : "");
 
     var tbody = document.getElementById("ativos-tbody-compras");
     if (!tbody) return;
@@ -1261,11 +1351,13 @@
 
   function salvarCompraForm(form) {
     var ticker = normTicker(form.ticker.value);
+    var classe = String(form.classe.value || inferirClasse(ticker)).trim();
     var data = String(form.data.value || "").trim();
     var investido = parseNum(form.investido.value);
     var preco = parseNum(form.preco.value);
-    if (!ticker || !/^[A-Z]{4}\d{1,2}$/.test(ticker)) {
-      alert("Ticker inválido (ex.: PETR4, MXRF11).");
+    var valTicker = validarTickerAtivo(ticker, classe);
+    if (!valTicker.ok) {
+      alert(valTicker.msg);
       return false;
     }
     if (!/^\d{4}-\d{2}-\d{2}$/.test(data)) {
@@ -1302,8 +1394,9 @@
       cEdit.investido = investido;
       cEdit.preco = preco;
       cEdit.qty = qty;
-      pEdit.classe = form.classe.value || inferirClasse(ticker);
+      pEdit.classe = classe || inferirClasse(ticker);
       ativosState.tickerSelecionado = normTicker(pEdit.ticker);
+      if (isClasseExterior(pEdit.classe)) aplicarCotacaoManual(pEdit.ticker, preco);
       limparEdicaoCompra();
     } else {
       var p = posicaoPorTicker(ticker);
@@ -1311,12 +1404,12 @@
         p = {
           id: uid(),
           ticker: ticker,
-          classe: form.classe.value || inferirClasse(ticker),
+          classe: classe || inferirClasse(ticker),
           compras: [],
         };
         ativosState.posicoes.push(p);
       } else {
-        p.classe = form.classe.value || inferirClasse(ticker);
+        p.classe = classe || inferirClasse(ticker);
       }
       p.compras.push({
         id: uid(),
@@ -1325,6 +1418,7 @@
         preco: preco,
         qty: qty,
       });
+      if (isClasseExterior(p.classe)) aplicarCotacaoManual(ticker, preco);
       ativosState.tickerSelecionado = ticker;
       form.investido.value = "";
       form.preco.value = "";
@@ -1332,8 +1426,10 @@
 
     ativosSave();
     renderAtivosUI();
-    ativosFetchCotacoes(false);
-    ativosAgendarSyncProventos();
+    if (!isClasseExterior(classe)) {
+      ativosFetchCotacoes(false);
+      ativosAgendarSyncProventos();
+    }
     return true;
   }
 
@@ -1342,8 +1438,11 @@
     var data = String(form.data.value || "").trim();
     var valor = parseNum(form.valor.value);
     var tipo = String(form.tipo.value || "Outro").trim();
-    if (!ticker || !/^[A-Z]{4}\d{1,2}$/.test(ticker)) {
-      alert("Ticker inválido (ex.: PETR4, MXRF11).");
+    var pos = posicaoPorTicker(ticker);
+    var classe = pos ? pos.classe || inferirClasse(ticker) : inferirClasse(ticker);
+    var valTicker = validarTickerAtivo(ticker, classe);
+    if (!valTicker.ok) {
+      alert(valTicker.msg);
       return false;
     }
     if (!/^\d{4}-\d{2}-\d{2}$/.test(data)) {
