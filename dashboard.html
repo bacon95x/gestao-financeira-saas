@@ -2892,16 +2892,18 @@
           </div>
           <div class="rounded-2xl border border-bank-border bg-bank-card p-5">
             <h3 class="text-sm font-semibold text-white">Composição da carteira</h3>
-            <div class="relative mx-auto mt-3 h-[min(11rem,30vw)] w-full min-h-[9rem] max-w-[220px]">
-              <canvas
-                id="chart-ativos-rosca"
-                class="!h-full !w-full"
-                aria-label="Rosca: alocação por classe de ativo"
-              ></canvas>
-              <div class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
-                <span id="ativos-rosca-centro-valor" class="text-xs font-bold tabular-nums text-white sm:text-sm">—</span>
-                <span class="text-[10px] text-bank-muted">total</span>
+            <div id="ativos-rosca-wrap" class="mx-auto mt-3 flex w-full flex-col items-center">
+              <div class="relative aspect-square w-[168px] shrink-0 sm:w-[184px]">
+                <canvas
+                  id="chart-ativos-rosca"
+                  aria-label="Rosca: alocação por classe de ativo"
+                ></canvas>
+                <div class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center px-5 text-center">
+                  <span id="ativos-rosca-centro-valor" class="text-[11px] font-bold leading-tight tabular-nums text-white sm:text-xs">—</span>
+                  <span class="mt-0.5 text-[10px] text-bank-muted">total</span>
+                </div>
               </div>
+              <div id="ativos-rosca-legenda" class="mt-3 flex flex-wrap justify-center gap-x-4 gap-y-1.5"></div>
             </div>
             <p id="chart-ativos-rosca-empty" class="hidden py-8 text-center text-xs text-bank-muted">
               Cadastre ativos para ver a composição.
@@ -3015,7 +3017,7 @@
           <div>
             <h3 class="text-lg font-semibold text-white">Proventos</h3>
             <p class="mt-1 max-w-2xl text-sm text-bank-muted">
-              Dividendos, JCP e rendimentos de FIIs. Reinvestir cria uma nova compra na data do crédito.
+              Importados automaticamente com base nas suas compras e nos proventos públicos da B3. Só precisa confirmar se quiser revisar antes — ou registre manualmente.
             </p>
           </div>
 
@@ -3110,7 +3112,7 @@
                 id="ativos-btn-sync-proventos"
                 class="text-xs font-medium text-cyan-300 transition hover:text-cyan-200 hover:underline"
               >
-                Sincronizar proventos
+                Sincronizar agora
               </button>
             </div>
             <div class="overflow-x-auto">
