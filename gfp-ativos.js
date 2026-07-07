@@ -24,6 +24,7 @@
   var cotacaoFetchedAt = 0;
   var cotacaoIntervalId = null;
   var compraEditandoId = null;
+  var vendaEditandoId = null;
   var proventosSyncDebounce = null;
   var PROVENTOS_SYNC_MIN_MS = 30 * 60 * 1000;
 
@@ -204,6 +205,9 @@
       ativosState.proventosPendentes = Array.isArray(o.proventosPendentes) ? o.proventosPendentes : [];
       ativosState.ultimoProventosSyncAt = Number(o.ultimoProventosSyncAt) || 0;
       ativosState.metasAlocacao = normalizarMetas(o.metasAlocacao);
+      ativosState.posicoes.forEach(function (p) {
+        if (!Array.isArray(p.vendas)) p.vendas = [];
+      });
     } catch (e) {}
     rehidratarCotacoesManuais();
   }
@@ -215,7 +219,7 @@
     });
   }
 
-  function qtyTotalPosicao(p) {
+  function qtyComprasPosicao(p) {
     if (!p || !Array.isArray(p.compras)) return 0;
     return p.compras.reduce(function (s, c) {
       var q = Number(c.qty);
@@ -223,11 +227,43 @@
     }, 0);
   }
 
-  function investidoTotalPosicao(p) {
+  function qtyVendasPosicao(p) {
+    if (!p || !Array.isArray(p.vendas)) return 0;
+    return p.vendas.reduce(function (s, v) {
+      var q = Number(v.qty);
+      return s + (Number.isFinite(q) && q > 0 ? q : 0);
+    }, 0);
+  }
+
+  function qtyTotalPosicao(p) {
+    return Math.max(0, qtyComprasPosicao(p) - qtyVendasPosicao(p));
+  }
+
+  function investidoComprasPosicao(p) {
     if (!p || !Array.isArray(p.compras)) return 0;
     return p.compras.reduce(function (s, c) {
       var v = Number(c.investido);
       return s + (Number.isFinite(v) && v > 0 ? v : 0);
+    }, 0);
+  }
+
+  function custoVendidoPosicao(p) {
+    if (!p || !Array.isArray(p.vendas)) return 0;
+    return p.vendas.reduce(function (s, v) {
+      var c = Number(v.custoBase);
+      return s + (Number.isFinite(c) && c > 0 ? c : 0);
+    }, 0);
+  }
+
+  function investidoTotalPosicao(p) {
+    return Math.max(0, investidoComprasPosicao(p) - custoVendidoPosicao(p));
+  }
+
+  function plRealizadoTotalPosicao(p) {
+    if (!p || !Array.isArray(p.vendas)) return 0;
+    return p.vendas.reduce(function (s, v) {
+      var pl = Number(v.plRealizado);
+      return s + (Number.isFinite(pl) ? pl : 0);
     }, 0);
   }
 
@@ -433,16 +469,23 @@
   }
 
   function qtyNaDataEx(p, dataEx) {
-    if (!p || !Array.isArray(p.compras) || !dataEx) return 0;
+    if (!p || !dataEx) return 0;
     var qty = 0;
-    p.compras.forEach(function (c) {
+    (p.compras || []).forEach(function (c) {
       var d = String(c.data || "").trim();
       if (/^\d{4}-\d{2}-\d{2}$/.test(d) && d <= dataEx) {
         var q = Number(c.qty);
         if (Number.isFinite(q) && q > 0) qty += q;
       }
     });
-    return qty;
+    (p.vendas || []).forEach(function (v) {
+      var d = String(v.data || "").trim();
+      if (/^\d{4}-\d{2}-\d{2}$/.test(d) && d <= dataEx) {
+        var q = Number(v.qty);
+        if (Number.isFinite(q) && q > 0) qty -= q;
+      }
+    });
+    return Math.max(0, qty);
   }
 
   function formatDataBR(iso) {
@@ -1101,6 +1144,15 @@
       var t = normTicker(p.ticker);
       var sel = normTicker(ativosState.tickerSelecionado) === t;
       var pl = plPosicao(p);
+      var qty = qtyTotalPosicao(p);
+      var plReal = plRealizadoTotalPosicao(p);
+      var displayVal = qty > 0 ? pl.val : plReal;
+      var displayCls =
+        Number.isFinite(displayVal) && displayVal >= 0 ? "text-emerald-300" : "text-red-300";
+      var suffix =
+        qty <= 0 && plReal !== 0
+          ? ' <span class="text-[10px] text-bank-muted">realizado</span>'
+          : "";
       var btn = document.createElement("button");
       btn.type = "button";
       btn.className =
@@ -1113,15 +1165,17 @@
         t +
         "</strong> <span class=\"text-xs text-bank-muted\">" +
         classeLabel(p.classe || inferirClasse(t)) +
+        (qty <= 0 && (p.vendas || []).length ? " · encerrado" : "") +
         "</span></span>" +
         '<span class="tabular-nums ' +
-        (Number.isFinite(pl.val) && pl.val >= 0 ? "text-emerald-300" : "text-red-300") +
+        displayCls +
         '">' +
-        (Number.isFinite(pl.val) ? formatMoney(pl.val) : "—") +
+        (Number.isFinite(displayVal) ? formatMoney(displayVal) : "—") +
+        suffix +
         "</span>";
       btn.addEventListener("click", function () {
         ativosState.tickerSelecionado = t;
-        if (!compraEditandoId) {
+        if (!compraEditandoId && !vendaEditandoId) {
           var form = document.getElementById("form-ativos-compra");
           if (form) {
             form.ticker.value = t;
@@ -1144,6 +1198,7 @@
       return;
     }
     var pl = plPosicao(p);
+    var plReal = plRealizadoTotalPosicao(p);
     var preco = precoAtualTicker(t);
     var pm = precoMedioPosicao(p);
     var qty = qtyTotalPosicao(p);
@@ -1152,9 +1207,11 @@
     var exterior = isClasseExterior(p.classe);
     var precoLabel = exterior ? "Preço manual" : "Preço atual";
     var precoManualVal = exterior && Number.isFinite(preco) ? formatValorInput(preco) : "";
+    var plAbertoCls = pl.val >= 0 ? "text-emerald-300" : "text-red-300";
+    var plRealCls = plReal >= 0 ? "text-emerald-300" : "text-red-300";
 
     box.innerHTML =
-      '<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">' +
+      '<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">' +
       '<div class="rounded-xl border border-bank-border/80 bg-bank-bg/50 px-4 py-3"><p class="text-xs text-bank-muted">' +
       precoLabel +
       '</p><p class="mt-1 text-xl font-bold tabular-nums text-blue-200">' +
@@ -1165,12 +1222,16 @@
       (Number.isFinite(pm) ? formatMoney(pm) : "—") +
       '</p></div><div class="rounded-xl border border-bank-border/80 bg-bank-bg/50 px-4 py-3"><p class="text-xs text-bank-muted">Investido</p><p class="mt-1 text-xl font-bold tabular-nums">' +
       formatMoney(investidoTotalPosicao(p)) +
-      '</p></div><div class="rounded-xl border border-bank-border/80 bg-bank-bg/50 px-4 py-3"><p class="text-xs text-bank-muted">P/L</p><p class="mt-1 text-xl font-bold tabular-nums ' +
-      (pl.val >= 0 ? "text-emerald-300" : "text-red-300") +
+      '</p></div><div class="rounded-xl border border-bank-border/80 bg-bank-bg/50 px-4 py-3"><p class="text-xs text-bank-muted">P/L em aberto</p><p class="mt-1 text-xl font-bold tabular-nums ' +
+      plAbertoCls +
       '">' +
-      (Number.isFinite(pl.val) ? formatMoney(pl.val) : "—") +
+      (qty > 0 && Number.isFinite(pl.val) ? formatMoney(pl.val) : "—") +
       " " +
-      (Number.isFinite(pl.pct) ? '<span class="text-sm">' + formatPct(pl.pct) + "</span>" : "") +
+      (qty > 0 && Number.isFinite(pl.pct) ? '<span class="text-sm">' + formatPct(pl.pct) + "</span>" : "") +
+      '</p></div><div class="rounded-xl border border-amber-500/25 bg-amber-950/10 px-4 py-3"><p class="text-xs text-amber-200/80">P/L realizado</p><p class="mt-1 text-xl font-bold tabular-nums ' +
+      plRealCls +
+      '">' +
+      formatMoney(plReal) +
       "</p></div></div>" +
       (nome ? '<p class="mt-2 text-xs text-bank-muted">' + nome + "</p>" : "") +
       (exterior
@@ -1189,31 +1250,85 @@
     var tbody = document.getElementById("ativos-tbody-compras");
     if (!tbody) return;
     tbody.innerHTML = "";
-    (p.compras || []).slice().reverse().forEach(function (c) {
+    var movs = [];
+    (p.compras || []).forEach(function (c) {
+      movs.push({
+        kind: "compra",
+        id: c.id,
+        data: c.data || "",
+        valor: c.investido,
+        preco: c.preco,
+        qty: c.qty,
+        origem: c.origem === "provento" ? "Provento" : "Compra",
+        pl: null,
+      });
+    });
+    (p.vendas || []).forEach(function (v) {
+      movs.push({
+        kind: "venda",
+        id: v.id,
+        data: v.data || "",
+        valor: v.recebido,
+        preco: v.preco,
+        qty: v.qty,
+        origem: "Venda",
+        pl: v.plRealizado,
+      });
+    });
+    movs.sort(function (a, b) {
+      return String(b.data).localeCompare(String(a.data));
+    });
+    if (!movs.length) {
+      tbody.innerHTML =
+        '<tr><td colspan="7" class="px-3 py-4 text-sm text-bank-muted">Nenhuma movimentação ainda.</td></tr>';
+    }
+    movs.forEach(function (m) {
       var tr = document.createElement("tr");
       tr.className = "border-b border-bank-border/50";
+      var plCell = "—";
+      if (m.kind === "venda" && Number.isFinite(Number(m.pl))) {
+        var plv = Number(m.pl);
+        plCell =
+          '<span class="' +
+          (plv >= 0 ? "text-emerald-300" : "text-red-300") +
+          '">' +
+          formatMoney(plv) +
+          "</span>";
+      }
+      var acoes =
+        m.kind === "compra"
+          ? '<button type="button" class="mr-1 inline-flex rounded p-1 text-violet-300 hover:bg-violet-500/15" title="Editar" data-edit-compra="' +
+            m.id +
+            '"><i data-lucide="pencil" class="h-3.5 w-3.5"></i></button>' +
+            '<button type="button" class="inline-flex rounded p-1 text-red-400 hover:bg-red-500/15" title="Excluir" data-del-compra="' +
+            m.id +
+            '"><i data-lucide="trash-2" class="h-3.5 w-3.5"></i></button>'
+          : '<button type="button" class="mr-1 inline-flex rounded p-1 text-amber-300 hover:bg-amber-500/15" title="Editar" data-edit-venda="' +
+            m.id +
+            '"><i data-lucide="pencil" class="h-3.5 w-3.5"></i></button>' +
+            '<button type="button" class="inline-flex rounded p-1 text-red-400 hover:bg-red-500/15" title="Excluir" data-del-venda="' +
+            m.id +
+            '"><i data-lucide="trash-2" class="h-3.5 w-3.5"></i></button>';
       tr.innerHTML =
         '<td class="px-3 py-2 tabular-nums text-zinc-300">' +
-        (c.data || "—") +
+        (m.data || "—") +
         "</td>" +
         '<td class="px-3 py-2 text-right tabular-nums">' +
-        formatMoney(c.investido) +
+        formatMoney(m.valor) +
         "</td>" +
         '<td class="px-3 py-2 text-right tabular-nums">' +
-        formatMoney(c.preco) +
+        formatMoney(m.preco) +
         "</td>" +
         '<td class="px-3 py-2 text-right tabular-nums">' +
-        Number(c.qty).toLocaleString("pt-BR", { maximumFractionDigits: 4 }) +
+        Number(m.qty).toLocaleString("pt-BR", { maximumFractionDigits: 4 }) +
         "</td>" +
         '<td class="px-3 py-2 text-right text-xs text-bank-muted">' +
-        (c.origem === "provento" ? "Provento" : "Compra") +
+        m.origem +
+        '</td><td class="px-3 py-2 text-right tabular-nums text-xs">' +
+        plCell +
         '</td><td class="px-3 py-2 text-center">' +
-        '<button type="button" class="mr-1 inline-flex rounded p-1 text-violet-300 hover:bg-violet-500/15" title="Editar" data-edit-compra="' +
-        c.id +
-        '"><i data-lucide="pencil" class="h-3.5 w-3.5"></i></button>' +
-        '<button type="button" class="inline-flex rounded p-1 text-red-400 hover:bg-red-500/15" title="Excluir" data-del-compra="' +
-        c.id +
-        '"><i data-lucide="trash-2" class="h-3.5 w-3.5"></i></button></td>';
+        acoes +
+        "</td>";
       tbody.appendChild(tr);
     });
     tbody.querySelectorAll("[data-edit-compra]").forEach(function (btn) {
@@ -1229,13 +1344,38 @@
         p.compras = (p.compras || []).filter(function (x) {
           return x.id !== cid;
         });
-        if (!p.compras.length) {
+        if (!(p.compras || []).length && !(p.vendas || []).length) {
           ativosState.posicoes = ativosState.posicoes.filter(function (x) {
             return normTicker(x.ticker) !== t;
           });
           ativosState.tickerSelecionado = "";
         }
-        if (compraEditandoId === cid) limparEdicaoCompra();
+        if (compraEditandoId === cid) limparEdicaoMovimento();
+        ativosSave();
+        renderAtivosUI();
+        ativosFetchCotacoes(false);
+      });
+    });
+    tbody.querySelectorAll("[data-edit-venda]").forEach(function (btn) {
+      btn.addEventListener("click", function (ev) {
+        ev.stopPropagation();
+        iniciarEdicaoVenda(t, btn.getAttribute("data-edit-venda"));
+      });
+    });
+    tbody.querySelectorAll("[data-del-venda]").forEach(function (btn) {
+      btn.addEventListener("click", function (ev) {
+        ev.stopPropagation();
+        var vid = btn.getAttribute("data-del-venda");
+        p.vendas = (p.vendas || []).filter(function (x) {
+          return x.id !== vid;
+        });
+        if (!(p.compras || []).length && !(p.vendas || []).length) {
+          ativosState.posicoes = ativosState.posicoes.filter(function (x) {
+            return normTicker(x.ticker) !== t;
+          });
+          ativosState.tickerSelecionado = "";
+        }
+        if (vendaEditandoId === vid) limparEdicaoMovimento();
         ativosSave();
         renderAtivosUI();
         ativosFetchCotacoes(false);
@@ -1349,35 +1489,112 @@
     });
   }
 
+  function tipoMovimentoForm() {
+    var sel = document.getElementById("ativos-mov-tipo");
+    return sel && sel.value === "venda" ? "venda" : "compra";
+  }
+
+  function atualizarCamposMovimentoForm() {
+    var tipo = tipoMovimentoForm();
+    var editando = !!(compraEditandoId || vendaEditandoId);
+    var campInv = document.getElementById("ativos-campo-investido");
+    var campPrecoC = document.getElementById("ativos-campo-preco-compra");
+    var campQty = document.getElementById("ativos-campo-qty-venda");
+    var campPrecoV = document.getElementById("ativos-campo-preco-venda");
+    var hintDisp = document.getElementById("ativos-venda-disponivel");
+    var selTipo = document.getElementById("ativos-mov-tipo");
+    var isVenda = tipo === "venda";
+    if (campInv) campInv.classList.toggle("hidden", isVenda);
+    if (campPrecoC) campPrecoC.classList.toggle("hidden", isVenda);
+    if (campQty) {
+      campQty.classList.toggle("hidden", !isVenda);
+      campQty.classList.toggle("flex", isVenda);
+    }
+    if (campPrecoV) {
+      campPrecoV.classList.toggle("hidden", !isVenda);
+      campPrecoV.classList.toggle("flex", isVenda);
+    }
+    if (selTipo) selTipo.disabled = editando;
+    if (hintDisp) {
+      if (!isVenda) {
+        hintDisp.classList.add("hidden");
+        hintDisp.textContent = "";
+      } else {
+        var form = document.getElementById("form-ativos-compra");
+        var ticker = form ? normTicker(form.ticker.value) : "";
+        var pos = ticker ? posicaoPorTicker(ticker) : null;
+        var disp = pos ? qtyTotalPosicao(pos) : 0;
+        if (vendaEditandoId && pos) {
+          var vEdit = (pos.vendas || []).find(function (x) {
+            return x.id === vendaEditandoId;
+          });
+          if (vEdit) disp += Number(vEdit.qty) || 0;
+        }
+        hintDisp.textContent = ticker
+          ? "Disponível para venda: " +
+            disp.toLocaleString("pt-BR", { maximumFractionDigits: 4 }) +
+            " cotas" +
+            (disp <= 0 ? " — cadastre uma compra antes." : "")
+          : "Informe o ticker para ver a quantidade disponível.";
+        hintDisp.classList.remove("hidden");
+      }
+    }
+  }
+
   function atualizarUiFormCompra() {
     var titulo = document.getElementById("ativos-form-titulo");
     var submit = document.getElementById("ativos-form-submit");
     var cancel = document.getElementById("ativos-btn-cancelar-edicao");
-    var editando = !!compraEditandoId;
-    if (titulo) titulo.textContent = editando ? "Editar compra" : "Nova compra";
-    if (submit) submit.textContent = editando ? "Salvar alterações" : "Registrar compra";
-    if (cancel) cancel.classList.toggle("hidden", !editando);
+    var editandoCompra = !!compraEditandoId;
+    var editandoVenda = !!vendaEditandoId;
+    var tipo = editandoVenda ? "venda" : editandoCompra ? "compra" : tipoMovimentoForm();
+    if (titulo) {
+      if (editandoCompra) titulo.textContent = "Editar compra";
+      else if (editandoVenda) titulo.textContent = "Editar venda";
+      else titulo.textContent = tipo === "venda" ? "Nova venda" : "Nova compra";
+    }
+    if (submit) {
+      if (editandoCompra || editandoVenda) submit.textContent = "Salvar alterações";
+      else submit.textContent = tipo === "venda" ? "Registrar venda" : "Registrar compra";
+      submit.classList.toggle("bg-amber-600", tipo === "venda" && !editandoCompra && !editandoVenda);
+      submit.classList.toggle("hover:bg-amber-500", tipo === "venda" && !editandoCompra && !editandoVenda);
+      submit.classList.toggle("bg-violet-600", tipo !== "venda" || editandoCompra || editandoVenda);
+      submit.classList.toggle("hover:bg-violet-500", tipo !== "venda" || editandoCompra || editandoVenda);
+    }
+    if (cancel) cancel.classList.toggle("hidden", !editandoCompra && !editandoVenda);
     var tickerIn = document.getElementById("ativos-add-ticker");
     var classeSel = document.querySelector("#form-ativos-compra select[name=classe]");
-    if (tickerIn) tickerIn.readOnly = editando;
-    if (classeSel) classeSel.disabled = editando;
+    var selTipo = document.getElementById("ativos-mov-tipo");
+    if (tickerIn) tickerIn.readOnly = editandoCompra || editandoVenda;
+    if (classeSel) classeSel.disabled = editandoCompra || editandoVenda;
+    if (selTipo && (editandoCompra || editandoVenda)) selTipo.value = editandoVenda ? "venda" : "compra";
+    atualizarCamposMovimentoForm();
   }
 
-  function limparEdicaoCompra(resetForm) {
+  function limparEdicaoMovimento(resetForm) {
     compraEditandoId = null;
+    vendaEditandoId = null;
     atualizarUiFormCompra();
     if (resetForm !== false) {
       var form = document.getElementById("form-ativos-compra");
       if (form) {
         form.investido.value = "";
         form.preco.value = "";
+        if (form.qtyVenda) form.qtyVenda.value = "";
+        if (form.precoVenda) form.precoVenda.value = "";
         var tickerIn = document.getElementById("ativos-add-ticker");
         if (tickerIn) tickerIn.readOnly = false;
         var classeSel = form.classe;
         if (classeSel) classeSel.disabled = false;
+        var selTipo = document.getElementById("ativos-mov-tipo");
+        if (selTipo) selTipo.disabled = false;
       }
     }
     renderDetalheTicker();
+  }
+
+  function limparEdicaoCompra(resetForm) {
+    limparEdicaoMovimento(resetForm);
   }
 
   function iniciarEdicaoCompra(ticker, compraId) {
@@ -1390,6 +1607,7 @@
     if (!c) return;
 
     compraEditandoId = compraId;
+    vendaEditandoId = null;
     ativosState.tickerSelecionado = t;
 
     var form = document.getElementById("form-ativos-compra");
@@ -1399,6 +1617,39 @@
       form.classe.value = p.classe || inferirClasse(t);
       setInputMoeda(form.investido, c.investido);
       setInputMoeda(form.preco, c.preco);
+      if (form.qtyVenda) form.qtyVenda.value = "";
+      if (form.precoVenda) form.precoVenda.value = "";
+    }
+    atualizarUiFormCompra();
+    renderDetalheTicker();
+
+    var bloco = document.getElementById("form-ativos-compra");
+    if (bloco && bloco.closest(".rounded-2xl"))
+      bloco.closest(".rounded-2xl").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function iniciarEdicaoVenda(ticker, vendaId) {
+    var t = normTicker(ticker);
+    var p = posicaoPorTicker(t);
+    if (!p) return;
+    var v = (p.vendas || []).find(function (x) {
+      return x.id === vendaId;
+    });
+    if (!v) return;
+
+    vendaEditandoId = vendaId;
+    compraEditandoId = null;
+    ativosState.tickerSelecionado = t;
+
+    var form = document.getElementById("form-ativos-compra");
+    if (form) {
+      form.data.value = v.data || "";
+      form.ticker.value = t;
+      form.classe.value = p.classe || inferirClasse(t);
+      if (form.qtyVenda) form.qtyVenda.value = String(v.qty);
+      if (form.precoVenda) setInputMoeda(form.precoVenda, v.preco);
+      form.investido.value = "";
+      form.preco.value = "";
     }
     atualizarUiFormCompra();
     renderDetalheTicker();
@@ -1418,10 +1669,124 @@
     renderProventosPendentes();
     renderHistoricoProventos();
     updateReinvestPreview();
+    atualizarUiFormCompra();
     if (typeof lucide !== "undefined" && lucide.createIcons) lucide.createIcons();
   }
 
+  function qtyDisponivelParaVenda(p, excludeVendaId) {
+    if (!p) return 0;
+    var disp = qtyTotalPosicao(p);
+    if (excludeVendaId) {
+      var v = (p.vendas || []).find(function (x) {
+        return x.id === excludeVendaId;
+      });
+      if (v) disp += Number(v.qty) || 0;
+    }
+    return disp;
+  }
+
+  function precoMedioParaVenda(p, excludeVendaId) {
+    if (!p) return NaN;
+    if (!excludeVendaId) return precoMedioPosicao(p);
+    var temp = {
+      compras: p.compras || [],
+      vendas: (p.vendas || []).filter(function (v) {
+        return v.id !== excludeVendaId;
+      }),
+    };
+    return precoMedioPosicao(temp);
+  }
+
+  function salvarVendaForm(form) {
+    var ticker = normTicker(form.ticker.value);
+    var classe = String(form.classe.value || inferirClasse(ticker)).trim();
+    var data = String(form.data.value || "").trim();
+    var qty = parseNum(form.qtyVenda && form.qtyVenda.value);
+    var precoVenda = parseNum(form.precoVenda && form.precoVenda.value);
+    var valTicker = validarTickerAtivo(ticker, classe);
+    if (!valTicker.ok) {
+      alert(valTicker.msg);
+      return false;
+    }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(data)) {
+      alert("Informe a data da venda.");
+      return false;
+    }
+    var p = posicaoPorTicker(ticker);
+    if (!p || qtyComprasPosicao(p) <= 0) {
+      alert("Cadastre uma compra deste ativo antes de registrar venda.");
+      return false;
+    }
+    if (!Number.isFinite(qty) || qty <= 0) {
+      alert("Informe a quantidade vendida.");
+      return false;
+    }
+    if (!Number.isFinite(precoVenda) || precoVenda <= 0) {
+      alert("Informe o preço na venda.");
+      return false;
+    }
+    var disp = qtyDisponivelParaVenda(p, vendaEditandoId);
+    if (qty > disp + 1e-8) {
+      alert(
+        "Quantidade maior que a posição disponível (" +
+          disp.toLocaleString("pt-BR", { maximumFractionDigits: 4 }) +
+          " cotas)."
+      );
+      return false;
+    }
+    var pm = precoMedioParaVenda(p, vendaEditandoId);
+    if (!Number.isFinite(pm) || pm <= 0) {
+      alert("Não foi possível calcular o preço médio para esta venda.");
+      return false;
+    }
+    var custoBase = pm * qty;
+    var recebido = precoVenda * qty;
+    var plRealizado = recebido - custoBase;
+    if (!Array.isArray(p.vendas)) p.vendas = [];
+
+    if (vendaEditandoId) {
+      var vEdit = p.vendas.find(function (x) {
+        return x.id === vendaEditandoId;
+      });
+      if (!vEdit) {
+        alert("Venda não encontrada.");
+        limparEdicaoMovimento();
+        return false;
+      }
+      vEdit.data = data;
+      vEdit.qty = qty;
+      vEdit.preco = precoVenda;
+      vEdit.recebido = recebido;
+      vEdit.custoMedio = pm;
+      vEdit.custoBase = custoBase;
+      vEdit.plRealizado = plRealizado;
+      ativosState.tickerSelecionado = normTicker(p.ticker);
+      limparEdicaoMovimento();
+    } else {
+      p.vendas.push({
+        id: uid(),
+        data: data,
+        qty: qty,
+        preco: precoVenda,
+        recebido: recebido,
+        custoMedio: pm,
+        custoBase: custoBase,
+        plRealizado: plRealizado,
+      });
+      ativosState.tickerSelecionado = ticker;
+      if (form.qtyVenda) form.qtyVenda.value = "";
+      if (form.precoVenda) form.precoVenda.value = "";
+    }
+
+    ativosSave();
+    renderAtivosUI();
+    if (!isClasseExterior(classe)) ativosFetchCotacoes(false);
+    return true;
+  }
+
   function salvarCompraForm(form) {
+    if (vendaEditandoId) return salvarVendaForm(form);
+    if (!compraEditandoId && tipoMovimentoForm() === "venda") return salvarVendaForm(form);
     var ticker = normTicker(form.ticker.value);
     var classe = String(form.classe.value || inferirClasse(ticker)).trim();
     var data = String(form.data.value || "").trim();
@@ -1459,7 +1824,7 @@
       });
       if (!cEdit || !pEdit) {
         alert("Compra não encontrada.");
-        limparEdicaoCompra();
+        limparEdicaoMovimento();
         return false;
       }
       cEdit.data = data;
@@ -1468,7 +1833,7 @@
       cEdit.qty = qty;
       pEdit.classe = classe || inferirClasse(ticker);
       ativosState.tickerSelecionado = normTicker(pEdit.ticker);
-      limparEdicaoCompra();
+      limparEdicaoMovimento();
     } else {
       var p = posicaoPorTicker(ticker);
       if (!p) {
@@ -1477,6 +1842,7 @@
           ticker: ticker,
           classe: classe || inferirClasse(ticker),
           compras: [],
+          vendas: [],
         };
         ativosState.posicoes.push(p);
       } else {
@@ -1630,7 +1996,21 @@
     if (btnCancel && !btnCancel._wired) {
       btnCancel._wired = true;
       btnCancel.addEventListener("click", function () {
-        limparEdicaoCompra();
+        limparEdicaoMovimento();
+      });
+    }
+    var selTipo = document.getElementById("ativos-mov-tipo");
+    if (selTipo && !selTipo._wired) {
+      selTipo._wired = true;
+      selTipo.addEventListener("change", function () {
+        atualizarUiFormCompra();
+      });
+    }
+    var tickerIn = document.getElementById("ativos-add-ticker");
+    if (tickerIn && !tickerIn._wiredMov) {
+      tickerIn._wiredMov = true;
+      tickerIn.addEventListener("input", function () {
+        atualizarCamposMovimentoForm();
       });
     }
 
@@ -1640,6 +2020,7 @@
   function gfpInitAtivos() {
     ativosLoad();
     compraEditandoId = null;
+    vendaEditandoId = null;
     wireAtivosForm();
     renderAtivosUI();
     if (ativosState.cotacaoAuto && todosTickers().length) {
