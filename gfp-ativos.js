@@ -1156,18 +1156,18 @@
       var btn = document.createElement("button");
       btn.type = "button";
       btn.className =
-        "flex w-full items-center justify-between rounded-xl border px-3 py-2.5 text-left text-sm transition " +
+        "ativos-pos-btn flex w-full items-center gap-2 rounded-xl border px-2.5 py-2 text-left text-sm transition " +
         (sel
           ? "border-violet-500/50 bg-violet-500/15 text-violet-100"
           : "border-bank-border bg-bank-bg/40 text-zinc-300 hover:border-violet-500/30");
       btn.innerHTML =
-        "<span><strong>" +
+        "<span class=\"min-w-0\"><strong>" +
         t +
         "</strong> <span class=\"text-xs text-bank-muted\">" +
         classeLabel(p.classe || inferirClasse(t)) +
         (qty <= 0 && (p.vendas || []).length ? " · encerrado" : "") +
         "</span></span>" +
-        '<span class="tabular-nums ' +
+        '<span class="shrink-0 tabular-nums ' +
         displayCls +
         '">' +
         (Number.isFinite(displayVal) ? formatMoney(displayVal) : "—") +
@@ -1212,7 +1212,7 @@
 
     function detCard(label, valorHtml, cardCls, labelCls) {
       return (
-        '<div class="ativos-det-card rounded-xl border border-bank-border/80 bg-bank-bg/50 px-3 py-2.5 sm:px-4 sm:py-3' +
+        '<div class="ativos-det-card rounded-xl border border-bank-border/80 bg-bank-bg/50' +
         (cardCls ? " " + cardCls : "") +
         '"><p class="text-[11px] leading-snug sm:text-xs ' +
         (labelCls || "text-bank-muted") +
@@ -1250,7 +1250,7 @@
             formatMoney(pl.val) +
             "</span>" +
             (Number.isFinite(pl.pct)
-              ? '<span class="mt-0.5 block text-xs font-semibold ' +
+              ? '<span class="ml-1 text-[11px] font-semibold sm:text-xs ' +
                 plAbertoCls +
                 '">' +
                 formatPct(pl.pct) +
