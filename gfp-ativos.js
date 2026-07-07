@@ -104,6 +104,13 @@
     return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
   }
 
+  function formatPlMoney(n) {
+    var v = Number(n);
+    if (!Number.isFinite(v)) return "—";
+    if (v > 0) return "+" + formatMoney(v);
+    return formatMoney(v);
+  }
+
   function formatValorInput(n) {
     var v = Number(n);
     if (!Number.isFinite(v)) return "";
@@ -310,13 +317,19 @@
     var t = normTicker(ticker);
     var pos = posicaoPorTicker(t);
     if (pos && isClasseExterior(pos.classe || inferirClasse(t))) {
-      var pm = precoManualPosicao(pos);
-      if (Number.isFinite(pm)) return pm;
+      var manual = precoManualPosicao(pos);
+      if (Number.isFinite(manual)) return manual;
     }
     var q = cotacoesCache[t];
-    if (!q) return NaN;
-    var p = Number(q.regularMarketPrice != null ? q.regularMarketPrice : q.price);
-    return Number.isFinite(p) && p > 0 ? p : NaN;
+    if (q) {
+      var p = Number(q.regularMarketPrice != null ? q.regularMarketPrice : q.price);
+      if (Number.isFinite(p) && p > 0) return p;
+    }
+    if (pos && qtyTotalPosicao(pos) > 0) {
+      var media = precoMedioPosicao(pos);
+      if (Number.isFinite(media) && media > 0) return media;
+    }
+    return NaN;
   }
 
   function plPosicao(p) {
@@ -1156,21 +1169,21 @@
       var btn = document.createElement("button");
       btn.type = "button";
       btn.className =
-        "ativos-pos-btn flex w-full items-center gap-2 rounded-xl border px-2.5 py-2 text-left text-sm transition " +
+        "ativos-pos-btn flex w-full items-center justify-between gap-2 rounded-xl border px-2.5 py-2 text-left text-sm transition " +
         (sel
           ? "border-violet-500/50 bg-violet-500/15 text-violet-100"
           : "border-bank-border bg-bank-bg/40 text-zinc-300 hover:border-violet-500/30");
       btn.innerHTML =
-        "<span class=\"min-w-0\"><strong>" +
+        "<span class=\"min-w-0 truncate pr-1\"><strong>" +
         t +
         "</strong> <span class=\"text-xs text-bank-muted\">" +
         classeLabel(p.classe || inferirClasse(t)) +
         (qty <= 0 && (p.vendas || []).length ? " · encerrado" : "") +
         "</span></span>" +
-        '<span class="shrink-0 tabular-nums ' +
+        '<span class="shrink-0 text-right tabular-nums ' +
         displayCls +
         '">' +
-        (Number.isFinite(displayVal) ? formatMoney(displayVal) : "—") +
+        (Number.isFinite(displayVal) ? formatPlMoney(displayVal) : "—") +
         suffix +
         "</span>";
       btn.addEventListener("click", function () {
@@ -1214,7 +1227,7 @@
       return (
         '<div class="ativos-det-card rounded-xl border border-bank-border/80 bg-bank-bg/50' +
         (cardCls ? " " + cardCls : "") +
-        '"><p class="text-[11px] leading-snug sm:text-xs ' +
+        '"><p class="ativos-det-label text-[11px] leading-snug sm:text-xs ' +
         (labelCls || "text-bank-muted") +
         '">' +
         label +
