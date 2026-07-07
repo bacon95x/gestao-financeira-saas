@@ -1210,29 +1210,61 @@
     var plAbertoCls = pl.val >= 0 ? "text-emerald-300" : "text-red-300";
     var plRealCls = plReal >= 0 ? "text-emerald-300" : "text-red-300";
 
+    function detCard(label, valorHtml, cardCls, labelCls) {
+      return (
+        '<div class="ativos-det-card rounded-xl border border-bank-border/80 bg-bank-bg/50 px-3 py-2.5 sm:px-4 sm:py-3' +
+        (cardCls ? " " + cardCls : "") +
+        '"><p class="text-[11px] leading-snug sm:text-xs ' +
+        (labelCls || "text-bank-muted") +
+        '">' +
+        label +
+        '</p><div class="ativos-det-valor">' +
+        valorHtml +
+        "</div></div>"
+      );
+    }
+
     box.innerHTML =
-      '<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">' +
-      '<div class="rounded-xl border border-bank-border/80 bg-bank-bg/50 px-4 py-3"><p class="text-xs text-bank-muted">' +
-      precoLabel +
-      '</p><p class="mt-1 text-xl font-bold tabular-nums text-blue-200">' +
-      (Number.isFinite(preco) ? formatMoney(preco) : "—") +
-      '</p></div><div class="rounded-xl border border-bank-border/80 bg-bank-bg/50 px-4 py-3"><p class="text-xs text-bank-muted">Quantidade</p><p class="mt-1 text-xl font-bold tabular-nums">' +
-      qty.toLocaleString("pt-BR", { maximumFractionDigits: 4 }) +
-      '</p></div><div class="rounded-xl border border-bank-border/80 bg-bank-bg/50 px-4 py-3"><p class="text-xs text-bank-muted">Preço médio</p><p class="mt-1 text-xl font-bold tabular-nums">' +
-      (Number.isFinite(pm) ? formatMoney(pm) : "—") +
-      '</p></div><div class="rounded-xl border border-bank-border/80 bg-bank-bg/50 px-4 py-3"><p class="text-xs text-bank-muted">Investido</p><p class="mt-1 text-xl font-bold tabular-nums">' +
-      formatMoney(investidoTotalPosicao(p)) +
-      '</p></div><div class="rounded-xl border border-bank-border/80 bg-bank-bg/50 px-4 py-3"><p class="text-xs text-bank-muted">P/L em aberto</p><p class="mt-1 text-xl font-bold tabular-nums ' +
-      plAbertoCls +
-      '">' +
-      (qty > 0 && Number.isFinite(pl.val) ? formatMoney(pl.val) : "—") +
-      " " +
-      (qty > 0 && Number.isFinite(pl.pct) ? '<span class="text-sm">' + formatPct(pl.pct) + "</span>" : "") +
-      '</p></div><div class="rounded-xl border border-amber-500/25 bg-amber-950/10 px-4 py-3"><p class="text-xs text-amber-200/80">P/L realizado</p><p class="mt-1 text-xl font-bold tabular-nums ' +
-      plRealCls +
-      '">' +
-      formatMoney(plReal) +
-      "</p></div></div>" +
+      '<div class="ativos-det-grid">' +
+      detCard(
+        precoLabel,
+        Number.isFinite(preco)
+          ? '<span class="text-blue-200">' + formatMoney(preco) + "</span>"
+          : "—"
+      ) +
+      detCard(
+        "Quantidade",
+        qty.toLocaleString("pt-BR", { maximumFractionDigits: 4 })
+      ) +
+      detCard(
+        "Preço médio",
+        Number.isFinite(pm) ? formatMoney(pm) : "—"
+      ) +
+      detCard("Investido", formatMoney(investidoTotalPosicao(p))) +
+      detCard(
+        "P/L em aberto",
+        qty > 0 && Number.isFinite(pl.val)
+          ? '<span class="' +
+            plAbertoCls +
+            '">' +
+            formatMoney(pl.val) +
+            "</span>" +
+            (Number.isFinite(pl.pct)
+              ? '<span class="mt-0.5 block text-xs font-semibold ' +
+                plAbertoCls +
+                '">' +
+                formatPct(pl.pct) +
+                "</span>"
+              : "")
+          : "—"
+      ) +
+      detCard(
+        "P/L realizado",
+        '<span class="' + plRealCls + '">' + formatMoney(plReal) + "</span>",
+        "border-amber-500/25 bg-amber-950/10",
+        "text-amber-200/80"
+      ) +
+      "</div>" +
       (nome ? '<p class="mt-2 text-xs text-bank-muted">' + nome + "</p>" : "") +
       (exterior
         ? '<div class="mt-3 flex flex-wrap items-end gap-2 rounded-xl border border-amber-500/20 bg-amber-950/15 px-3 py-3">' +
@@ -1504,8 +1536,14 @@
     var hintDisp = document.getElementById("ativos-venda-disponivel");
     var selTipo = document.getElementById("ativos-mov-tipo");
     var isVenda = tipo === "venda";
-    if (campInv) campInv.classList.toggle("hidden", isVenda);
-    if (campPrecoC) campPrecoC.classList.toggle("hidden", isVenda);
+    if (campInv) {
+      campInv.classList.toggle("hidden", isVenda);
+      campInv.classList.toggle("flex", !isVenda);
+    }
+    if (campPrecoC) {
+      campPrecoC.classList.toggle("hidden", isVenda);
+      campPrecoC.classList.toggle("flex", !isVenda);
+    }
     if (campQty) {
       campQty.classList.toggle("hidden", !isVenda);
       campQty.classList.toggle("flex", isVenda);
