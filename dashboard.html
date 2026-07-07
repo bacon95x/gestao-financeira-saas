@@ -3059,14 +3059,15 @@
             <h3 class="text-sm font-semibold text-white">Detalhe do ativo</h3>
             <div id="ativos-detalhe-conteudo" class="mt-4"></div>
             <div class="mt-5 overflow-x-auto">
-              <table class="w-full min-w-[480px] text-sm">
+              <table class="w-full min-w-[560px] text-sm">
                 <thead>
                   <tr class="border-b border-bank-border text-left text-[11px] uppercase tracking-wide text-bank-muted">
                     <th class="px-3 py-2">Data</th>
-                    <th class="px-3 py-2 text-right">Investido</th>
+                    <th class="px-3 py-2 text-right">Valor</th>
                     <th class="px-3 py-2 text-right">Preço</th>
                     <th class="px-3 py-2 text-right">Qtd</th>
                     <th class="px-3 py-2 text-right">Origem</th>
+                    <th class="px-3 py-2 text-right">P/L</th>
                     <th class="px-3 py-2 w-20 text-center">Ações</th>
                   </tr>
                 </thead>
@@ -3078,7 +3079,7 @@
 
         <div class="rounded-2xl border border-bank-border bg-bank-card p-5 sm:p-6">
           <div class="flex flex-wrap items-center justify-between gap-2">
-            <h3 id="ativos-form-titulo" class="text-sm font-semibold text-white">Nova compra</h3>
+            <h3 id="ativos-form-titulo" class="text-sm font-semibold text-white">Nova movimentação</h3>
             <button
               type="button"
               id="ativos-btn-cancelar-edicao"
@@ -3087,7 +3088,18 @@
               Cancelar edição
             </button>
           </div>
-          <form id="form-ativos-compra" class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-6 lg:items-end">
+          <form id="form-ativos-compra" class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-7 lg:items-end">
+            <label class="flex flex-col gap-1">
+              <span class="text-xs text-bank-muted">Tipo</span>
+              <select
+                id="ativos-mov-tipo"
+                name="tipo"
+                class="rounded-xl border border-bank-border bg-bank-bg px-3 py-2 text-sm text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
+              >
+                <option value="compra">Compra</option>
+                <option value="venda">Venda</option>
+              </select>
+            </label>
             <label class="flex flex-col gap-1">
               <span class="text-xs text-bank-muted">Data</span>
               <input
@@ -3121,32 +3133,51 @@
                 <option value="exterior">Exterior</option>
               </select>
             </label>
-            <label class="flex flex-col gap-1">
+            <label id="ativos-campo-investido" class="flex flex-col gap-1">
               <span class="text-xs text-bank-muted">Valor investido (R$)</span>
               <input
                 name="investido"
                 type="text"
                 inputmode="decimal"
-                required
                 placeholder="0,00"
                 class="input-moeda-br rounded-xl border border-bank-border bg-bank-bg px-3 py-2 text-sm tabular-nums text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
               />
             </label>
-            <label class="flex flex-col gap-1">
+            <label id="ativos-campo-preco-compra" class="flex flex-col gap-1">
               <span class="text-xs text-bank-muted">Preço na compra (R$)</span>
               <input
                 name="preco"
                 type="text"
                 inputmode="decimal"
-                required
                 placeholder="0,00"
                 class="input-moeda-br rounded-xl border border-bank-border bg-bank-bg px-3 py-2 text-sm tabular-nums text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
               />
             </label>
+            <label id="ativos-campo-qty-venda" class="hidden flex-col gap-1">
+              <span class="text-xs text-bank-muted">Quantidade vendida</span>
+              <input
+                name="qtyVenda"
+                type="text"
+                inputmode="decimal"
+                placeholder="0"
+                class="rounded-xl border border-bank-border bg-bank-bg px-3 py-2 text-sm tabular-nums text-white outline-none ring-amber-500/40 focus:border-amber-500/50 focus:ring-2"
+              />
+            </label>
+            <label id="ativos-campo-preco-venda" class="hidden flex-col gap-1">
+              <span class="text-xs text-bank-muted">Preço na venda (R$)</span>
+              <input
+                name="precoVenda"
+                type="text"
+                inputmode="decimal"
+                placeholder="0,00"
+                class="input-moeda-br rounded-xl border border-bank-border bg-bank-bg px-3 py-2 text-sm tabular-nums text-white outline-none ring-amber-500/40 focus:border-amber-500/50 focus:ring-2"
+              />
+            </label>
+            <p id="ativos-venda-disponivel" class="hidden text-[11px] leading-snug text-amber-200/90 lg:col-span-2"></p>
             <button
               type="submit"
               id="ativos-form-submit"
-              class="rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-violet-500"
+              class="rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-violet-500 lg:col-span-1"
             >
               Registrar compra
             </button>
