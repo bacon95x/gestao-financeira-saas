@@ -355,14 +355,14 @@
       inicialBRL: "0,00",
       aporteUSD: "",
       aporteBRL: "2.000,00",
-      lucroMensalPct: "0,7207",
+      lucroMensalPct: "0.7207",
       inflacaoAnualAtiva: false,
       inflacaoAnualPct: "4",
       cotacaoManual: "5,00",
       cotacaoAuto: false,
       simulacaoEmUSD: false,
       retiradaMes: "120",
-      retiradaRenda: "4.000,00",
+      retiradaRenda: "",
     };
 
     return {
