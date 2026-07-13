@@ -24,6 +24,7 @@
     <title>Capital Novo · Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
+    <script src="gfp-demo-data.js"></script>
     <script src="auth-guard.js"></script>
     <script src="gfp-cloud-sync.js"></script>
     <script src="gfp-ativos.js"></script>
@@ -13094,6 +13095,9 @@
             if (typeof window.gfpWaitForAuth === "function") {
               await window.gfpWaitForAuth();
             }
+            if (typeof window.gfpSeedDemoLocalStorage === "function" && window.gfpIsDemo) {
+              window.gfpSeedDemoLocalStorage();
+            }
             if (typeof window.gfpCloudLoadIfEnabled === "function") {
               await window.gfpCloudLoadIfEnabled();
             }
@@ -13102,6 +13106,10 @@
           }
 
           load();
+
+          if (typeof window.gfpMountDemoBanner === "function") {
+            window.gfpMountDemoBanner();
+          }
 
           initLogoutControl();
           initAssinaturaControl();
