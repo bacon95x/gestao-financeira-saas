@@ -1301,6 +1301,7 @@
         kind: "compra",
         id: c.id,
         data: c.data || "",
+        criadoEm: Number(c.criadoEm) || 0,
         valor: c.investido,
         preco: c.preco,
         qty: c.qty,
@@ -1313,6 +1314,7 @@
         kind: "venda",
         id: v.id,
         data: v.data || "",
+        criadoEm: Number(v.criadoEm) || 0,
         valor: v.recebido,
         preco: v.preco,
         qty: v.qty,
@@ -1321,7 +1323,9 @@
       });
     });
     movs.sort(function (a, b) {
-      return String(b.data).localeCompare(String(a.data));
+      var byData = String(b.data).localeCompare(String(a.data));
+      if (byData !== 0) return byData;
+      return (b.criadoEm || 0) - (a.criadoEm || 0);
     });
     if (!movs.length) {
       tbody.innerHTML =
@@ -1823,6 +1827,7 @@
         custoMedio: pm,
         custoBase: custoBase,
         plRealizado: plRealizado,
+        criadoEm: Date.now(),
       });
       ativosState.tickerSelecionado = ticker;
       if (form.qtyVenda) form.qtyVenda.value = "";
@@ -1905,6 +1910,7 @@
         investido: investido,
         preco: preco,
         qty: qty,
+        criadoEm: Date.now(),
       });
       if (isClasseExterior(p.classe) && !Number.isFinite(precoManualPosicao(p))) {
         p.precoManual = preco;
