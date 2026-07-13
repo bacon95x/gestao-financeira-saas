@@ -544,7 +544,7 @@
             selo: "Simulador de retirada segura",
             guard: "inflacao",
           });
-        }, 1400);
+        }, 10000);
       }, 60);
     });
   }
