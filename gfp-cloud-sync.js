@@ -4,7 +4,15 @@
   var lastCloudHash = "";
   var autoTimer = null;
 
+  function gfpIsDemoRuntime() {
+    return (
+      window.gfpIsDemo === true ||
+      (typeof window.gfpIsDemoMode === "function" && window.gfpIsDemoMode())
+    );
+  }
+
   function gfpCloudMode() {
+    if (gfpIsDemoRuntime()) return "local";
     var m = (window.GFP_STORAGE_MODE || "local").toLowerCase();
     return m === "cloud" || m === "both" ? m : "local";
   }
@@ -152,6 +160,10 @@
   }
 
   async function gfpCloudLoadIfEnabled() {
+    if (gfpIsDemoRuntime()) {
+      gfpSetCloudStatus("Demonstração (nuvem desligada)", "warn");
+      return false;
+    }
     var mode = gfpCloudMode();
     if (mode === "local") return false;
 
@@ -210,6 +222,9 @@
 
   async function gfpCloudSaveNow(opts) {
     opts = opts || {};
+    if (gfpIsDemoRuntime()) {
+      return { ok: false, reason: "Modo demonstração — nada é salvo na nuvem." };
+    }
     var mode = gfpCloudMode();
     if (mode === "local") {
       return { ok: false, reason: "Modo local — nuvem desligada no config.js" };
