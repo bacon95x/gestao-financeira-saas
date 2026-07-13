@@ -72,6 +72,7 @@
     </style>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
+    <script src="gfp-demo-data.js"></script>
   </head>
   <body class="text-zinc-100 antialiased">
     <!-- HERO -->
@@ -90,9 +91,19 @@
             <p class="mt-5 max-w-lg text-base leading-relaxed text-zinc-400 sm:text-lg">
               O Capital Novo reúne gastos, contas e investimentos em um painel elegante — para você ter controle da sua vida financeira com visão de longo prazo para seu patrimônio.
             </p>
-            <a href="#oferta" class="glow-btn mt-8 inline-flex rounded-2xl bg-emerald-500 px-8 py-4 text-base font-bold text-black transition hover:bg-emerald-400">
-              Começar por R$ 29,90/mês
-            </a>
+            <div class="mt-8 flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                id="btn-ver-demo"
+                class="inline-flex rounded-2xl border border-violet-400/40 bg-violet-600/20 px-7 py-4 text-base font-bold text-violet-100 transition hover:bg-violet-600/35"
+              >
+                Ver demonstração grátis
+              </button>
+              <a href="#oferta" class="glow-btn inline-flex rounded-2xl bg-emerald-500 px-7 py-4 text-base font-bold text-black transition hover:bg-emerald-400">
+                Começar por R$ 29,90/mês
+              </a>
+            </div>
+            <p class="mt-3 text-xs text-zinc-500">Explore o dashboard com dados de exemplo — sem cartão e sem compromisso.</p>
           </div>
 
           <div id="sidebar-auth" class="space-y-4 lg:sticky lg:top-8">
@@ -516,6 +527,56 @@
       </div>
     </section>
 
+    <!-- Modal: liberar demonstração com e-mail -->
+    <div
+      id="modal-demo"
+      class="fixed inset-0 z-[100000] hidden items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-demo-titulo"
+    >
+      <div class="w-full max-w-md rounded-2xl border border-white/10 bg-[#14141f] p-6 shadow-2xl">
+        <h2 id="modal-demo-titulo" class="text-lg font-semibold text-white">Ver demonstração</h2>
+        <p class="mt-2 text-sm leading-relaxed text-zinc-400">
+          Informe seu e-mail para liberar o painel com dados de exemplo. Sem cartão, sem compromisso —
+          só para você conhecer o Capital Novo por dentro.
+        </p>
+        <form id="form-demo-lead" class="mt-5 space-y-4">
+          <div>
+            <label for="demo-email" class="block text-xs font-medium text-zinc-400">Seu e-mail</label>
+            <input
+              id="demo-email"
+              type="email"
+              required
+              autocomplete="email"
+              placeholder="seu@email.com"
+              class="mt-1.5 w-full rounded-xl border border-bank-border bg-[#0c0c14] px-4 py-2.5 text-sm text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
+            />
+          </div>
+          <p id="demo-erro" class="hidden rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-200"></p>
+          <div class="flex flex-wrap gap-2">
+            <button
+              type="submit"
+              id="btn-demo-continuar"
+              class="flex-1 rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-violet-500 disabled:opacity-60"
+            >
+              Entrar na demonstração
+            </button>
+            <button
+              type="button"
+              id="btn-demo-fechar"
+              class="rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-medium text-zinc-300 transition hover:bg-white/10"
+            >
+              Cancelar
+            </button>
+          </div>
+        </form>
+        <p class="mt-3 text-[11px] leading-snug text-zinc-500">
+          Podemos enviar novidades do produto para este e-mail. Você pode pedir para sair da lista quando quiser.
+        </p>
+      </div>
+    </div>
+
     <footer class="border-t border-white/5 py-8 text-center text-xs leading-relaxed text-zinc-500">
       <p class="font-semibold text-zinc-400">Capital Novo</p>
       <p class="mt-2">Ferramenta de organização financeira pessoal. Não constitui consultoria ou recomendação de investimentos.</p>
@@ -734,6 +795,82 @@
           okEl.textContent = "Conta criada! Se o Supabase exigir confirmação por e-mail, confira sua caixa de entrada e depois entre.";
           okEl.classList.remove("hidden");
         });
+
+        /* —— Demonstração com captura de e-mail —— */
+        var modalDemo = document.getElementById("modal-demo");
+        var btnVerDemo = document.getElementById("btn-ver-demo");
+        var btnDemoFechar = document.getElementById("btn-demo-fechar");
+        var formDemo = document.getElementById("form-demo-lead");
+        var demoErro = document.getElementById("demo-erro");
+
+        function abrirModalDemo() {
+          if (!modalDemo) return;
+          modalDemo.classList.remove("hidden");
+          modalDemo.classList.add("flex");
+          var inp = document.getElementById("demo-email");
+          if (inp) setTimeout(function () { inp.focus(); }, 50);
+        }
+        function fecharModalDemo() {
+          if (!modalDemo) return;
+          modalDemo.classList.add("hidden");
+          modalDemo.classList.remove("flex");
+          if (demoErro) demoErro.classList.add("hidden");
+        }
+
+        if (btnVerDemo) btnVerDemo.addEventListener("click", abrirModalDemo);
+        if (btnDemoFechar) btnDemoFechar.addEventListener("click", fecharModalDemo);
+        if (modalDemo) {
+          modalDemo.addEventListener("click", function (ev) {
+            if (ev.target === modalDemo) fecharModalDemo();
+          });
+        }
+
+        async function registrarLeadDemo(email) {
+          // Tenta gravar no Supabase (tabela demo_leads). Se não existir, segue mesmo assim.
+          try {
+            await sb.from("demo_leads").insert({
+              email: email,
+              source: "landing_demo",
+              created_at: new Date().toISOString(),
+            });
+          } catch (e) {}
+          try {
+            var lista = [];
+            var raw = localStorage.getItem("gfp_demo_leads_local");
+            if (raw) lista = JSON.parse(raw) || [];
+            if (!Array.isArray(lista)) lista = [];
+            lista.push({ email: email, at: new Date().toISOString() });
+            if (lista.length > 200) lista = lista.slice(-200);
+            localStorage.setItem("gfp_demo_leads_local", JSON.stringify(lista));
+          } catch (e2) {}
+        }
+
+        if (formDemo) {
+          formDemo.addEventListener("submit", async function (e) {
+            e.preventDefault();
+            var btn = document.getElementById("btn-demo-continuar");
+            var email = (document.getElementById("demo-email").value || "").trim().toLowerCase();
+            if (!email || email.indexOf("@") < 1) {
+              if (demoErro) {
+                demoErro.textContent = "Informe um e-mail válido.";
+                demoErro.classList.remove("hidden");
+              }
+              return;
+            }
+            if (btn) btn.disabled = true;
+            if (demoErro) demoErro.classList.add("hidden");
+            try {
+              if (typeof window.gfpMarkDemoSession === "function") {
+                window.gfpMarkDemoSession(email);
+              } else {
+                sessionStorage.setItem("gfp_demo_active", "1");
+                sessionStorage.setItem("gfp_demo_email", email);
+              }
+              await registrarLeadDemo(email);
+            } catch (err) {}
+            window.location.href = "/dashboard?demo=1";
+          });
+        }
       })();
     </script>
   </body>
