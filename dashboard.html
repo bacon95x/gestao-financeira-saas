@@ -2513,6 +2513,105 @@
           </div>
         </div>
 
+        <!-- Aviso: ative a inflação para ver a retirada segura -->
+        <div
+          id="inv-retirada-off"
+          class="hidden rounded-2xl border border-dashed border-bank-border bg-bank-card/50 p-5 text-center"
+        >
+          <p class="text-sm text-bank-muted">
+            Ative <strong class="text-amber-200">Inflação Anual</strong> acima para calcular a
+            <strong class="text-emerald-200">retirada segura</strong> (renda que não perde poder de compra).
+          </p>
+        </div>
+
+        <!-- Card: retirada segura (ganho real) -->
+        <div
+          id="inv-retirada-on"
+          class="hidden rounded-2xl border border-emerald-500/30 bg-gradient-to-br from-emerald-950/20 via-bank-card to-bank-card p-5 shadow-glow ring-1 ring-emerald-500/10 sm:p-6"
+        >
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h3 class="text-base font-semibold text-white">Retirada segura (ganho real)</h3>
+              <p class="mt-1 max-w-2xl text-sm text-bank-muted">
+                Com base no patrimônio projetado no mês escolhido, quanto você pode sacar por mês
+                <strong class="text-zinc-300">sem perder poder de compra</strong> — usando a Equação de Fisher
+                com o lucro mensal e a inflação informados acima.
+              </p>
+            </div>
+          </div>
+
+          <div class="mt-4 flex flex-wrap items-end gap-4 rounded-xl border border-bank-border/60 bg-bank-bg/30 p-4">
+            <label class="flex flex-col gap-1">
+              <span class="text-xs font-medium text-zinc-300">Mês de referência</span>
+              <div class="flex items-center gap-2">
+                <input
+                  id="inv-retirada-mes"
+                  type="number"
+                  inputmode="numeric"
+                  min="0"
+                  max="480"
+                  step="1"
+                  value="120"
+                  class="w-24 rounded-xl border border-violet-500/40 bg-bank-bg px-3 py-2 text-sm font-semibold tabular-nums text-white outline-none ring-1 ring-violet-500/20 focus:border-violet-500/50 focus:ring-2"
+                />
+                <span id="inv-retirada-mes-anos" class="whitespace-nowrap text-xs text-bank-muted">—</span>
+              </div>
+            </label>
+            <label class="flex flex-col gap-1">
+              <span class="text-xs text-bank-muted">Renda desejada / mês (opcional)</span>
+              <input
+                id="inv-retirada-renda"
+                type="text"
+                inputmode="decimal"
+                autocomplete="off"
+                placeholder="4.000,00"
+                class="input-moeda-br w-36 rounded-xl border border-bank-border bg-bank-bg px-3 py-2 text-sm tabular-nums text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
+              />
+            </label>
+          </div>
+
+          <div class="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <div class="rounded-xl border border-violet-500/25 bg-violet-950/10 px-4 py-3 sm:col-span-2 lg:col-span-1">
+              <p class="text-[11px] uppercase tracking-wide text-violet-300/80">
+                Patrimônio no mês <span id="inv-retirada-lbl-mes">—</span>
+              </p>
+              <p id="inv-retirada-patrimonio" class="mt-1 text-xl font-bold tabular-nums text-white">—</p>
+              <p class="mt-0.5 text-[11px] text-bank-muted">Aplicação + aportes + rendimentos acumulados</p>
+            </div>
+            <div class="rounded-xl border border-red-500/20 bg-red-950/10 px-4 py-3">
+              <p class="text-[11px] uppercase tracking-wide text-red-300/80">Rendimento bruto / mês</p>
+              <p id="inv-retirada-bruto" class="mt-1 text-lg font-bold tabular-nums text-red-200">—</p>
+              <p id="inv-retirada-taxa-nom" class="mt-0.5 text-[11px] text-bank-muted">—</p>
+            </div>
+            <div class="rounded-xl border border-emerald-500/30 bg-emerald-950/15 px-4 py-3">
+              <p class="text-[11px] uppercase tracking-wide text-emerald-300/90">Retirada segura / mês</p>
+              <p id="inv-retirada-segura" class="mt-1 text-lg font-bold tabular-nums text-emerald-300">—</p>
+              <p id="inv-retirada-taxa-real" class="mt-0.5 text-[11px] text-bank-muted">—</p>
+            </div>
+          </div>
+
+          <div class="mt-3 grid gap-3 sm:grid-cols-2">
+            <div class="rounded-xl border border-amber-500/20 bg-amber-950/10 px-4 py-3">
+              <p class="text-[11px] uppercase tracking-wide text-amber-300/80">Reinvestir p/ repor inflação</p>
+              <p id="inv-retirada-reinvestir" class="mt-1 text-base font-bold tabular-nums text-amber-200">—</p>
+              <p class="mt-0.5 text-[11px] text-bank-muted">Parte do rendimento que não pode ser gasta</p>
+            </div>
+            <div class="rounded-xl border border-cyan-500/20 bg-cyan-950/10 px-4 py-3">
+              <p class="text-[11px] uppercase tracking-wide text-cyan-300/80">Patrimônio p/ renda desejada</p>
+              <p id="inv-retirada-alvo" class="mt-1 text-base font-bold tabular-nums text-cyan-200">—</p>
+              <p id="inv-retirada-alvo-legenda" class="mt-0.5 text-[11px] text-bank-muted">—</p>
+            </div>
+          </div>
+
+          <div class="mt-4 rounded-xl border border-bank-border/60 bg-bank-bg/40 px-4 py-3 text-sm leading-relaxed text-zinc-300">
+            <p id="inv-retirada-frase">—</p>
+          </div>
+          <p class="mt-2 text-[11px] leading-snug text-bank-muted">
+            Cenário educativo, não é recomendação de investimento. A retirada segura considera apenas o ganho
+            real acima da inflação; o restante do rendimento deve ser reinvestido para preservar o poder de compra.
+          </p>
+        </div>
+
         <p id="inv-moeda-legenda" class="text-xs text-bank-muted"></p>
 
         <div
@@ -6403,6 +6502,8 @@
           cotacaoManual: "",
           cotacaoAuto: false,
           simulacaoEmUSD: false,
+          retiradaMes: "120",
+          retiradaRenda: "",
         };
         let investForm = { ...INVEST_DEFAULTS };
         let investCotacaoFetched = null;
@@ -6441,6 +6542,9 @@
                 typeof o.cotacaoManual === "string" ? o.cotacaoManual : INVEST_DEFAULTS.cotacaoManual,
               cotacaoAuto: Boolean(o.cotacaoAuto),
               simulacaoEmUSD: Boolean(o.simulacaoEmUSD),
+              retiradaMes: typeof o.retiradaMes === "string" ? o.retiradaMes : INVEST_DEFAULTS.retiradaMes,
+              retiradaRenda:
+                typeof o.retiradaRenda === "string" ? o.retiradaRenda : INVEST_DEFAULTS.retiradaRenda,
             };
           } catch (_) {}
         }
@@ -6605,6 +6709,120 @@
           }
           tbody.innerHTML = parts.join("");
           investUpdateMoedaUI();
+          renderRetiradaSegura(P, C, r, inflacaoAA);
+        }
+
+        function retiradaMesTexto(m) {
+          if (m <= 0) return "início (mês 0)";
+          const anos = Math.floor(m / 12);
+          const meses = m % 12;
+          if (anos === 0) return m + (m === 1 ? " mês" : " meses");
+          const pAno = anos + (anos === 1 ? " ano" : " anos");
+          if (meses === 0) return pAno;
+          return pAno + " e " + meses + (meses === 1 ? " mês" : " meses");
+        }
+
+        function retiradaSaldoNoMes(P, C, r, m) {
+          let saldo = P;
+          for (let i = 1; i <= m; i++) {
+            saldo = (saldo + C) * (1 + r);
+          }
+          return saldo;
+        }
+
+        /**
+         * Card «Retirada segura»: renda real (acima da inflação) que o patrimônio do mês escolhido sustenta.
+         * Taxa real pela Equação de Fisher: (1 + real) = (1 + nominal) / (1 + inflação).
+         */
+        function renderRetiradaSegura(P, C, r, inflacaoAA) {
+          const cardOn = document.getElementById("inv-retirada-on");
+          const cardOff = document.getElementById("inv-retirada-off");
+          if (!cardOn || !cardOff) return;
+
+          const ativo = !!investForm.inflacaoAnualAtiva;
+          cardOn.classList.toggle("hidden", !ativo);
+          cardOff.classList.toggle("hidden", ativo);
+          if (!ativo) return;
+
+          let mes = Math.round(investParseNum(investForm.retiradaMes));
+          if (!Number.isFinite(mes) || mes < 0) mes = 0;
+          if (mes > 480) mes = 480;
+          const renda = investParseNum(investForm.retiradaRenda);
+
+          const patrimonio = retiradaSaldoNoMes(P, C, r, mes);
+          const brutoMes = patrimonio * r;
+
+          const rAnualNom = Math.pow(1 + r, 12) - 1;
+          const infDec = inflacaoAA / 100;
+          const realAnual = infDec > 0 ? (1 + rAnualNom) / (1 + infDec) - 1 : rAnualNom;
+          const rRealMes = Math.pow(1 + realAnual, 1 / 12) - 1;
+          const seguraMes = patrimonio * rRealMes;
+          const reinvestir = Math.max(0, brutoMes - seguraMes);
+          const patAlvo = rRealMes > 0 && renda > 0 ? renda / rRealMes : NaN;
+
+          const setTxt = (id, txt) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = txt;
+          };
+          const setHtml = (id, html) => {
+            const el = document.getElementById(id);
+            if (el) el.innerHTML = html;
+          };
+
+          setTxt("inv-retirada-mes-anos", "≈ " + retiradaMesTexto(mes));
+          setTxt("inv-retirada-lbl-mes", String(mes));
+          setTxt("inv-retirada-patrimonio", formatMoneyInvest(patrimonio));
+          setTxt("inv-retirada-bruto", formatMoneyInvest(brutoMes));
+          setTxt(
+            "inv-retirada-taxa-nom",
+            (r * 100).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 4 }) +
+              "% a.m. nominal"
+          );
+          setTxt("inv-retirada-segura", formatMoneyInvest(seguraMes));
+          setTxt(
+            "inv-retirada-taxa-real",
+            (rRealMes * 100).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) +
+              "% a.m. real · " +
+              (realAnual * 100).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) +
+              "% a.a."
+          );
+          setTxt("inv-retirada-reinvestir", formatMoneyInvest(reinvestir));
+          setTxt("inv-retirada-alvo", Number.isFinite(patAlvo) ? formatMoneyInvest(patAlvo) : "—");
+          setTxt(
+            "inv-retirada-alvo-legenda",
+            renda > 0
+              ? "Para sacar " + formatMoneyInvest(renda) + "/mês com poder de compra preservado"
+              : "Informe uma renda desejada acima"
+          );
+
+          if (r <= 0) {
+            setHtml(
+              "inv-retirada-frase",
+              "Informe um <strong>lucro mensal</strong> maior que zero para calcular a retirada segura."
+            );
+          } else if (rRealMes <= 0) {
+            setHtml(
+              "inv-retirada-frase",
+              "Com esta inflação, o rendimento não supera a perda de poder de compra: não há retirada segura sem consumir o patrimônio."
+            );
+          } else {
+            setHtml(
+              "inv-retirada-frase",
+              "No <strong>mês " +
+                mes +
+                "</strong>, com patrimônio de <strong class=\"tabular-nums\">" +
+                formatMoneyInvest(patrimonio) +
+                "</strong>, o rendimento bruto seria <strong class=\"tabular-nums text-red-200\">" +
+                formatMoneyInvest(brutoMes) +
+                "</strong>. Para não perder para a inflação de <strong>" +
+                inflacaoAA.toLocaleString("pt-BR", { maximumFractionDigits: 2 }) +
+                "% a.a.</strong>, reinvista <strong class=\"tabular-nums text-amber-200\">" +
+                formatMoneyInvest(reinvestir) +
+                "</strong> e retire com segurança <strong class=\"tabular-nums text-emerald-300\">" +
+                formatMoneyInvest(seguraMes) +
+                "</strong>/mês."
+            );
+          }
         }
 
         function investSyncInflacaoUI() {
@@ -6620,7 +6838,7 @@
         }
 
         function investSyncInputsFromState() {
-          const brlIds = new Set(["inv-inicial-brl", "inv-aporte-brl", "inv-cotacao-manual"]);
+          const brlIds = new Set(["inv-inicial-brl", "inv-aporte-brl", "inv-cotacao-manual", "inv-retirada-renda"]);
           const ids = [
             ["inv-inicial-usd", "inicialUSD"],
             ["inv-inicial-brl", "inicialBRL"],
@@ -6629,6 +6847,8 @@
             ["inv-cotacao-manual", "cotacaoManual"],
             ["inv-lucro-pct", "lucroMensalPct"],
             ["inv-inflacao-anual-pct", "inflacaoAnualPct"],
+            ["inv-retirada-mes", "retiradaMes"],
+            ["inv-retirada-renda", "retiradaRenda"],
           ];
           ids.forEach(([id, key]) => {
             const el = document.getElementById(id);
@@ -6660,6 +6880,10 @@
             investForm.cotacaoManual = document.getElementById("inv-cotacao-manual").value;
             investForm.lucroMensalPct = document.getElementById("inv-lucro-pct").value;
             investForm.inflacaoAnualPct = document.getElementById("inv-inflacao-anual-pct").value;
+            const mesEl = document.getElementById("inv-retirada-mes");
+            const rendaEl = document.getElementById("inv-retirada-renda");
+            if (mesEl) investForm.retiradaMes = mesEl.value;
+            if (rendaEl) investForm.retiradaRenda = rendaEl.value;
             investSave();
             renderInvestimentosTabela();
           };
@@ -6671,6 +6895,8 @@
             "inv-cotacao-manual",
             "inv-lucro-pct",
             "inv-inflacao-anual-pct",
+            "inv-retirada-mes",
+            "inv-retirada-renda",
           ].forEach((id) => {
             const el = document.getElementById(id);
             if (el) {
