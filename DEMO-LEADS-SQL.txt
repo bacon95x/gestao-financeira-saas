@@ -1,0 +1,24 @@
+-- Leads da demonstração (landing → email → demo)
+-- Rode no SQL Editor do Supabase (projeto Capital Novo).
+
+create table if not exists public.demo_leads (
+  id uuid primary key default gen_random_uuid(),
+  email text not null,
+  source text default 'landing_demo',
+  created_at timestamptz default now()
+);
+
+create index if not exists demo_leads_email_idx on public.demo_leads (email);
+create index if not exists demo_leads_created_at_idx on public.demo_leads (created_at desc);
+
+alter table public.demo_leads enable row level security;
+
+-- Anônimos podem inserir (formulário da landing), mas não ler a lista.
+drop policy if exists "anon_insert_demo_leads" on public.demo_leads;
+create policy "anon_insert_demo_leads"
+  on public.demo_leads
+  for insert
+  to anon, authenticated
+  with check (true);
+
+-- Leitura só com service role / no painel do Supabase (sem policy de select para anon).
