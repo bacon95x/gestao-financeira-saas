@@ -497,6 +497,104 @@
       });
     }
     hideAdminOnlyButtons();
+    startDemoReminders();
+  }
+
+  // ---- Lembretes de conversão (não bloqueiam a demo) ----
+  var demoRemindersStarted = false;
+  var demoInviteInflacaoShown = false;
+
+  // Lembrete suave reaparece nestes marcos (a partir do início da sessão).
+  var DEMO_REMINDER_MARCOS = [
+    { min: 10, selo: "10 minutos de demonstração" },
+    { min: 60, selo: "1 hora de demonstração" },
+    { min: 360, selo: "6 horas de demonstração" },
+    { min: 1440, selo: "24 horas de demonstração" },
+  ];
+
+  function startDemoReminders() {
+    if (demoRemindersStarted || !isDemoActive()) return;
+    demoRemindersStarted = true;
+
+    // 1) Lembrete suave recorrente: 10 min, 1 h, 6 h e 24 h.
+    DEMO_REMINDER_MARCOS.forEach(function (marco) {
+      window.setTimeout(function () {
+        showDemoInvite({
+          titulo: "Curtindo o Capital Novo?",
+          texto:
+            "Você está explorando a demonstração. Assine para usar com os seus dados reais — tudo salvo com segurança na nuvem.",
+          selo: marco.selo,
+        });
+      }, marco.min * 60 * 1000);
+    });
+
+    // 2) Convite especial: quando a pessoa liga a inflação e vê o "choque" da retirada segura.
+    document.addEventListener("click", function (e) {
+      var alvo = e.target && e.target.closest ? e.target.closest("#inv-btn-inflacao-anual") : null;
+      if (!alvo) return;
+      // Espera o app atualizar o estado do botão (aria-pressed) antes de decidir.
+      window.setTimeout(function () {
+        var ligou = alvo.getAttribute("aria-pressed") === "true";
+        if (!ligou || demoInviteInflacaoShown) return;
+        window.setTimeout(function () {
+          showDemoInvite({
+            titulo: "Esse é o poder de planejar de verdade",
+            texto:
+              "Você acabou de ver quanto a inflação muda a sua retirada segura. Com uma conta ativa, você acompanha isso com o seu patrimônio real, mês a mês.",
+            selo: "Simulador de retirada segura",
+            guard: "inflacao",
+          });
+        }, 1400);
+      }, 60);
+    });
+  }
+
+  function showDemoInvite(opts) {
+    if (!isDemoActive()) return;
+    if (opts.guard === "inflacao") {
+      if (demoInviteInflacaoShown) return;
+      demoInviteInflacaoShown = true;
+    }
+    // Evita empilhar dois convites ao mesmo tempo (ex.: marco de tempo caindo junto do da inflação).
+    if (document.getElementById("gfp-demo-invite")) return;
+
+    var overlay = document.createElement("div");
+    overlay.id = "gfp-demo-invite";
+    overlay.className =
+      "fixed inset-0 z-[10000] flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm";
+    overlay.innerHTML =
+      '<div class="w-full max-w-md rounded-2xl border border-amber-500/30 bg-gradient-to-b from-[#1a1020] to-[#120a18] p-6 shadow-2xl">' +
+      '<p class="mb-2 inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-[11px] font-medium text-amber-200">' +
+      escapeInviteHtml(opts.selo || "Modo demonstração") +
+      "</p>" +
+      '<h3 class="text-lg font-bold text-white">' +
+      escapeInviteHtml(opts.titulo) +
+      "</h3>" +
+      '<p class="mt-2 text-sm leading-relaxed text-zinc-300">' +
+      escapeInviteHtml(opts.texto) +
+      "</p>" +
+      '<div class="mt-5 flex flex-col gap-2 sm:flex-row-reverse">' +
+      '<a href="/#oferta" class="flex-1 rounded-xl bg-emerald-500 px-4 py-2.5 text-center text-sm font-bold text-black transition hover:bg-emerald-400">Assinar agora</a>' +
+      '<button type="button" id="gfp-demo-invite-fechar" class="flex-1 rounded-xl border border-white/15 bg-white/5 px-4 py-2.5 text-center text-sm font-medium text-zinc-200 transition hover:bg-white/10">Continuar na demo</button>' +
+      "</div></div>";
+    document.body.appendChild(overlay);
+
+    var fechar = function () {
+      if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
+    };
+    var btnFechar = document.getElementById("gfp-demo-invite-fechar");
+    if (btnFechar) btnFechar.addEventListener("click", fechar);
+    overlay.addEventListener("click", function (e) {
+      if (e.target === overlay) fechar();
+    });
+  }
+
+  function escapeInviteHtml(s) {
+    return String(s == null ? "" : s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
   }
 
   // Botões que não fazem sentido na demo (uso interno/admin): Exportar, Importar e Apresentação.
