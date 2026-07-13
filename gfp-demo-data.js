@@ -204,7 +204,7 @@
     var fixaAluguel = {
       id: "demo-fixa-aluguel",
       nome: "Aluguel",
-      categoria: "Aluguel",
+      categoria: "outros",
       meioPagamento: "Pix",
       origem: "",
       diaVencimento: 5,
@@ -366,7 +366,7 @@
     };
 
     return {
-      gfp_lista_categorias_v1: JSON.stringify(["Mercado", "Transporte", "Lazer", "Aluguel"]),
+      gfp_lista_categorias_v1: JSON.stringify(["Mercado", "Transporte", "Lazer", "outros"]),
       gfp_lista_origens_v1: JSON.stringify(["Nubank", "Inter", "Itaú"]),
       gfp_gastos_v1: JSON.stringify(gastos),
       gfp_saldo_partes_v1: JSON.stringify(saldoPartes),
