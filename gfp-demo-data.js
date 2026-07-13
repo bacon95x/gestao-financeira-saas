@@ -200,6 +200,46 @@
       },
     ];
 
+    // Contas fixas: Aluguel (Pix) e uma assinatura no crédito (Spotify).
+    var fixaAluguel = {
+      id: "demo-fixa-aluguel",
+      nome: "Aluguel",
+      categoria: "Aluguel",
+      meioPagamento: "Pix",
+      origem: "",
+      diaVencimento: 5,
+      vencimentoAnual: null,
+    };
+    var fixaSpotify = {
+      id: "demo-fixa-spotify",
+      nome: "Spotify",
+      categoria: "Lazer",
+      meioPagamento: "Crédito",
+      origem: "Nubank",
+      diaVencimento: 10,
+      vencimentoAnual: null,
+    };
+    var contasFixasCatalog = [fixaAluguel, fixaSpotify];
+
+    var contasFixasAnual = {};
+    contasFixasAnual[year] = {};
+    contasFixasAnual[year][fixaAluguel.id] = {};
+    contasFixasAnual[year][fixaAluguel.id][monthIdx] = {
+      gastoAtual: 1500,
+      ultimaAtualizacao: hoje,
+      vencimento: String(fixaAluguel.diaVencimento),
+      valorPago: 1500,
+      dataPago: hoje,
+    };
+    contasFixasAnual[year][fixaSpotify.id] = {};
+    contasFixasAnual[year][fixaSpotify.id][monthIdx] = {
+      gastoAtual: 21.9,
+      ultimaAtualizacao: hoje,
+      vencimento: String(fixaSpotify.diaVencimento),
+      valorPago: null,
+      dataPago: "",
+    };
+
     var compraPetr = {
       id: id("c"),
       data: diasAtras(40),
@@ -316,7 +356,7 @@
       aporteUSD: "",
       aporteBRL: "2.000,00",
       lucroMensalPct: "0,7207",
-      inflacaoAnualAtiva: true,
+      inflacaoAnualAtiva: false,
       inflacaoAnualPct: "4",
       cotacaoManual: "5,00",
       cotacaoAuto: false,
@@ -326,7 +366,7 @@
     };
 
     return {
-      gfp_lista_categorias_v1: JSON.stringify(["Mercado", "Moradia", "Transporte", "Lazer"]),
+      gfp_lista_categorias_v1: JSON.stringify(["Mercado", "Transporte", "Lazer", "Aluguel"]),
       gfp_lista_origens_v1: JSON.stringify(["Nubank", "Inter", "Itaú"]),
       gfp_gastos_v1: JSON.stringify(gastos),
       gfp_saldo_partes_v1: JSON.stringify(saldoPartes),
@@ -338,8 +378,9 @@
       gfp_dashboard_gastos_ref_v1: JSON.stringify({ y: now.getFullYear(), m: now.getMonth() }),
       gfp_contas_pagar_catalog_v1: JSON.stringify([catNubank, catInter]),
       gfp_contas_pagar_anual_v1: JSON.stringify(contasPagarAnual),
-      gfp_contas_fixas_catalog_v1: JSON.stringify([]),
-      gfp_contas_fixas_anual_v1: JSON.stringify({}),
+      gfp_contas_fixas_catalog_v1: JSON.stringify(contasFixasCatalog),
+      gfp_contas_fixas_anual_v1: JSON.stringify(contasFixasAnual),
+      gfp_migracao_contas_fixas_v1: "1",
       gfp_calendario_juros_v1: JSON.stringify(calendarioJuros),
       gfp_calendario_origens_ordem_v1: "lancamentos",
       gfp_ativos_v1: JSON.stringify(ativos),
@@ -455,6 +496,23 @@
         window.location.replace("/");
       });
     }
+    hideAdminOnlyButtons();
+  }
+
+  // Botões que não fazem sentido na demo (uso interno/admin): Exportar, Importar e Apresentação.
+  function hideAdminOnlyButtons() {
+    if (!isDemoActive()) return;
+    var ids = ["btn-backup-exportar", "btn-backup-importar", "btn-tour-apresentacao"];
+    var esconder = function () {
+      ids.forEach(function (elId) {
+        var el = document.getElementById(elId);
+        if (el) el.classList.add("hidden");
+      });
+    };
+    esconder();
+    // Alguns botões podem ser (re)renderizados após o boot; garante que somem.
+    window.setTimeout(esconder, 600);
+    window.setTimeout(esconder, 1600);
   }
 
   window.gfpIsDemoMode = isDemoActive;
