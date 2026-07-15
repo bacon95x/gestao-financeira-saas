@@ -5646,6 +5646,50 @@
           return Math.min(Number(def), daysInMonth(year, monthIdx));
         }
 
+        /**
+         * Limpa override de fechamento nas células deste mês em diante
+         * (passam a herdar o padrão da conta).
+         */
+        function limparOverrideFechamentoDesde(itemId, fromYear, fromMonthIdx) {
+          Object.keys(contasPagarAnual).forEach((yStr) => {
+            const y = Number(yStr);
+            if (!Number.isFinite(y)) return;
+            const byMonth = contasPagarAnual[yStr];
+            if (!byMonth || typeof byMonth !== "object") return;
+            Object.keys(byMonth).forEach((mStr) => {
+              const m = Number(mStr);
+              if (!Number.isFinite(m)) return;
+              if (y < fromYear || (y === fromYear && m < fromMonthIdx)) return;
+              const cell = byMonth[mStr] && byMonth[mStr][itemId];
+              if (cell && Object.prototype.hasOwnProperty.call(cell, "diaFechamentoFatura")) {
+                cell.diaFechamentoFatura = null;
+              }
+            });
+          });
+        }
+
+        /**
+         * Aplica dia de fechamento: só este mês, ou deste mês em diante
+         * (atualiza padrão da conta + limpa overrides futuros).
+         * @param {"mes"|"adiante"} escopo
+         */
+        function aplicarDiaFechamentoFatura(item, year, monthIdx, dia, escopo) {
+          const dim = daysInMonth(year, monthIdx);
+          const n = Math.min(Math.floor(Number(dia)), dim);
+          if (!Number.isFinite(n) || n < 1) return;
+          const cell = getCellContaPagar(year, monthIdx, item.id);
+          if (escopo === "adiante") {
+            item.diaFechamentoFatura = n;
+            limparOverrideFechamentoDesde(item.id, year, monthIdx);
+            cell.diaFechamentoFatura = null;
+            saveContasPagarCatalog();
+            saveContasPagarAnual();
+          } else {
+            cell.diaFechamentoFatura = n;
+            saveContasPagarAnual();
+          }
+        }
+
         /** Avanca mes/ano civil (parcelas e ciclos de fatura). */
         function avancarMesAnoContaPagar(y, mo, deltaMeses) {
           let m = mo + deltaMeses;
@@ -11537,7 +11581,7 @@
             inFech.value =
               cellF != null && Number.isFinite(cellF) ? String(Math.min(cellF, daysInMonth(year, monthIdx))) : "";
             inFech.title =
-              "Dia de fechamento neste mês da grade. No mês do lançamento: antes desse dia → coluna desse mês; a partir desse dia → coluna do mês seguinte. " +
+              "Dia de fechamento neste mês. Ao sair do campo, pergunta se aplica só neste mês ou deste mês em diante (atualiza o padrão da conta). " +
               (defF != null && Number.isFinite(Number(defF))
                 ? "Vazio neste mês = usa o padrão da conta (dia " + defF + ")."
                 : "Vazio = sem fechamento (lançamento segue só o mês da data).");
@@ -11561,9 +11605,29 @@
                   cF != null && Number.isFinite(cF) ? String(Math.min(cF, dim)) : "";
                 return;
               }
-              cell.diaFechamentoFatura = Math.min(n, dim);
-              saveContasPagarAnual();
-              inFech.value = String(cell.diaFechamentoFatura);
+              const diaNovo = Math.min(n, dim);
+              const diaAtual = diaFechamentoFaturaEfetivo(year, monthIdx, item);
+              // Sem mudança de fato no mês: só normaliza o campo (evita perguntar ao clicar fora).
+              if (diaAtual === diaNovo) {
+                inFech.value = String(diaNovo);
+                return;
+              }
+              const mesNome = MESES_CONTAS_PAGAR[monthIdx] + "/" + year;
+              const adiante = confirm(
+                'Fechamento dia ' +
+                  diaNovo +
+                  " em «" +
+                  item.nome +
+                  "».\n\n" +
+                  "OK = Deste mês em diante (" +
+                  mesNome +
+                  " e seguintes) — também atualiza o padrão da conta.\n\n" +
+                  "Cancelar = Só este mês (" +
+                  mesNome +
+                  ")."
+              );
+              aplicarDiaFechamentoFatura(item, year, monthIdx, diaNovo, adiante ? "adiante" : "mes");
+              inFech.value = String(diaNovo);
               renderContasPagar();
               atualizarHintDestinoFatura();
             });
