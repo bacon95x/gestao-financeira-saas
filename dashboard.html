@@ -1590,6 +1590,46 @@
           </div>
         </div>
 
+        <div
+          id="modal-fechamento-escopo"
+          class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="modal-fechamento-escopo-title"
+        >
+          <div
+            class="w-full max-w-sm rounded-2xl border border-bank-border bg-[#12121a] p-5 shadow-2xl"
+          >
+            <h2 id="modal-fechamento-escopo-title" class="text-base font-semibold text-white">
+              Salvar fechamento da fatura
+            </h2>
+            <p id="modal-fechamento-escopo-desc" class="mt-2 text-sm leading-relaxed text-zinc-400"></p>
+            <div class="mt-5 grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                id="btn-fechamento-escopo-cancelar"
+                class="rounded-xl border border-zinc-600/70 bg-transparent px-3 py-2.5 text-sm font-medium text-white transition hover:bg-white/5"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                id="btn-fechamento-escopo-mes"
+                class="rounded-xl bg-emerald-500 px-3 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-400"
+              >
+                Salvar só neste mês
+              </button>
+              <button
+                type="button"
+                id="btn-fechamento-escopo-adiante"
+                class="col-span-2 rounded-xl border border-emerald-500/70 bg-transparent px-3 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-500/10"
+              >
+                Salvar neste e nos meses seguintes
+              </button>
+            </div>
+          </div>
+        </div>
+
         <article
           class="rounded-2xl border border-bank-border bg-bank-card p-6 shadow-glow sm:p-8"
         >
@@ -5688,6 +5728,70 @@
             cell.diaFechamentoFatura = n;
             saveContasPagarAnual();
           }
+        }
+
+        /** @type {null | ((r: "cancel"|"mes"|"adiante") => void)} */
+        let fechamentoEscopoResolve = null;
+
+        function fecharModalFechamentoEscopo(resultado) {
+          const modal = document.getElementById("modal-fechamento-escopo");
+          if (modal) {
+            modal.classList.add("hidden");
+            modal.classList.remove("flex");
+          }
+          const resolve = fechamentoEscopoResolve;
+          fechamentoEscopoResolve = null;
+          if (resolve) resolve(resultado);
+        }
+
+        /**
+         * Modal com 3 ações: cancelar | só este mês | deste mês em diante.
+         * @returns {Promise<"cancel"|"mes"|"adiante">}
+         */
+        function perguntarEscopoFechamentoFatura(opts) {
+          const modal = document.getElementById("modal-fechamento-escopo");
+          const desc = document.getElementById("modal-fechamento-escopo-desc");
+          if (!modal || !desc) {
+            return Promise.resolve("mes");
+          }
+          if (fechamentoEscopoResolve) {
+            fecharModalFechamentoEscopo("cancel");
+          }
+          const nome = opts && opts.nomeConta ? String(opts.nomeConta) : "conta";
+          const dia = opts && opts.dia != null ? String(opts.dia) : "—";
+          const mes = opts && opts.mesNome ? String(opts.mesNome) : "este mês";
+          desc.textContent =
+            "Fechamento dia " +
+            dia +
+            " em «" +
+            nome +
+            "» (" +
+            mes +
+            "). Como deseja salvar?";
+          modal.classList.remove("hidden");
+          modal.classList.add("flex");
+          return new Promise((resolve) => {
+            fechamentoEscopoResolve = resolve;
+          });
+        }
+
+        function wireModalFechamentoEscopo() {
+          const modal = document.getElementById("modal-fechamento-escopo");
+          if (!modal || modal.dataset.bound === "1") return;
+          modal.dataset.bound = "1";
+          const btnCancel = document.getElementById("btn-fechamento-escopo-cancelar");
+          const btnMes = document.getElementById("btn-fechamento-escopo-mes");
+          const btnAdiante = document.getElementById("btn-fechamento-escopo-adiante");
+          if (btnCancel) btnCancel.addEventListener("click", () => fecharModalFechamentoEscopo("cancel"));
+          if (btnMes) btnMes.addEventListener("click", () => fecharModalFechamentoEscopo("mes"));
+          if (btnAdiante) btnAdiante.addEventListener("click", () => fecharModalFechamentoEscopo("adiante"));
+          modal.addEventListener("click", (e) => {
+            if (e.target === modal) fecharModalFechamentoEscopo("cancel");
+          });
+          document.addEventListener("keydown", (e) => {
+            if (e.key !== "Escape") return;
+            if (!modal.classList.contains("hidden")) fecharModalFechamentoEscopo("cancel");
+          });
         }
 
         /** Avanca mes/ano civil (parcelas e ciclos de fatura). */
@@ -11585,7 +11689,7 @@
               (defF != null && Number.isFinite(Number(defF))
                 ? "Vazio neste mês = usa o padrão da conta (dia " + defF + ")."
                 : "Vazio = sem fechamento (lançamento segue só o mês da data).");
-            inFech.addEventListener("blur", () => {
+            inFech.addEventListener("blur", async () => {
               const raw = inFech.value.trim();
               if (raw === "") {
                 cell.diaFechamentoFatura = null;
@@ -11613,20 +11717,17 @@
                 return;
               }
               const mesNome = MESES_CONTAS_PAGAR[monthIdx] + "/" + year;
-              const adiante = confirm(
-                'Fechamento dia ' +
-                  diaNovo +
-                  " em «" +
-                  item.nome +
-                  "».\n\n" +
-                  "OK = Deste mês em diante (" +
-                  mesNome +
-                  " e seguintes) — também atualiza o padrão da conta.\n\n" +
-                  "Cancelar = Só este mês (" +
-                  mesNome +
-                  ")."
-              );
-              aplicarDiaFechamentoFatura(item, year, monthIdx, diaNovo, adiante ? "adiante" : "mes");
+              const escolha = await perguntarEscopoFechamentoFatura({
+                nomeConta: item.nome,
+                dia: diaNovo,
+                mesNome,
+              });
+              if (escolha === "cancel") {
+                inFech.value =
+                  diaAtual != null && Number.isFinite(diaAtual) ? String(diaAtual) : "";
+                return;
+              }
+              aplicarDiaFechamentoFatura(item, year, monthIdx, diaNovo, escolha);
               inFech.value = String(diaNovo);
               renderContasPagar();
               atualizarHintDestinoFatura();
@@ -12230,6 +12331,7 @@
         document.getElementById("modal-renda-mes").addEventListener("click", (e) => {
           if (e.target.id === "modal-renda-mes") fecharModalRendaMes();
         });
+        wireModalFechamentoEscopo();
         document.getElementById("modal-renda-select-mes").addEventListener("change", sincModalRendaMesValorDoMesSelecionado);
         const selAnoModalRenda = document.getElementById("modal-renda-select-ano");
         if (selAnoModalRenda) {
