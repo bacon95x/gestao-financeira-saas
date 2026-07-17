@@ -5715,8 +5715,8 @@
          */
         function aplicarDiaFechamentoFatura(item, year, monthIdx, dia, escopo) {
           const dim = daysInMonth(year, monthIdx);
-          const n = Math.min(Math.floor(Number(dia)), dim);
-          if (!Number.isFinite(n) || n < 1) return;
+          const n = Math.floor(Number(dia));
+          if (!Number.isFinite(n) || n < 1 || n > 31) return;
           const cell = getCellContaPagar(year, monthIdx, item.id);
           if (escopo === "adiante") {
             item.diaFechamentoFatura = n;
@@ -5725,7 +5725,7 @@
             saveContasPagarCatalog();
             saveContasPagarAnual();
           } else {
-            cell.diaFechamentoFatura = n;
+            cell.diaFechamentoFatura = Math.min(n, dim);
             saveContasPagarAnual();
           }
         }
@@ -5768,10 +5768,10 @@
             "» (" +
             mes +
             "). Como deseja salvar?";
-          modal.classList.remove("hidden");
-          modal.classList.add("flex");
           return new Promise((resolve) => {
             fechamentoEscopoResolve = resolve;
+            modal.classList.remove("hidden");
+            modal.classList.add("flex");
           });
         }
 
@@ -11685,11 +11685,26 @@
             inFech.value =
               cellF != null && Number.isFinite(cellF) ? String(Math.min(cellF, daysInMonth(year, monthIdx))) : "";
             inFech.title =
-              "Dia de fechamento neste mês. Ao sair do campo, pergunta se aplica só neste mês ou deste mês em diante (atualiza o padrão da conta). " +
+              "Dia de fechamento neste mês. Ao editar, escolha se aplica só neste mês ou deste mês em diante (atualiza o padrão da conta). " +
               (defF != null && Number.isFinite(Number(defF))
                 ? "Vazio neste mês = usa o padrão da conta (dia " + defF + ")."
                 : "Vazio = sem fechamento (lançamento segue só o mês da data).");
-            inFech.addEventListener("blur", async () => {
+            let fechamentoTimer = null;
+            let fechamentoProcessando = false;
+            const fechamentoConfiguradoAoCriar =
+              cell.diaFechamentoFatura != null && Number.isFinite(Number(cell.diaFechamentoFatura))
+                ? Number(cell.diaFechamentoFatura)
+                : defF != null && Number.isFinite(Number(defF))
+                  ? Number(defF)
+                  : null;
+
+            const solicitarSalvarFechamento = async () => {
+              if (fechamentoTimer) {
+                window.clearTimeout(fechamentoTimer);
+                fechamentoTimer = null;
+              }
+              if (fechamentoProcessando || !inFech.isConnected) return;
+
               const raw = inFech.value.trim();
               if (raw === "") {
                 cell.diaFechamentoFatura = null;
@@ -11709,28 +11724,61 @@
                   cF != null && Number.isFinite(cF) ? String(Math.min(cF, dim)) : "";
                 return;
               }
-              const diaNovo = Math.min(n, dim);
               const diaAtual = diaFechamentoFaturaEfetivo(year, monthIdx, item);
-              // Sem mudança de fato no mês: só normaliza o campo (evita perguntar ao clicar fora).
-              if (diaAtual === diaNovo) {
-                inFech.value = String(diaNovo);
+              const diaConfiguradoAtual =
+                cell.diaFechamentoFatura != null && Number.isFinite(Number(cell.diaFechamentoFatura))
+                  ? Number(cell.diaFechamentoFatura)
+                  : item.diaFechamentoFatura != null && Number.isFinite(Number(item.diaFechamentoFatura))
+                    ? Number(item.diaFechamentoFatura)
+                    : null;
+              // Compara a configuração original (1–31), não o dia limitado pelo mês.
+              // Assim, em fevereiro, ainda é possível trocar o padrão de 28 para 31.
+              if (diaConfiguradoAtual === n) {
+                inFech.value = String(Math.min(n, dim));
                 return;
               }
               const mesNome = MESES_CONTAS_PAGAR[monthIdx] + "/" + year;
-              const escolha = await perguntarEscopoFechamentoFatura({
-                nomeConta: item.nome,
-                dia: diaNovo,
-                mesNome,
-              });
-              if (escolha === "cancel") {
-                inFech.value =
-                  diaAtual != null && Number.isFinite(diaAtual) ? String(diaAtual) : "";
-                return;
+              fechamentoProcessando = true;
+              inFech.disabled = true;
+              try {
+                const escolha = await perguntarEscopoFechamentoFatura({
+                  nomeConta: item.nome,
+                  dia: n,
+                  mesNome,
+                });
+                if (escolha === "cancel") {
+                  inFech.value =
+                    diaAtual != null && Number.isFinite(diaAtual) ? String(diaAtual) : "";
+                  inFech.disabled = false;
+                  return;
+                }
+                aplicarDiaFechamentoFatura(item, year, monthIdx, n, escolha);
+                renderContasPagar();
+                atualizarHintDestinoFatura();
+              } finally {
+                fechamentoProcessando = false;
+                if (inFech.isConnected) inFech.disabled = false;
               }
-              aplicarDiaFechamentoFatura(item, year, monthIdx, diaNovo, escolha);
-              inFech.value = String(diaNovo);
-              renderContasPagar();
-              atualizarHintDestinoFatura();
+            };
+
+            inFech.addEventListener("input", () => {
+              if (fechamentoTimer) window.clearTimeout(fechamentoTimer);
+              const raw = inFech.value.trim();
+              const n = parseInt(raw, 10);
+              if (!raw || !Number.isFinite(n) || n < 1 || n > 31) return;
+              if (n === fechamentoConfiguradoAoCriar) return;
+              // Abre logo após a pessoa terminar de digitar, sem depender de clicar fora.
+              fechamentoTimer = window.setTimeout(solicitarSalvarFechamento, 700);
+            });
+            inFech.addEventListener("change", solicitarSalvarFechamento);
+            inFech.addEventListener("blur", () => {
+              // O clique nos botões do modal também gera blur; a trava evita uma segunda solicitação.
+              window.setTimeout(solicitarSalvarFechamento, 0);
+            });
+            inFech.addEventListener("keydown", (e) => {
+              if (e.key !== "Enter") return;
+              e.preventDefault();
+              solicitarSalvarFechamento();
             });
             tdFech.appendChild(inFech);
 
