@@ -5674,16 +5674,50 @@
           };
         }
 
-        function diaFechamentoFaturaEfetivo(year, monthIdx, item) {
+        /** Dia configurado (1–31), antes de limitar pela quantidade de dias do mês. */
+        function diaFechamentoFaturaConfigurado(year, monthIdx, item) {
           const peek = peekCellContaPagar(year, monthIdx, item.id);
           const cVal = peek && peek.diaFechamentoFatura;
           const n = Number(cVal);
           if (Number.isFinite(n) && n >= 1 && n <= 31) {
-            return Math.min(Math.floor(n), daysInMonth(year, monthIdx));
+            return Math.floor(n);
           }
-          const def = item.diaFechamentoFatura;
+          let def = item.diaFechamentoFatura;
+          const historico = Array.isArray(item.historicoFechamentoFatura)
+            ? item.historicoFechamentoFatura
+                .filter(
+                  (h) =>
+                    h &&
+                    Number.isFinite(Number(h.year)) &&
+                    Number.isFinite(Number(h.month)) &&
+                    Number.isFinite(Number(h.dia))
+                )
+                .sort((a, b) => Number(a.year) * 12 + Number(a.month) - (Number(b.year) * 12 + Number(b.month)))
+            : [];
+          if (historico.length) {
+            const alvo = Number(year) * 12 + Number(monthIdx);
+            let regra = null;
+            historico.forEach((h) => {
+              if (Number(h.year) * 12 + Number(h.month) <= alvo) regra = h;
+            });
+            if (regra) {
+              def = Number(regra.dia);
+            } else if (
+              item.diaFechamentoFaturaBase != null &&
+              Number.isFinite(Number(item.diaFechamentoFaturaBase))
+            ) {
+              def = Number(item.diaFechamentoFaturaBase);
+            }
+          }
           if (def == null || !Number.isFinite(Number(def))) return null;
-          return Math.min(Number(def), daysInMonth(year, monthIdx));
+          const dia = Math.floor(Number(def));
+          return dia >= 1 && dia <= 31 ? dia : null;
+        }
+
+        function diaFechamentoFaturaEfetivo(year, monthIdx, item) {
+          const dia = diaFechamentoFaturaConfigurado(year, monthIdx, item);
+          if (dia == null) return null;
+          return Math.min(dia, daysInMonth(year, monthIdx));
         }
 
         /**
@@ -5719,6 +5753,21 @@
           if (!Number.isFinite(n) || n < 1 || n > 31) return;
           const cell = getCellContaPagar(year, monthIdx, item.id);
           if (escopo === "adiante") {
+            if (!Array.isArray(item.historicoFechamentoFatura) || !item.historicoFechamentoFatura.length) {
+              const anterior = item.diaFechamentoFatura;
+              item.diaFechamentoFaturaBase =
+                anterior != null && Number.isFinite(Number(anterior)) ? Number(anterior) : null;
+              item.historicoFechamentoFatura = [];
+            }
+            const inicioNovo = year * 12 + monthIdx;
+            // “Deste mês em diante” substitui regras futuras já existentes.
+            item.historicoFechamentoFatura = item.historicoFechamentoFatura.filter(
+              (h) => Number(h.year) * 12 + Number(h.month) < inicioNovo
+            );
+            item.historicoFechamentoFatura.push({ year, month: monthIdx, dia: n });
+            item.historicoFechamentoFatura.sort(
+              (a, b) => Number(a.year) * 12 + Number(a.month) - (Number(b.year) * 12 + Number(b.month))
+            );
             item.diaFechamentoFatura = n;
             limparOverrideFechamentoDesde(item.id, year, monthIdx);
             cell.diaFechamentoFatura = null;
@@ -11687,10 +11736,7 @@
             inFech.className = inputCls + " max-w-[3.75rem] tabular-nums text-center";
             inFech.placeholder = "";
             const defF = item.diaFechamentoFatura;
-            const cellF =
-              cell.diaFechamentoFatura != null && Number.isFinite(Number(cell.diaFechamentoFatura))
-                ? Number(cell.diaFechamentoFatura)
-                : defF;
+            const cellF = diaFechamentoFaturaConfigurado(year, monthIdx, item);
             inFech.value =
               cellF != null && Number.isFinite(cellF) ? String(Math.min(cellF, daysInMonth(year, monthIdx))) : "";
             inFech.title =
@@ -11698,20 +11744,9 @@
               (defF != null && Number.isFinite(Number(defF))
                 ? "Vazio neste mês = usa o padrão da conta (dia " + defF + ")."
                 : "Vazio = sem fechamento (lançamento segue só o mês da data).");
-            let fechamentoTimer = null;
             let fechamentoProcessando = false;
-            const fechamentoConfiguradoAoCriar =
-              cell.diaFechamentoFatura != null && Number.isFinite(Number(cell.diaFechamentoFatura))
-                ? Number(cell.diaFechamentoFatura)
-                : defF != null && Number.isFinite(Number(defF))
-                  ? Number(defF)
-                  : null;
 
             const solicitarSalvarFechamento = async () => {
-              if (fechamentoTimer) {
-                window.clearTimeout(fechamentoTimer);
-                fechamentoTimer = null;
-              }
               if (fechamentoProcessando || !inFech.isConnected) return;
 
               const raw = inFech.value.trim();
@@ -11734,12 +11769,7 @@
                 return;
               }
               const diaAtual = diaFechamentoFaturaEfetivo(year, monthIdx, item);
-              const diaConfiguradoAtual =
-                cell.diaFechamentoFatura != null && Number.isFinite(Number(cell.diaFechamentoFatura))
-                  ? Number(cell.diaFechamentoFatura)
-                  : item.diaFechamentoFatura != null && Number.isFinite(Number(item.diaFechamentoFatura))
-                    ? Number(item.diaFechamentoFatura)
-                    : null;
+              const diaConfiguradoAtual = diaFechamentoFaturaConfigurado(year, monthIdx, item);
               // Compara a configuração original (1–31), não o dia limitado pelo mês.
               // Assim, em fevereiro, ainda é possível trocar o padrão de 28 para 31.
               if (diaConfiguradoAtual === n) {
@@ -11770,23 +11800,8 @@
               }
             };
 
-            inFech.addEventListener("input", () => {
-              if (fechamentoTimer) window.clearTimeout(fechamentoTimer);
-              const raw = inFech.value.trim();
-              const n = parseInt(raw, 10);
-              if (!raw || !Number.isFinite(n) || n < 1 || n > 31) return;
-              if (n === fechamentoConfiguradoAoCriar) return;
-              // Abre logo após a pessoa terminar de digitar, sem depender de clicar fora.
-              fechamentoTimer = window.setTimeout(solicitarSalvarFechamento, 700);
-            });
-            inFech.addEventListener("change", solicitarSalvarFechamento);
             inFech.addEventListener("blur", () => {
-              // O clique nos botões do modal também gera blur; a trava evita uma segunda solicitação.
-              window.setTimeout(solicitarSalvarFechamento, 0);
-            });
-            inFech.addEventListener("keydown", (e) => {
-              if (e.key !== "Enter") return;
-              e.preventDefault();
+              // Só confirma depois que a pessoa termina de editar e sai do campo.
               solicitarSalvarFechamento();
             });
             tdFech.appendChild(inFech);
