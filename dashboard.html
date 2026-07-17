@@ -5754,6 +5754,11 @@
           if (!modal || !desc) {
             return Promise.resolve("mes");
           }
+          // O HTML do modal nasce dentro de um tab-panel. Fora daquela aba, o
+          // ancestral fica `hidden`; mover para o body garante que o overlay apareça.
+          if (modal.parentElement !== document.body) {
+            document.body.appendChild(modal);
+          }
           if (fechamentoEscopoResolve) {
             fecharModalFechamentoEscopo("cancel");
           }
@@ -5778,6 +5783,10 @@
         function wireModalFechamentoEscopo() {
           const modal = document.getElementById("modal-fechamento-escopo");
           if (!modal || modal.dataset.bound === "1") return;
+          // Não deixe o modal preso dentro de uma aba que pode estar oculta.
+          if (modal.parentElement !== document.body) {
+            document.body.appendChild(modal);
+          }
           modal.dataset.bound = "1";
           const btnCancel = document.getElementById("btn-fechamento-escopo-cancelar");
           const btnMes = document.getElementById("btn-fechamento-escopo-mes");
