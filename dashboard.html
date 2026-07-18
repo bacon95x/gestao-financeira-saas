@@ -601,6 +601,64 @@
         color: #0e7490 !important;
       }
 
+      /* Patrimônio: formulário aporte/venda — layout estável (evita grid Tailwind com vírgula quebrando a coluna Valor) */
+      #panel-patrimonio .pat-aporte-form-row {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        align-items: stretch;
+      }
+      #panel-patrimonio .pat-aporte-form-row > .pat-aporte-campo {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        min-width: 0;
+        width: 100%;
+      }
+      #panel-patrimonio .pat-aporte-form-row .pat-aporte-campo-label {
+        display: block;
+        font-size: 10px;
+        line-height: 1.25;
+        color: #8b8b9e;
+      }
+      #panel-patrimonio .pat-aporte-form-row .pat-aporte-campo-ctrl {
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+        min-height: 2.25rem;
+      }
+      #panel-patrimonio .pat-aporte-form-row .pat-aporte-btn {
+        width: 100%;
+        min-height: 2.25rem;
+        box-sizing: border-box;
+      }
+      @media (min-width: 640px) {
+        #panel-patrimonio .pat-aporte-form-row {
+          flex-direction: row;
+          flex-wrap: nowrap;
+          align-items: flex-end;
+          gap: 0.75rem;
+        }
+        #panel-patrimonio .pat-aporte-form-row > .pat-aporte-campo-tipo {
+          flex: 0 0 7.5rem;
+          width: 7.5rem;
+        }
+        #panel-patrimonio .pat-aporte-form-row > .pat-aporte-campo-valor {
+          flex: 1 1 12rem;
+          min-width: 10rem;
+          width: auto;
+        }
+        #panel-patrimonio .pat-aporte-form-row > .pat-aporte-campo-data {
+          flex: 0 0 11rem;
+          width: 11rem;
+        }
+        #panel-patrimonio .pat-aporte-form-row > .pat-aporte-btn {
+          flex: 0 0 auto;
+          width: auto;
+          white-space: nowrap;
+        }
+      }
+
       /* Lançamentos: sidebar «Totais do mês por categoria» — fundos claros (bg-bank-bg/50 via global) e hierarquia de texto */
       html[data-appearance="light"] body.page-bg #panel-lancamentos aside {
         background-color: #ffffff !important;
@@ -8420,14 +8478,14 @@
             if (editando) {
               btn.textContent = tipo === "venda" ? "Salvar venda" : "Salvar aporte";
               btn.className =
-                "shrink-0 rounded-lg px-3 py-2 text-xs font-semibold text-white " +
+                "pat-aporte-btn rounded-lg px-3 py-2 text-xs font-semibold text-white " +
                 (tipo === "venda"
                   ? "bg-amber-600/90 hover:bg-amber-600"
                   : "bg-violet-600/85 hover:bg-violet-600");
             } else {
               btn.textContent = tipo === "venda" ? "Registrar venda" : "Somar aporte";
               btn.className =
-                "shrink-0 rounded-lg px-3 py-2 text-xs font-semibold text-white " +
+                "pat-aporte-btn rounded-lg px-3 py-2 text-xs font-semibold text-white " +
                 (tipo === "venda"
                   ? "bg-amber-600/90 hover:bg-amber-600"
                   : "bg-violet-600/85 hover:bg-violet-600");
@@ -8543,29 +8601,32 @@
               '<p class="mb-2 hidden text-[11px] text-amber-200/90" data-pat-aporte-disp="' +
               escapeHtml(it.id) +
               '"></p>' +
-              '<div class="grid grid-cols-1 gap-2 sm:grid-cols-[7.5rem_minmax(0,1fr)_10rem_auto] sm:items-end">' +
-              '<label class="block min-w-0"><span class="mb-1 block text-[10px] text-bank-muted">Tipo</span>' +
+              '<div class="pat-aporte-form-row">' +
+              '<div class="pat-aporte-campo pat-aporte-campo-tipo">' +
+              '<span class="pat-aporte-campo-label">Tipo</span>' +
               '<select data-pat-aporte-tipo="' +
               escapeHtml(it.id) +
-              '" class="w-full rounded-lg border border-bank-border bg-bank-bg px-2 py-1.5 text-sm text-white">' +
+              '" class="pat-aporte-campo-ctrl rounded-lg border border-bank-border bg-bank-bg px-2 py-1.5 text-sm text-white">' +
               '<option value="compra">Compra</option>' +
               '<option value="venda">Venda</option>' +
-              "</select></label>" +
-              '<label class="block min-w-0"><span class="mb-1 block text-[10px] text-bank-muted">Valor</span>' +
+              "</select></div>" +
+              '<div class="pat-aporte-campo pat-aporte-campo-valor">' +
+              '<span class="pat-aporte-campo-label">Valor</span>' +
               '<input type="text" inputmode="decimal" autocomplete="off" data-pat-aporte-valor="' +
               escapeHtml(it.id) +
-              '" class="input-moeda-br w-full rounded-lg border border-bank-border bg-bank-bg px-2 py-1.5 text-sm tabular-nums text-white" placeholder="R$ 0,00" />' +
-              "</label>" +
-              '<label class="block min-w-0"><span class="mb-1 block text-[10px] text-bank-muted">Data</span>' +
+              '" class="pat-aporte-campo-ctrl input-moeda-br rounded-lg border border-bank-border bg-bank-bg px-2 py-1.5 text-sm tabular-nums text-white" placeholder="0,00" />' +
+              "</div>" +
+              '<div class="pat-aporte-campo pat-aporte-campo-data">' +
+              '<span class="pat-aporte-campo-label">Data</span>' +
               '<input type="date" data-pat-aporte-data="' +
               escapeHtml(it.id) +
-              '" class="w-full rounded-lg border border-bank-border bg-bank-bg px-2 py-1.5 text-sm text-white" value="' +
+              '" class="pat-aporte-campo-ctrl rounded-lg border border-bank-border bg-bank-bg px-2 py-1.5 text-sm text-white" value="' +
               escapeHtml(hojeISO()) +
               '" />' +
-              "</label>" +
+              "</div>" +
               '<button type="button" data-pat-aporte-add="' +
               escapeHtml(it.id) +
-              '" class="w-full shrink-0 rounded-lg bg-violet-600/85 px-3 py-2 text-xs font-semibold text-white hover:bg-violet-600 sm:w-auto">Somar aporte</button>' +
+              '" class="pat-aporte-btn rounded-lg bg-violet-600/85 px-3 py-2 text-xs font-semibold text-white hover:bg-violet-600">Somar aporte</button>' +
               "</div>" +
               '<p class="mt-2 hidden text-xs text-red-300" data-pat-aporte-err="' +
               escapeHtml(it.id) +
