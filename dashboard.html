@@ -601,19 +601,29 @@
         color: #0e7490 !important;
       }
 
-      /* Patrimônio: formulário aporte/venda — layout estável (evita grid Tailwind com vírgula quebrando a coluna Valor) */
+      /* Patrimônio: formulário aporte/venda — cabe no card (sem estourar a borda tracejada) */
+      #panel-patrimonio .pat-aporte-box {
+        max-width: 100%;
+        min-width: 0;
+        overflow: hidden;
+        box-sizing: border-box;
+      }
       #panel-patrimonio .pat-aporte-form-row {
-        display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
-        align-items: stretch;
+        display: grid;
+        grid-template-columns: minmax(0, 7.5rem) minmax(0, 1fr);
+        gap: 0.65rem 0.75rem;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        align-items: end;
+        box-sizing: border-box;
       }
       #panel-patrimonio .pat-aporte-form-row > .pat-aporte-campo {
         display: flex;
         flex-direction: column;
         gap: 0.25rem;
         min-width: 0;
-        width: 100%;
+        max-width: 100%;
       }
       #panel-patrimonio .pat-aporte-form-row .pat-aporte-campo-label {
         display: block;
@@ -624,39 +634,19 @@
       #panel-patrimonio .pat-aporte-form-row .pat-aporte-campo-ctrl {
         display: block;
         width: 100%;
+        max-width: 100%;
+        min-width: 0;
         box-sizing: border-box;
         min-height: 2.25rem;
+      }
+      #panel-patrimonio .pat-aporte-form-row input[type="date"].pat-aporte-campo-ctrl {
+        min-width: 0;
       }
       #panel-patrimonio .pat-aporte-form-row .pat-aporte-btn {
         width: 100%;
         min-height: 2.25rem;
         box-sizing: border-box;
-      }
-      @media (min-width: 640px) {
-        #panel-patrimonio .pat-aporte-form-row {
-          flex-direction: row;
-          flex-wrap: nowrap;
-          align-items: flex-end;
-          gap: 0.75rem;
-        }
-        #panel-patrimonio .pat-aporte-form-row > .pat-aporte-campo-tipo {
-          flex: 0 0 7.5rem;
-          width: 7.5rem;
-        }
-        #panel-patrimonio .pat-aporte-form-row > .pat-aporte-campo-valor {
-          flex: 1 1 12rem;
-          min-width: 10rem;
-          width: auto;
-        }
-        #panel-patrimonio .pat-aporte-form-row > .pat-aporte-campo-data {
-          flex: 0 0 11rem;
-          width: 11rem;
-        }
-        #panel-patrimonio .pat-aporte-form-row > .pat-aporte-btn {
-          flex: 0 0 auto;
-          width: auto;
-          white-space: nowrap;
-        }
+        white-space: nowrap;
       }
 
       /* Lançamentos: sidebar «Totais do mês por categoria» — fundos claros (bg-bank-bg/50 via global) e hierarquia de texto */
@@ -8585,7 +8575,7 @@
               ? '<span class="ml-2 inline-flex rounded-md border border-cyan-500/35 bg-cyan-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-cyan-200/90">Planejado</span>'
               : "";
             const formAporte =
-              '<div class="mt-3 rounded-lg border border-dashed border-violet-500/35 bg-violet-500/5 p-3">' +
+              '<div class="pat-aporte-box mt-3 rounded-lg border border-dashed border-violet-500/35 bg-violet-500/5 p-3">' +
               '<div class="mb-2 flex flex-wrap items-center justify-between gap-2">' +
               '<p class="text-xs font-medium text-violet-200/95" data-pat-aporte-titulo="' +
               escapeHtml(it.id) +
