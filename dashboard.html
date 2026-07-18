@@ -1591,40 +1591,40 @@
         </div>
 
         <div
-          id="modal-fechamento-escopo"
+          id="modal-escopo-mes"
           class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
           role="dialog"
           aria-modal="true"
-          aria-labelledby="modal-fechamento-escopo-title"
+          aria-labelledby="modal-escopo-mes-title"
         >
           <div
             class="w-full max-w-sm rounded-2xl border border-bank-border bg-[#12121a] p-5 shadow-2xl"
           >
-            <h2 id="modal-fechamento-escopo-title" class="text-base font-semibold text-white">
-              Salvar fechamento da fatura
+            <h2 id="modal-escopo-mes-title" class="text-base font-semibold text-white">
+              Escolher escopo
             </h2>
-            <p id="modal-fechamento-escopo-desc" class="mt-2 text-sm leading-relaxed text-zinc-400"></p>
+            <p id="modal-escopo-mes-desc" class="mt-2 text-sm leading-relaxed text-zinc-400"></p>
             <div class="mt-5 grid grid-cols-2 gap-2">
               <button
                 type="button"
-                id="btn-fechamento-escopo-cancelar"
+                id="btn-escopo-mes-cancelar"
                 class="rounded-xl border border-zinc-600/70 bg-transparent px-3 py-2.5 text-sm font-medium text-white transition hover:bg-white/5"
               >
                 Cancelar
               </button>
               <button
                 type="button"
-                id="btn-fechamento-escopo-mes"
+                id="btn-escopo-mes-mes"
                 class="rounded-xl bg-emerald-500 px-3 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-400"
               >
-                Salvar só neste mês
+                Só neste mês
               </button>
               <button
                 type="button"
-                id="btn-fechamento-escopo-adiante"
+                id="btn-escopo-mes-adiante"
                 class="col-span-2 rounded-xl border border-emerald-500/70 bg-transparent px-3 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-500/10"
               >
-                Salvar neste e nos meses seguintes
+                Neste e nos meses seguintes
               </button>
             </div>
           </div>
@@ -2785,7 +2785,7 @@
                     <span class="font-medium text-cyan-200/95">Planejado (opcional)</span>
                     <span class="mt-0.5 block text-xs text-bank-muted">
                       Marque se ainda não há valor: você cria só o nome e depois lança aportes. Em qualquer
-                      investimento, novos aportes somam na mesma fatia — use o bloco «Somar aporte» no card.
+                      investimento, use Compra (somar aporte) ou Venda no card — como em Meus ativos.
                     </span>
                   </span>
                 </label>
@@ -4420,6 +4420,30 @@
           }
         }
 
+        /** Remove a linha no índice a partir do mês seguinte (não altera meses anteriores). */
+        function excluirLinhaJurosNosMesesSeguintes(fromYear, fromMonthIdx, linhaIndex) {
+          let y = fromYear;
+          let m = fromMonthIdx + 1;
+          if (m > 11) {
+            m = 0;
+            y++;
+          }
+          const maxMeses = 12 * 15;
+          for (let step = 0; step < maxMeses; step++) {
+            const k = chaveCalendarioJuros(y, m);
+            const linhas = calendarioJurosPorMes[k];
+            if (Array.isArray(linhas) && linhaIndex >= 0 && linhaIndex < linhas.length) {
+              linhas.splice(linhaIndex, 1);
+              if (!linhas.length) delete calendarioJurosPorMes[k];
+            }
+            m++;
+            if (m > 11) {
+              m = 0;
+              y++;
+            }
+          }
+        }
+
         function forEachCalendarioJurosLinha(callback) {
           Object.keys(calendarioJurosPorMes).forEach((key) => {
             const arr = calendarioJurosPorMes[key];
@@ -4663,21 +4687,82 @@
             btnEd.className =
               "rounded-lg border border-amber-500/35 px-2 py-1 text-[11px] text-amber-200 hover:bg-amber-500/10";
             btnEd.textContent = "Editar";
-            btnEd.title = "Focar campos desta linha";
-            btnEd.addEventListener("click", () => {
-              tr.classList.add("ring-2", "ring-amber-500/40");
-              inJ.focus();
-              setTimeout(() => tr.classList.remove("ring-2", "ring-amber-500/40"), 1200);
+            btnEd.title = "Salvar esta linha só neste mês ou também nos meses seguintes";
+            btnEd.addEventListener("click", async () => {
+              if (row.congelado) {
+                alert("Descongele a linha (❄️) para editar e salvar com escopo.");
+                return;
+              }
+              const raw = inJ.value.trim();
+              row.juros =
+                raw === ""
+                  ? null
+                  : Number.isFinite(parseValorMonetarioLancamento(raw))
+                    ? parseValorMonetarioLancamento(raw)
+                    : row.juros;
+              row.oQueE = inQ.value;
+              row.quando = inD.value;
+              row.origem = selO.value || "";
+              const mesNome = (MESES_CONTAS_PAGAR[mo] || "") + "/" + y;
+              const rotulo =
+                (row.oQueE && String(row.oQueE).trim()) ||
+                (row.origem && String(row.origem).trim()) ||
+                "esta linha";
+              const escolha = await perguntarEscopoMes({
+                titulo: "Salvar juros / taxas",
+                texto:
+                  "Salvar «" +
+                  rotulo +
+                  "» em " +
+                  mesNome +
+                  ". Como deseja aplicar?",
+                rotuloMes: "Salvar só neste mês",
+                rotuloAdiante: "Salvar neste e nos meses seguintes",
+              });
+              if (escolha === "cancel") return;
+              if (escolha === "adiante") {
+                row.congelado = true;
+                propagarLinhaJurosCongeladaAosMesesSeguintes(y, mo, rowIdx, {
+                  juros: row.juros,
+                  oQueE: row.oQueE,
+                  quando: row.quando,
+                  origem: row.origem,
+                });
+              }
+              saveCalendarioJuros();
+              renderCalendarioJurosTabela();
+              updateDashboard();
+              lucide.createIcons();
             });
             const btnEx = document.createElement("button");
             btnEx.type = "button";
             btnEx.className =
               "rounded-lg border border-rose-500/35 px-2 py-1 text-[11px] text-rose-300 hover:bg-rose-500/10";
             btnEx.textContent = "Excluir";
-            btnEx.addEventListener("click", () => {
-              if (!confirm("Excluir esta linha?")) return;
+            btnEx.title = "Excluir só neste mês ou também nos meses seguintes";
+            btnEx.addEventListener("click", async () => {
+              const mesNome = (MESES_CONTAS_PAGAR[mo] || "") + "/" + y;
+              const rotulo =
+                (row.oQueE && String(row.oQueE).trim()) ||
+                (row.origem && String(row.origem).trim()) ||
+                "esta linha";
+              const escolha = await perguntarEscopoMes({
+                titulo: "Excluir juros / taxas",
+                texto:
+                  "Excluir «" +
+                  rotulo +
+                  "» em " +
+                  mesNome +
+                  ". Como deseja aplicar?",
+                rotuloMes: "Excluir só neste mês",
+                rotuloAdiante: "Excluir neste e nos meses seguintes",
+              });
+              if (escolha === "cancel") return;
               const k = chaveCalendarioJuros(y, mo);
               calendarioJurosPorMes[k] = linhasMes.filter((x) => x.id !== row.id);
+              if (escolha === "adiante") {
+                excluirLinhaJurosNosMesesSeguintes(y, mo, rowIdx);
+              }
               saveCalendarioJuros();
               renderCalendarioJurosTabela();
               updateDashboard();
@@ -5780,26 +5865,29 @@
         }
 
         /** @type {null | ((r: "cancel"|"mes"|"adiante") => void)} */
-        let fechamentoEscopoResolve = null;
+        let escopoMesResolve = null;
 
-        function fecharModalFechamentoEscopo(resultado) {
-          const modal = document.getElementById("modal-fechamento-escopo");
+        function fecharModalEscopoMes(resultado) {
+          const modal = document.getElementById("modal-escopo-mes");
           if (modal) {
             modal.classList.add("hidden");
             modal.classList.remove("flex");
           }
-          const resolve = fechamentoEscopoResolve;
-          fechamentoEscopoResolve = null;
+          const resolve = escopoMesResolve;
+          escopoMesResolve = null;
           if (resolve) resolve(resultado);
         }
 
         /**
-         * Modal com 3 ações: cancelar | só este mês | deste mês em diante.
+         * Modal genérico: cancelar | só este mês | deste mês em diante.
          * @returns {Promise<"cancel"|"mes"|"adiante">}
          */
-        function perguntarEscopoFechamentoFatura(opts) {
-          const modal = document.getElementById("modal-fechamento-escopo");
-          const desc = document.getElementById("modal-fechamento-escopo-desc");
+        function perguntarEscopoMes(opts) {
+          const modal = document.getElementById("modal-escopo-mes");
+          const title = document.getElementById("modal-escopo-mes-title");
+          const desc = document.getElementById("modal-escopo-mes-desc");
+          const btnMes = document.getElementById("btn-escopo-mes-mes");
+          const btnAdiante = document.getElementById("btn-escopo-mes-adiante");
           if (!modal || !desc) {
             return Promise.resolve("mes");
           }
@@ -5808,47 +5896,62 @@
           if (modal.parentElement !== document.body) {
             document.body.appendChild(modal);
           }
-          if (fechamentoEscopoResolve) {
-            fecharModalFechamentoEscopo("cancel");
+          if (escopoMesResolve) {
+            fecharModalEscopoMes("cancel");
           }
-          const nome = opts && opts.nomeConta ? String(opts.nomeConta) : "conta";
-          const dia = opts && opts.dia != null ? String(opts.dia) : "—";
-          const mes = opts && opts.mesNome ? String(opts.mesNome) : "este mês";
-          desc.textContent =
-            "Fechamento dia " +
-            dia +
-            " em «" +
-            nome +
-            "» (" +
-            mes +
-            "). Como deseja salvar?";
+          if (title) title.textContent = (opts && opts.titulo) || "Escolher escopo";
+          desc.textContent = (opts && opts.texto) || "Como deseja aplicar?";
+          if (btnMes) btnMes.textContent = (opts && opts.rotuloMes) || "Só neste mês";
+          if (btnAdiante) {
+            btnAdiante.textContent =
+              (opts && opts.rotuloAdiante) || "Neste e nos meses seguintes";
+          }
           return new Promise((resolve) => {
-            fechamentoEscopoResolve = resolve;
+            escopoMesResolve = resolve;
             modal.classList.remove("hidden");
             modal.classList.add("flex");
           });
         }
 
+        function perguntarEscopoFechamentoFatura(opts) {
+          const nome = opts && opts.nomeConta ? String(opts.nomeConta) : "conta";
+          const dia = opts && opts.dia != null ? String(opts.dia) : "—";
+          const mes = opts && opts.mesNome ? String(opts.mesNome) : "este mês";
+          return perguntarEscopoMes({
+            titulo: "Salvar fechamento da fatura",
+            texto:
+              "Fechamento dia " +
+              dia +
+              " em «" +
+              nome +
+              "» (" +
+              mes +
+              "). Como deseja salvar?",
+            rotuloMes: "Salvar só neste mês",
+            rotuloAdiante: "Salvar neste e nos meses seguintes",
+          });
+        }
+
         function wireModalFechamentoEscopo() {
-          const modal = document.getElementById("modal-fechamento-escopo");
+          const modal = document.getElementById("modal-escopo-mes");
           if (!modal || modal.dataset.bound === "1") return;
           // Não deixe o modal preso dentro de uma aba que pode estar oculta.
           if (modal.parentElement !== document.body) {
             document.body.appendChild(modal);
           }
           modal.dataset.bound = "1";
-          const btnCancel = document.getElementById("btn-fechamento-escopo-cancelar");
-          const btnMes = document.getElementById("btn-fechamento-escopo-mes");
-          const btnAdiante = document.getElementById("btn-fechamento-escopo-adiante");
-          if (btnCancel) btnCancel.addEventListener("click", () => fecharModalFechamentoEscopo("cancel"));
-          if (btnMes) btnMes.addEventListener("click", () => fecharModalFechamentoEscopo("mes"));
-          if (btnAdiante) btnAdiante.addEventListener("click", () => fecharModalFechamentoEscopo("adiante"));
+          const btnCancel = document.getElementById("btn-escopo-mes-cancelar");
+          const btnMes = document.getElementById("btn-escopo-mes-mes");
+          const btnAdiante = document.getElementById("btn-escopo-mes-adiante");
+          if (btnCancel) btnCancel.addEventListener("click", () => fecharModalEscopoMes("cancel"));
+          if (btnMes) btnMes.addEventListener("click", () => fecharModalEscopoMes("mes"));
+          if (btnAdiante) btnAdiante.addEventListener("click", () => fecharModalEscopoMes("adiante"));
           modal.addEventListener("click", (e) => {
-            if (e.target === modal) fecharModalFechamentoEscopo("cancel");
+            if (e.target === modal) fecharModalEscopoMes("cancel");
           });
           document.addEventListener("keydown", (e) => {
             if (e.key !== "Escape") return;
-            if (!modal.classList.contains("hidden")) fecharModalFechamentoEscopo("cancel");
+            if (!modal.classList.contains("hidden")) fecharModalEscopoMes("cancel");
           });
         }
 
@@ -8102,6 +8205,23 @@
           }, 0);
         }
 
+        /** Total disponível para venda, opcionalmente ignorando o aporte em edição. */
+        function patrimonioDisponivelParaVenda(p, excluirAporteId) {
+          if (!p || !Array.isArray(p.aportes)) return 0;
+          return p.aportes.reduce((s, a) => {
+            if (excluirAporteId && a.id === excluirAporteId) return s;
+            const v = Number(a.valor);
+            return s + (Number.isFinite(v) ? v : 0);
+          }, 0);
+        }
+
+        /** @type {null | { posId: string, aporteId: string }} */
+        let patrimonioEditando = null;
+
+        function patrimonioLimparEdicao() {
+          patrimonioEditando = null;
+        }
+
         function patrimonioDataMaisRecente(p) {
           let best = "";
           (p.aportes || []).forEach((a) => {
@@ -8190,6 +8310,9 @@
           const p = patrimonioItens.find((x) => x.id === posId);
           if (!p || !p.aportes) return;
           p.aportes = p.aportes.filter((a) => a.id !== aporteId);
+          if (patrimonioEditando && patrimonioEditando.posId === posId && patrimonioEditando.aporteId === aporteId) {
+            patrimonioLimparEdicao();
+          }
           if (p.aportes.length === 0) {
             patrimonioItens = patrimonioItens.filter((x) => x.id !== posId);
           }
@@ -8197,30 +8320,137 @@
           renderPatrimonioUI();
         }
 
-        function patrimonioAdicionarAporte(posId, valorRaw, dataIso, errEl) {
+        /**
+         * Compra = valor positivo; Venda = valor negativo.
+         * Em edição, atualiza o aporte existente.
+         */
+        function patrimonioSalvarMovimento(posId, tipo, valorRaw, dataIso, errEl) {
           const p = patrimonioItens.find((x) => x.id === posId);
           if (!p) return false;
-          const valor = parseValorMonetarioLancamento(String(valorRaw || "").trim());
+          const abs = Math.abs(parseValorMonetarioLancamento(String(valorRaw || "").trim()));
           const data = String(dataIso || "").trim();
-          if (!Number.isFinite(valor) || valor === 0) {
+          const isVenda = tipo === "venda";
+          if (!Number.isFinite(abs) || abs <= 0) {
             if (errEl) {
-              errEl.textContent = "Informe um valor diferente de zero para o aporte.";
+              errEl.textContent = isVenda
+                ? "Informe o valor da venda (maior que zero)."
+                : "Informe um valor maior que zero para o aporte.";
               errEl.classList.remove("hidden");
             }
             return false;
           }
           if (!/^\d{4}-\d{2}-\d{2}$/.test(data)) {
             if (errEl) {
-              errEl.textContent = "Selecione a data do aporte.";
+              errEl.textContent = isVenda ? "Selecione a data da venda." : "Selecione a data do aporte.";
               errEl.classList.remove("hidden");
             }
             return false;
           }
+          const editId =
+            patrimonioEditando && patrimonioEditando.posId === posId
+              ? patrimonioEditando.aporteId
+              : null;
+          if (isVenda) {
+            const disp = patrimonioDisponivelParaVenda(p, editId);
+            if (abs > disp + 1e-8) {
+              if (errEl) {
+                errEl.textContent =
+                  "Valor maior que o disponível nesta posição (" + formatMoney(disp) + ").";
+                errEl.classList.remove("hidden");
+              }
+              return false;
+            }
+          }
+          const valorAssinado = isVenda ? -abs : abs;
           if (!p.aportes) p.aportes = [];
-          p.aportes.push({ id: uid(), valor, data });
+          if (editId) {
+            const ap = p.aportes.find((a) => a.id === editId);
+            if (!ap) {
+              if (errEl) {
+                errEl.textContent = "Movimento não encontrado para editar.";
+                errEl.classList.remove("hidden");
+              }
+              return false;
+            }
+            ap.valor = valorAssinado;
+            ap.data = data;
+            patrimonioLimparEdicao();
+          } else {
+            p.aportes.push({ id: uid(), valor: valorAssinado, data });
+          }
           patrimonioSave();
           renderPatrimonioUI();
           return true;
+        }
+
+        function patrimonioIniciarEdicaoAporte(posId, aporteId) {
+          const p = patrimonioItens.find((x) => x.id === posId);
+          if (!p || !p.aportes) return;
+          const ap = p.aportes.find((a) => a.id === aporteId);
+          if (!ap) return;
+          patrimonioEditando = { posId, aporteId };
+          renderPatrimonioUI();
+          const panel = document.getElementById("panel-patrimonio");
+          if (!panel) return;
+          const tipoEl = panel.querySelector('[data-pat-aporte-tipo="' + posId + '"]');
+          const vel = panel.querySelector('[data-pat-aporte-valor="' + posId + '"]');
+          const delEl = panel.querySelector('[data-pat-aporte-data="' + posId + '"]');
+          const v = Number(ap.valor);
+          if (tipoEl) tipoEl.value = Number.isFinite(v) && v < 0 ? "venda" : "compra";
+          if (vel) {
+            definirValorMoedaCampo(vel, Math.abs(Number.isFinite(v) ? v : 0));
+            prepararInputMoedaBR(vel);
+          }
+          if (delEl) delEl.value = ap.data || hojeISO();
+          patrimonioSyncTipoUI(posId);
+          if (vel) vel.focus();
+        }
+
+        function patrimonioSyncTipoUI(posId) {
+          const panel = document.getElementById("panel-patrimonio");
+          if (!panel) return;
+          const tipoEl = panel.querySelector('[data-pat-aporte-tipo="' + posId + '"]');
+          const btn = panel.querySelector('[data-pat-aporte-add="' + posId + '"]');
+          const titulo = panel.querySelector('[data-pat-aporte-titulo="' + posId + '"]');
+          const disp = panel.querySelector('[data-pat-aporte-disp="' + posId + '"]');
+          const tipo = tipoEl ? tipoEl.value : "compra";
+          const editando =
+            patrimonioEditando && patrimonioEditando.posId === posId ? patrimonioEditando.aporteId : null;
+          if (btn) {
+            if (editando) {
+              btn.textContent = tipo === "venda" ? "Salvar venda" : "Salvar aporte";
+              btn.className =
+                "shrink-0 rounded-lg px-3 py-2 text-xs font-semibold text-white " +
+                (tipo === "venda"
+                  ? "bg-amber-600/90 hover:bg-amber-600"
+                  : "bg-violet-600/85 hover:bg-violet-600");
+            } else {
+              btn.textContent = tipo === "venda" ? "Registrar venda" : "Somar aporte";
+              btn.className =
+                "shrink-0 rounded-lg px-3 py-2 text-xs font-semibold text-white " +
+                (tipo === "venda"
+                  ? "bg-amber-600/90 hover:bg-amber-600"
+                  : "bg-violet-600/85 hover:bg-violet-600");
+            }
+          }
+          if (titulo) {
+            titulo.textContent =
+              tipo === "venda"
+                ? "Nova venda neste investimento"
+                : editando
+                  ? "Editar movimento neste investimento"
+                  : "Nova compra / aporte neste investimento";
+          }
+          if (disp) {
+            const p = patrimonioItens.find((x) => x.id === posId);
+            const disponivel = p ? patrimonioDisponivelParaVenda(p, editando) : 0;
+            if (tipo === "venda") {
+              disp.textContent = "Disponível para venda: " + formatMoney(disponivel);
+              disp.classList.remove("hidden");
+            } else {
+              disp.classList.add("hidden");
+            }
+          }
         }
 
         function renderPatrimonioLista() {
@@ -8245,24 +8475,45 @@
             const card = document.createElement("div");
             card.className =
               "rounded-xl border border-bank-border/80 bg-bank-bg/40 p-4 ring-1 ring-white/[0.03]";
+            const editandoAqui =
+              patrimonioEditando && patrimonioEditando.posId === it.id
+                ? patrimonioEditando.aporteId
+                : null;
             const subLinhas = (it.aportes || [])
               .slice()
               .sort((a, b) => b.data.localeCompare(a.data))
               .map((ap) => {
+                const v = Number(ap.valor);
+                const isVenda = Number.isFinite(v) && v < 0;
+                const editandoLinha = editandoAqui === ap.id;
                 return (
-                  '<div class="flex flex-wrap items-center justify-between gap-2 border-b border-bank-border/40 py-2 last:border-0">' +
+                  '<div class="flex flex-wrap items-center justify-between gap-2 border-b border-bank-border/40 py-2 last:border-0' +
+                  (editandoLinha ? " rounded-lg bg-violet-500/10 px-1" : "") +
+                  '">' +
+                  '<div class="flex min-w-0 flex-wrap items-center gap-2">' +
                   '<span class="text-xs text-bank-muted">' +
                   escapeHtml(patrimonioFormatarDataPt(ap.data)) +
                   "</span>" +
-                  '<div class="flex items-center gap-2">' +
-                  '<span class="tabular-nums text-sm font-medium text-zinc-200">' +
-                  escapeHtml(formatMoney(ap.valor)) +
+                  (isVenda
+                    ? '<span class="rounded border border-amber-500/35 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-200">Venda</span>'
+                    : '<span class="rounded border border-violet-500/30 bg-violet-500/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-violet-200">Compra</span>') +
+                  "</div>" +
+                  '<div class="flex items-center gap-1.5">' +
+                  '<span class="tabular-nums text-sm font-medium ' +
+                  (isVenda ? "text-amber-200" : "text-zinc-200") +
+                  '">' +
+                  escapeHtml(formatMoney(v)) +
                   "</span>" +
+                  '<button type="button" data-pat-aporte-edit="' +
+                  escapeHtml(it.id + "::" + ap.id) +
+                  '" class="rounded p-1 text-violet-300 hover:bg-violet-500/15" title="Editar este movimento">' +
+                  '<i data-lucide="pencil" class="h-3.5 w-3.5"></i>' +
+                  "</button>" +
                   ((it.aportes || []).length > 1
                     ? '<button type="button" data-pat-aporte-del="' +
                       escapeHtml(it.id + "::" + ap.id) +
-                      '" class="rounded p-1 text-zinc-500 hover:bg-white/5 hover:text-red-300" title="Remover este aporte">' +
-                      '<i data-lucide="x" class="h-3.5 w-3.5"></i>' +
+                      '" class="rounded p-1 text-zinc-500 hover:bg-white/5 hover:text-red-300" title="Remover este movimento">' +
+                      '<i data-lucide="trash-2" class="h-3.5 w-3.5"></i>' +
                       "</button>"
                     : "") +
                   "</div>" +
@@ -8277,8 +8528,29 @@
               : "";
             const formAporte =
               '<div class="mt-3 rounded-lg border border-dashed border-violet-500/35 bg-violet-500/5 p-3">' +
-              '<p class="mb-2 text-xs font-medium text-violet-200/95">Somar ou subtrair outro aporte neste investimento</p>' +
-              '<div class="flex flex-col gap-2 sm:flex-row sm:items-end">' +
+              '<div class="mb-2 flex flex-wrap items-center justify-between gap-2">' +
+              '<p class="text-xs font-medium text-violet-200/95" data-pat-aporte-titulo="' +
+              escapeHtml(it.id) +
+              '">' +
+              (editandoAqui ? "Editar movimento neste investimento" : "Nova compra / aporte neste investimento") +
+              "</p>" +
+              (editandoAqui
+                ? '<button type="button" data-pat-aporte-cancel="' +
+                  escapeHtml(it.id) +
+                  '" class="rounded-lg border border-bank-border px-2 py-1 text-[11px] font-medium text-zinc-300 hover:bg-white/5">Cancelar edição</button>'
+                : "") +
+              "</div>" +
+              '<p class="mb-2 hidden text-[11px] text-amber-200/90" data-pat-aporte-disp="' +
+              escapeHtml(it.id) +
+              '"></p>' +
+              '<div class="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end">' +
+              '<label class="sm:w-32"><span class="text-[10px] text-bank-muted">Tipo</span>' +
+              '<select data-pat-aporte-tipo="' +
+              escapeHtml(it.id) +
+              '" class="mt-1 w-full rounded-lg border border-bank-border bg-bank-bg px-2 py-1.5 text-sm text-white">' +
+              '<option value="compra">Compra</option>' +
+              '<option value="venda">Venda</option>' +
+              "</select></label>" +
               '<label class="min-w-0 flex-1"><span class="text-[10px] text-bank-muted">Valor (R$)</span>' +
               '<input type="text" inputmode="decimal" autocomplete="off" data-pat-aporte-valor="' +
               escapeHtml(it.id) +
@@ -8313,13 +8585,13 @@
                   (totalGeral !== 0
                     ? " · " + pct + "% do patrimônio listado"
                     : "")
-                : "Sem valor ainda — registre um aporte abaixo.") +
+                : "Sem valor ainda — registre uma compra abaixo.") +
               "</p>" +
               (it.aportes && it.aportes.length
                 ? '<div class="mt-2 text-xs text-zinc-400">' + subLinhas + "</div>"
                 : "") +
               (btnDelAporteNote
-                ? '<p class="mt-1 text-[10px] text-zinc-500">Para excluir o único aporte, remova o investimento inteiro pela lixeira.</p>'
+                ? '<p class="mt-1 text-[10px] text-zinc-500">Para excluir o único movimento, remova o investimento inteiro pela lixeira.</p>'
                 : "") +
               formAporte +
               "</div>" +
@@ -8335,6 +8607,7 @@
               "</div>" +
               "</div>";
             wrap.appendChild(card);
+            patrimonioSyncTipoUI(it.id);
           });
           initMascarasMoedaBR(wrap);
         }
@@ -8697,7 +8970,25 @@
               const del = e.target.closest("[data-pat-del]");
               if (del) {
                 const id = del.getAttribute("data-pat-del");
-                if (id) patrimonioRemover(id);
+                if (id) {
+                  if (patrimonioEditando && patrimonioEditando.posId === id) patrimonioLimparEdicao();
+                  patrimonioRemover(id);
+                }
+                return;
+              }
+              const cancel = e.target.closest("[data-pat-aporte-cancel]");
+              if (cancel) {
+                patrimonioLimparEdicao();
+                renderPatrimonioUI();
+                return;
+              }
+              const edit = e.target.closest("[data-pat-aporte-edit]");
+              if (edit) {
+                const raw = edit.getAttribute("data-pat-aporte-edit");
+                if (raw && raw.includes("::")) {
+                  const sep = raw.indexOf("::");
+                  patrimonioIniciarEdicaoAporte(raw.slice(0, sep), raw.slice(sep + 2));
+                }
                 return;
               }
               const ad = e.target.closest("[data-pat-aporte-del]");
@@ -8713,6 +9004,7 @@
               if (add) {
                 const posId = add.getAttribute("data-pat-aporte-add");
                 if (!posId) return;
+                const tipoEl = panel.querySelector('[data-pat-aporte-tipo="' + posId + '"]');
                 const vel = panel.querySelector('[data-pat-aporte-valor="' + posId + '"]');
                 const delEl = panel.querySelector('[data-pat-aporte-data="' + posId + '"]');
                 const errInline = panel.querySelector('[data-pat-aporte-err="' + posId + '"]');
@@ -8720,8 +9012,20 @@
                   errInline.textContent = "";
                   errInline.classList.add("hidden");
                 }
-                patrimonioAdicionarAporte(posId, vel ? vel.value : "", delEl ? delEl.value : "", errInline);
+                patrimonioSalvarMovimento(
+                  posId,
+                  tipoEl ? tipoEl.value : "compra",
+                  vel ? vel.value : "",
+                  delEl ? delEl.value : "",
+                  errInline
+                );
               }
+            });
+            panel.addEventListener("change", (e) => {
+              const tipoEl = e.target.closest("[data-pat-aporte-tipo]");
+              if (!tipoEl) return;
+              const posId = tipoEl.getAttribute("data-pat-aporte-tipo");
+              if (posId) patrimonioSyncTipoUI(posId);
             });
           }
           ["patrimonio-ev-mes-ini", "patrimonio-ev-mes-fim", "patrimonio-ev-ano-ini", "patrimonio-ev-ano-fim"].forEach(
