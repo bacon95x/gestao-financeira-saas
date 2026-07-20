@@ -721,6 +721,11 @@
       }
       #contas-fixas-meses-wrapper table.cf-tabela-fixas .cf-gasto-input-slot {
         flex-shrink: 0;
+        /* Largura fixa alinhada ao cabeçalho — evita salto L→R do sync pós-paint */
+        width: 7.25rem;
+      }
+      #contas-fixas-meses-wrapper {
+        overflow-anchor: none;
       }
       #contas-fixas-meses-wrapper table.cf-tabela-fixas .cp-gasto-input {
         width: 100%;
@@ -11271,20 +11276,13 @@
           });
         }
 
-        function syncCfGastoInputWidths(tableEl) {
-          if (!tableEl) return;
-          const label = tableEl.querySelector(".cf-gasto-th-label");
-          if (!label) return;
-          const w = Math.ceil(label.getBoundingClientRect().width);
-          if (w <= 0) return;
-          tableEl.querySelectorAll(".cf-gasto-input-slot").forEach((slot) => {
-            slot.style.width = w + "px";
-          });
-        }
-
         function renderContasFixas() {
           const wrap = document.getElementById("contas-fixas-meses-wrapper");
           if (!wrap) return;
+          const prevScrollEl = wrap.querySelector(".cf-tabela-scroll");
+          const savedScrollLeft = prevScrollEl ? prevScrollEl.scrollLeft : 0;
+          const savedWinX = window.scrollX || window.pageXOffset || 0;
+          const savedWinY = window.scrollY || window.pageYOffset || 0;
           const selA = document.getElementById("ano-contas-fixas");
           const selM = document.getElementById("mes-contas-fixas");
           const year = selA ? parseInt(selA.value, 10) : new Date().getFullYear();
@@ -11312,7 +11310,7 @@
           head.appendChild(h3);
 
           const scroll = document.createElement("div");
-          scroll.className = "overflow-x-auto";
+          scroll.className = "cf-tabela-scroll overflow-x-auto";
           const table = document.createElement("table");
           table.className = "cf-tabela-fixas w-full text-left text-xs";
           const thead = document.createElement("thead");
@@ -11784,12 +11782,16 @@
           addRowBar.appendChild(btnAdd);
           section.appendChild(addRowBar);
           wrap.appendChild(section);
-          setTimeout(() => {
-            try {
-              if (typeof lucide !== "undefined" && lucide.createIcons) lucide.createIcons();
-            } catch (_) {}
-            syncCfGastoInputWidths(table);
-          }, 0);
+          scroll.scrollLeft = savedScrollLeft;
+          if (
+            (window.scrollX || window.pageXOffset || 0) !== savedWinX ||
+            (window.scrollY || window.pageYOffset || 0) !== savedWinY
+          ) {
+            window.scrollTo(savedWinX, savedWinY);
+          }
+          try {
+            if (typeof lucide !== "undefined" && lucide.createIcons) lucide.createIcons();
+          } catch (_) {}
         }
 
         function renderContasPagar() {
