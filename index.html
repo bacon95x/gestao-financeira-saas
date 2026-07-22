@@ -1,608 +1,899 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard Adega</title>
-
-  <!--
-    =============================================================================
-    TAILWIND CSS (CDN)
-    - Carrega o framework de utilitários para layout, cores, tipografia etc.
-    - Para personalizar tema ou usar @apply, você precisaria do build local;
-      aqui usamos classes direto no HTML.
-    =============================================================================
-  -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    /* Config extra do Tailwind: cores da marca da adega (ajuste aqui o visual global) */
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            adega: {
-              dark: '#1a0f14',
-              panel: '#251821',
-              accent: '#c9a227',
-              wine: '#722f37',
-              muted: '#9ca3af'
-            }
+<html lang="pt-BR" data-theme="violet" data-appearance="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Capital Novo · Organize hoje. Construa o capital de amanhã.</title>
+    <meta
+      name="description"
+      content="Capital Novo — dashboard financeiro pessoal. Gastos, contas fixas, cartões, patrimônio e simulador de longo prazo em um só painel, com privacidade."
+    />
+    <link rel="canonical" href="https://www.capitalnovo.com.br/" />
+    <link rel="icon" type="image/png" href="assets/logo-capital-novo.png" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="pt_BR" />
+    <meta property="og:url" content="https://www.capitalnovo.com.br/" />
+    <meta property="og:title" content="Capital Novo · Organize hoje. Construa o capital de amanhã." />
+    <meta
+      property="og:description"
+      content="Dashboard financeiro pessoal: gastos, contas, patrimônio e metas em um só lugar. Controle sua vida financeira com visão de longo prazo."
+    />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Capital Novo · Organize hoje. Construa o capital de amanhã." />
+    <meta
+      name="twitter:description"
+      content="Dashboard financeiro pessoal: gastos, contas, patrimônio e metas em um só lugar. Controle sua vida financeira com visão de longo prazo."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: { sans: ["DM Sans", "system-ui", "sans-serif"] },
+            colors: {
+              bank: {
+                bg: "#0c0c14",
+                card: "#14141f",
+                border: "rgba(255,255,255,0.08)",
+                muted: "#9ca3af",
+              },
+            },
           },
-          fontFamily: {
-            display: ['Georgia', 'Cambria', 'serif'],
-            sans: ['system-ui', 'Segoe UI', 'sans-serif']
-          }
-        }
+        },
+      };
+    </script>
+    <style>
+      body { font-family: "DM Sans", system-ui, sans-serif; background: #0a0612; }
+      .hero-bg { background: linear-gradient(160deg, #1a0a2e 0%, #0a0612 45%, #0d1520 100%); }
+      .glow-btn { box-shadow: 0 0 40px -8px rgba(16,185,129,.55); }
+      .device {
+        box-shadow:
+          0 0 0 1px rgba(255,255,255,.07),
+          0 28px 70px -24px rgba(124,58,237,.45),
+          0 12px 40px -16px rgba(0,0,0,.7);
       }
-    };
-  </script>
-
-  <!--
-    =============================================================================
-    ESTILOS LOCAIS (pequenos ajustes que o CDN não cobre sozinho)
-    =============================================================================
-  -->
-  <style>
-    /* Esconde abas inativas — o JS alterna a classe .tab-active */
-    .tab-panel { display: none; }
-    .tab-panel.tab-active { display: block; }
-    /* Botão da sidebar ativo */
-    .nav-btn.nav-active {
-      background: linear-gradient(90deg, rgba(201, 162, 39, 0.2), transparent);
-      border-left: 3px solid #c9a227;
-      color: #f5f0e8;
-    }
-  </style>
-</head>
-
-<body class="min-h-screen bg-adega-dark text-stone-200 antialiased">
-
-  <!--
-    =============================================================================
-    LAYOUT PRINCIPAL: sidebar fixa + área de conteúdo
-    =============================================================================
-  -->
-  <div class="flex min-h-screen">
-
-    <!--
-      ---------------------------------------------------------------------------
-      SIDEBAR — botões que disparam a troca de abas (data-tab = id do painel)
-      Para adicionar uma nova aba: copie um <button>, mude data-tab e crie
-      a <section> correspondente com o mesmo id.
-      ---------------------------------------------------------------------------
-    -->
-    <aside class="w-56 shrink-0 border-r border-stone-800 bg-adega-panel flex flex-col">
-      <div class="p-6 border-b border-stone-800">
-        <div class="flex items-center gap-3">
-          <span class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-adega-wine/30 text-adega-accent">
-            <i data-lucide="wine" class="h-5 w-5"></i>
-          </span>
+      .gfp-bar {
+        animation: gfp-grow 1.4s ease-out forwards;
+        transform-origin: bottom;
+        transform: scaleY(0);
+      }
+      @keyframes gfp-grow { to { transform: scaleY(1); } }
+      .gfp-bar:nth-child(1) { animation-delay: 0.15s; }
+      .gfp-bar:nth-child(2) { animation-delay: 0.3s; }
+      .gfp-bar:nth-child(3) { animation-delay: 0.45s; }
+      .gfp-bar:nth-child(4) { animation-delay: 0.6s; }
+      details summary { cursor: pointer; list-style: none; }
+      details summary::-webkit-details-marker { display: none; }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script src="gfp-demo-data.js"></script>
+  </head>
+  <body class="text-zinc-100 antialiased">
+    <!-- HERO -->
+    <section class="hero-bg relative overflow-hidden">
+      <div class="pointer-events-none absolute -left-32 top-20 h-96 w-96 rounded-full bg-violet-600/20 blur-[100px]"></div>
+      <div class="pointer-events-none absolute -right-20 bottom-0 h-80 w-80 rounded-full bg-emerald-500/10 blur-[80px]"></div>
+      <div class="relative mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:py-20">
+        <div class="grid gap-10 lg:grid-cols-[1fr_320px] lg:items-start">
           <div>
-            <h1 class="font-display text-lg text-stone-100 tracking-wide">Adega</h1>
-            <p class="text-xs text-adega-muted">Painel interno</p>
-          </div>
-        </div>
-      </div>
-
-      <nav class="flex flex-col gap-1 p-3 flex-1" id="sidebar-nav" aria-label="Navegação principal">
-        <button type="button" class="nav-btn nav-active flex items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-stone-400 hover:bg-stone-800/60 hover:text-stone-200 transition-colors" data-tab="tab-resumo">
-          <i data-lucide="layout-dashboard" class="h-4 w-4 shrink-0"></i>
-          Resumo
-        </button>
-        <button type="button" class="nav-btn flex items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-stone-400 hover:bg-stone-800/60 hover:text-stone-200 transition-colors" data-tab="tab-vendas-zap">
-          <i data-lucide="message-circle" class="h-4 w-4 shrink-0"></i>
-          Vendas Zap
-        </button>
-        <button type="button" class="nav-btn flex items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-stone-400 hover:bg-stone-800/60 hover:text-stone-200 transition-colors" data-tab="tab-estoque">
-          <i data-lucide="package" class="h-4 w-4 shrink-0"></i>
-          Estoque
-        </button>
-        <button type="button" class="nav-btn flex items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-stone-400 hover:bg-stone-800/60 hover:text-stone-200 transition-colors" data-tab="tab-config">
-          <i data-lucide="settings" class="h-4 w-4 shrink-0"></i>
-          Configurações
-        </button>
-      </nav>
-
-      <div class="p-4 border-t border-stone-800 text-xs text-adega-muted">
-        <p>Substitua os dados de exemplo pelos seus endpoints (n8n, API, etc.).</p>
-      </div>
-    </aside>
-
-    <!--
-      ---------------------------------------------------------------------------
-      CONTEÚDO CENTRAL — cada <section> é uma "aba"; só uma tem .tab-active
-      ---------------------------------------------------------------------------
-    -->
-    <main class="flex-1 overflow-auto">
-      <div class="max-w-6xl mx-auto p-6 lg:p-10">
-
-        <!-- ========== ABA: RESUMO ========== -->
-        <section id="tab-resumo" class="tab-panel tab-active" role="tabpanel" aria-labelledby="nav-resumo">
-          <header class="mb-8">
-            <h2 class="font-display text-2xl text-stone-100">Resumo</h2>
-            <p class="text-sm text-adega-muted mt-1">Visão geral rápida do negócio — ligue estes números à sua API depois.</p>
-          </header>
-
-          <!--
-            Grid de 3 cartões de destaque.
-            Para mudar valores: edite o texto dentro de <p class="text-3xl...">
-            Ou use JavaScript para preencher a partir de JSON.
-          -->
-          <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <!--
-              Cartão Total de Vendas: botão da sacola abre painel com tabela de meses +
-              setas mês anterior / mês seguinte (dados demo em valorDemo no script).
-            -->
-            <article class="relative rounded-xl border border-stone-800 bg-adega-panel/80 p-6 shadow-lg shadow-black/20">
-              <div class="flex items-start justify-between">
-                <div class="min-w-0 flex-1 pr-2">
-                  <p class="text-xs font-medium uppercase tracking-wider text-adega-muted">Total de Vendas</p>
-                  <p id="vendas-ref-mes" class="text-[11px] text-stone-500 capitalize mt-1">—</p>
-                  <p id="vendas-total" class="mt-2 text-3xl font-semibold text-stone-100 tabular-nums">R$ —</p>
-                  <p id="vendas-trend" class="mt-2 text-sm flex items-center gap-1 text-emerald-400/90">
-                    <span id="vendas-trend-icon-wrap" class="inline-flex shrink-0">
-                      <i data-lucide="trending-up" class="h-4 w-4"></i>
-                    </span>
-                    <span id="vendas-trend-text">—</span>
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  id="btn-vendas-mes-picker"
-                  class="rounded-lg bg-adega-accent/15 p-2 text-adega-accent hover:bg-adega-accent/25 transition-colors focus:outline-none focus:ring-2 focus:ring-adega-accent/50 shrink-0"
-                  title="Escolher mês (tabela e navegação)"
-                  aria-label="Abrir seleção de mês para total de vendas"
-                  aria-expanded="false"
-                  aria-haspopup="dialog"
-                >
-                  <i data-lucide="shopping-bag" class="h-6 w-6"></i>
-                </button>
-              </div>
-
-              <!-- Painel: mês a mês + tabela (atual + meses anteriores) -->
-              <div
-                id="vendas-mes-popover"
-                class="hidden absolute right-0 top-full z-50 mt-2 w-[min(100%,20rem)] rounded-xl border border-stone-700 bg-adega-panel shadow-2xl shadow-black/50"
-                role="dialog"
-                aria-label="Selecionar mês de vendas"
+            <a href="./" class="inline-flex items-center gap-3" aria-label="Capital Novo">
+              <img
+                src="assets/logo-capital-novo.png"
+                alt=""
+                width="1024"
+                height="953"
+                class="h-12 w-12 shrink-0 object-contain sm:h-14 sm:w-14"
+                decoding="async"
+              />
+              <span class="text-xl font-semibold tracking-tight text-white sm:text-2xl">Capital Novo</span>
+            </a>
+            <p class="mt-8 text-xs uppercase tracking-[0.25em] text-zinc-600">Dashboard financeiro inteligente</p>
+            <h1 class="mt-4 text-4xl font-bold leading-[1.08] tracking-tight sm:text-5xl lg:text-6xl">
+              Organize hoje.<br />
+              Construa o capital<br />
+              <span class="text-zinc-500">de amanhã.</span>
+            </h1>
+            <p class="mt-5 max-w-lg text-base leading-relaxed text-zinc-400 sm:text-lg">
+              O Capital Novo reúne gastos, contas e investimentos em um painel elegante — para você ter controle da sua vida financeira com visão de longo prazo para seu patrimônio.
+            </p>
+            <div class="mt-8 flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                id="btn-ver-demo"
+                class="inline-flex rounded-2xl border border-violet-400/40 bg-violet-600/20 px-7 py-4 text-base font-bold text-violet-100 transition hover:bg-violet-600/35"
               >
-                <div class="border-b border-stone-800 p-3">
-                  <p class="text-[10px] uppercase tracking-wider text-adega-muted mb-2">Navegar mês a mês</p>
-                  <div class="flex items-center justify-between gap-2">
+                Ver demonstração grátis
+              </button>
+              <a href="#oferta" class="glow-btn inline-flex rounded-2xl bg-emerald-500 px-7 py-4 text-base font-bold text-black transition hover:bg-emerald-400">
+                Começar por R$ 29,90/mês
+              </a>
+            </div>
+            <p class="mt-3 text-xs text-zinc-500">Explore o dashboard com dados de exemplo — sem cartão e sem compromisso.</p>
+          </div>
+
+          <div id="sidebar-auth" class="space-y-4 lg:sticky lg:top-8">
+            <div
+              id="bloco-pos-pagamento"
+              class="hidden rounded-2xl border border-violet-500/30 bg-violet-600/10 p-6 shadow-xl"
+            >
+              <p class="text-center text-sm font-semibold text-violet-200">Pagamento confirmado</p>
+              <p class="mt-2 text-center text-xs leading-relaxed text-bank-muted">
+                Crie sua senha com o <strong class="text-zinc-300">mesmo e-mail</strong> que você usou para o pagamento.
+              </p>
+              <p
+                id="pos-pagamento-ok"
+                class="mt-3 hidden rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-xs leading-relaxed text-emerald-200"
+              ></p>
+              <form id="form-criar-senha" class="mt-4 space-y-4">
+                <div>
+                  <label for="senha-email" class="block text-xs font-medium text-zinc-400">E-mail do pagamento</label>
+                  <input
+                    id="senha-email"
+                    type="email"
+                    required
+                    autocomplete="email"
+                    class="mt-1.5 w-full rounded-xl border border-bank-border bg-[#0c0c14] px-4 py-2.5 text-sm text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
+                  />
+                </div>
+                <div>
+                  <label for="senha-nova" class="block text-xs font-medium text-zinc-400">Nova senha (mín. 6)</label>
+                  <div class="relative mt-1.5">
+                    <input
+                      id="senha-nova"
+                      type="password"
+                      required
+                      minlength="6"
+                      autocomplete="new-password"
+                      class="w-full rounded-xl border border-bank-border bg-[#0c0c14] py-2.5 pl-4 pr-11 text-sm text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
+                    />
                     <button
                       type="button"
-                      id="vendas-mes-prev"
-                      class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-stone-700 bg-stone-900/60 text-stone-200 hover:bg-stone-800 hover:border-stone-600 disabled:opacity-35 disabled:pointer-events-none"
-                      title="Mês anterior"
-                      aria-label="Mês anterior"
+                      class="btn-toggle-senha absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-zinc-500 transition hover:text-zinc-300"
+                      data-target="senha-nova"
+                      aria-label="Mostrar senha"
+                      aria-pressed="false"
                     >
-                      <i data-lucide="chevron-left" class="h-5 w-5"></i>
-                    </button>
-                    <p id="vendas-popover-mes-destaque" class="flex-1 text-center text-sm font-medium text-stone-100 capitalize truncate px-1">—</p>
-                    <button
-                      type="button"
-                      id="vendas-mes-next"
-                      class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-stone-700 bg-stone-900/60 text-stone-200 hover:bg-stone-800 hover:border-stone-600 disabled:opacity-35 disabled:pointer-events-none"
-                      title="Mês seguinte"
-                      aria-label="Mês seguinte"
-                    >
-                      <i data-lucide="chevron-right" class="h-5 w-5"></i>
+                      <svg class="icon-eye-open h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                      <svg class="icon-eye-off hidden h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3l18 18"/><path d="M10.6 10.6a2 2 0 0 0 2.8 2.8"/><path d="M9.9 5.1A10.8 10.8 0 0 1 12 5c6.5 0 10 7 10 7a17.2 17.2 0 0 1-3.1 4.2"/><path d="M6.1 6.1C3.5 8.1 2 12 2 12a17.9 17.9 0 0 0 6.5 5.9"/></svg>
                     </button>
                   </div>
                 </div>
-                <div class="max-h-64 overflow-y-auto">
-                  <table class="w-full text-left text-xs">
-                    <thead class="sticky top-0 bg-stone-900/95 border-b border-stone-800 text-adega-muted uppercase tracking-wider">
-                      <tr>
-                        <th class="px-3 py-2 font-medium">Mês</th>
-                        <th class="px-3 py-2 font-medium text-right">Total</th>
-                        <th class="px-3 py-2 w-14"></th>
-                      </tr>
-                    </thead>
-                    <tbody id="vendas-mes-tbody" class="divide-y divide-stone-800/80"></tbody>
-                  </table>
-                </div>
-                <p class="px-3 py-2 text-[10px] text-adega-muted border-t border-stone-800">Clique na linha para fixar o mês no cartão.</p>
-              </div>
-            </article>
+                <button
+                  type="submit"
+                  id="btn-criar-senha"
+                  class="w-full rounded-xl bg-violet-600 py-2.5 text-sm font-semibold text-white transition hover:bg-violet-500 disabled:opacity-60"
+                >
+                  Criar senha e entrar
+                </button>
+              </form>
+            </div>
 
-            <article class="rounded-xl border border-stone-800 bg-adega-panel/80 p-6 shadow-lg shadow-black/20">
-              <div class="flex items-start justify-between">
+            <div class="rounded-2xl border border-white/[0.08] bg-[#14141f] p-6 shadow-xl">
+              <p class="mb-4 text-center text-xs font-medium uppercase tracking-wide text-zinc-500">Já tem senha? Entre</p>
+              <p id="login-erro" class="mb-4 hidden rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200"></p>
+              <p id="login-ok" class="mb-4 hidden rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200"></p>
+
+              <form id="form-login" class="space-y-4">
                 <div>
-                  <p class="text-xs font-medium uppercase tracking-wider text-adega-muted">Novos Clientes</p>
-                  <p class="mt-3 text-3xl font-semibold text-stone-100 tabular-nums">127</p>
-                  <p class="mt-2 text-sm text-stone-500">Neste mês</p>
+                  <label for="login-email" class="block text-xs font-medium text-zinc-400">E-mail</label>
+                  <input
+                    id="login-email"
+                    type="email"
+                    required
+                    autocomplete="email"
+                    placeholder="seu@email.com"
+                    class="mt-1.5 w-full rounded-xl border border-bank-border bg-[#0c0c14] px-4 py-2.5 text-sm text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
+                  />
                 </div>
-                <span class="rounded-lg bg-blue-500/15 p-2 text-blue-400">
-                  <i data-lucide="users" class="h-6 w-6"></i>
-                </span>
-              </div>
-            </article>
-
-            <article class="rounded-xl border border-stone-800 bg-adega-panel/80 p-6 shadow-lg shadow-black/20 sm:col-span-2 lg:col-span-1">
-              <div class="flex items-start justify-between">
                 <div>
-                  <p class="text-xs font-medium uppercase tracking-wider text-adega-muted">Mensagens Pendentes</p>
-                  <p class="mt-3 text-3xl font-semibold text-stone-100 tabular-nums">8</p>
-                  <p class="mt-2 text-sm text-amber-400/90 flex items-center gap-1">
-                    <i data-lucide="clock" class="h-4 w-4"></i>
-                    Aguardando resposta
-                  </p>
+                  <label for="login-senha" class="block text-xs font-medium text-zinc-400">Senha</label>
+                  <div class="relative mt-1.5">
+                    <input
+                      id="login-senha"
+                      type="password"
+                      required
+                      autocomplete="current-password"
+                      minlength="6"
+                      placeholder="••••••••"
+                      class="w-full rounded-xl border border-bank-border bg-[#0c0c14] py-2.5 pl-4 pr-11 text-sm text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
+                    />
+                    <button
+                      type="button"
+                      class="btn-toggle-senha absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-zinc-500 transition hover:text-zinc-300"
+                      data-target="login-senha"
+                      aria-label="Mostrar senha"
+                      aria-pressed="false"
+                    >
+                      <svg class="icon-eye-open h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                      <svg class="icon-eye-off hidden h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3l18 18"/><path d="M10.6 10.6a2 2 0 0 0 2.8 2.8"/><path d="M9.9 5.1A10.8 10.8 0 0 1 12 5c6.5 0 10 7 10 7a17.2 17.2 0 0 1-3.1 4.2"/><path d="M6.1 6.1C3.5 8.1 2 12 2 12a17.9 17.9 0 0 0 6.5 5.9"/></svg>
+                    </button>
+                  </div>
                 </div>
-                <span class="rounded-lg bg-amber-500/15 p-2 text-amber-400">
-                  <i data-lucide="inbox" class="h-6 w-6"></i>
-                </span>
+                <button
+                  type="submit"
+                  id="btn-login"
+                  class="w-full rounded-xl bg-violet-600 py-2.5 text-sm font-semibold text-white transition hover:bg-violet-500 disabled:opacity-60"
+                >
+                  Entrar
+                </button>
+              </form>
+
+              <div class="mt-4 flex flex-col items-center gap-2 text-center text-xs">
+                <button type="button" id="btn-mostrar-esqueci" class="text-violet-400 transition hover:text-violet-300">
+                  Esqueci minha senha
+                </button>
+                <button type="button" id="btn-mostrar-criar-senha" class="text-zinc-500 transition hover:text-zinc-400">
+                  Acabei de pagar · criar minha senha
+                </button>
               </div>
-            </article>
+
+              <form id="form-esqueci-senha" class="mt-4 hidden space-y-3 border-t border-bank-border pt-4">
+                <p class="text-center text-xs text-bank-muted">
+                  Enviaremos um link para redefinir a senha no e-mail da sua conta.
+                </p>
+                <div>
+                  <label for="reset-email" class="block text-xs font-medium text-zinc-400">E-mail da conta</label>
+                  <input
+                    id="reset-email"
+                    type="email"
+                    required
+                    autocomplete="email"
+                    placeholder="seu@email.com"
+                    class="mt-1.5 w-full rounded-xl border border-bank-border bg-[#0c0c14] px-4 py-2.5 text-sm text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  id="btn-enviar-reset"
+                  class="w-full rounded-xl border border-violet-500/40 bg-violet-600/20 py-2.5 text-sm font-semibold text-violet-200 transition hover:bg-violet-600/30 disabled:opacity-60"
+                >
+                  Enviar link de redefinição
+                </button>
+              </form>
+
+              <div id="bloco-teste-signup" class="mt-6 hidden border-t border-bank-border pt-6">
+                <p class="text-center text-xs text-bank-muted">Primeiro acesso? (fase de testes)</p>
+                <button
+                  type="button"
+                  id="btn-mostrar-cadastro"
+                  class="mt-2 w-full rounded-xl border border-bank-border py-2.5 text-sm font-medium text-zinc-300 transition hover:bg-white/5"
+                >
+                  Criar conta de teste
+                </button>
+                <form id="form-cadastro" class="mt-4 hidden space-y-4">
+                  <div>
+                    <label for="cadastro-email" class="block text-xs font-medium text-zinc-400">E-mail</label>
+                    <input
+                      id="cadastro-email"
+                      type="email"
+                      required
+                      autocomplete="email"
+                      class="mt-1.5 w-full rounded-xl border border-bank-border bg-[#0c0c14] px-4 py-2.5 text-sm text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
+                    />
+                  </div>
+                  <div>
+                    <label for="cadastro-senha" class="block text-xs font-medium text-zinc-400">Senha (mín. 6)</label>
+                    <div class="relative mt-1.5">
+                      <input
+                        id="cadastro-senha"
+                        type="password"
+                        required
+                        minlength="6"
+                        autocomplete="new-password"
+                        class="w-full rounded-xl border border-bank-border bg-[#0c0c14] py-2.5 pl-4 pr-11 text-sm text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
+                      />
+                      <button
+                        type="button"
+                        class="btn-toggle-senha absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-zinc-500 transition hover:text-zinc-300"
+                        data-target="cadastro-senha"
+                        aria-label="Mostrar senha"
+                        aria-pressed="false"
+                      >
+                        <svg class="icon-eye-open h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                        <svg class="icon-eye-off hidden h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3l18 18"/><path d="M10.6 10.6a2 2 0 0 0 2.8 2.8"/><path d="M9.9 5.1A10.8 10.8 0 0 1 12 5c6.5 0 10 7 10 7a17.2 17.2 0 0 1-3.1 4.2"/><path d="M6.1 6.1C3.5 8.1 2 12 2 12a17.9 17.9 0 0 0 6.5 5.9"/></svg>
+                      </button>
+                    </div>
+                  </div>
+                  <button
+                    type="submit"
+                    id="btn-cadastro"
+                    class="w-full rounded-xl border border-violet-500/40 bg-violet-600/20 py-2.5 text-sm font-semibold text-violet-200 transition hover:bg-violet-600/30 disabled:opacity-60"
+                  >
+                    Criar conta
+                  </button>
+                </form>
+              </div>
+            </div>
           </div>
-        </section>
+        </div>
 
-        <!-- ========== ABA: VENDAS ZAP (mensagens n8n) ========== -->
-        <section id="tab-vendas-zap" class="tab-panel" role="tabpanel" hidden>
-          <header class="mb-8">
-            <h2 class="font-display text-2xl text-stone-100">Vendas Zap</h2>
-            <p class="text-sm text-adega-muted mt-1">Últimas mensagens recebidas do fluxo n8n (WhatsApp / webhook). Substitua as linhas da tabela pelos dados reais.</p>
-          </header>
-
-          <!--
-            TABELA — estrutura pronta para você popular via fetch() no n8n.
-            Colunas sugeridas: data/hora, cliente, telefone, trecho da mensagem, status.
-          -->
-          <div class="rounded-xl border border-stone-800 bg-adega-panel/60 overflow-hidden shadow-xl shadow-black/25">
-            <div class="overflow-x-auto">
-              <table class="w-full text-left text-sm">
-                <thead>
-                  <tr class="border-b border-stone-800 bg-stone-900/50 text-xs uppercase tracking-wider text-adega-muted">
-                    <th class="px-5 py-4 font-medium">Recebido</th>
-                    <th class="px-5 py-4 font-medium">Cliente</th>
-                    <th class="px-5 py-4 font-medium">Contato</th>
-                    <th class="px-5 py-4 font-medium">Mensagem</th>
-                    <th class="px-5 py-4 font-medium">Status</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-stone-800/80">
-                  <!-- Linhas de exemplo — troque por loop JS ou servidor -->
-                  <tr class="hover:bg-stone-800/40 transition-colors">
-                    <td class="px-5 py-4 text-adega-muted tabular-nums whitespace-nowrap">05/04 14:32</td>
-                    <td class="px-5 py-4 font-medium text-stone-100">Marina Costa</td>
-                    <td class="px-5 py-4 text-stone-400">(11) 98877-6655</td>
-                    <td class="px-5 py-4 text-stone-300 max-w-xs truncate" title="Queria reservar 2 garrafas do Malbec 2021 para sexta.">Queria reservar 2 garrafas do Malbec 2021 para sexta.</td>
-                    <td class="px-5 py-4"><span class="inline-flex items-center rounded-full bg-amber-500/15 px-2.5 py-0.5 text-xs font-medium text-amber-400">Pendente</span></td>
-                  </tr>
-                  <tr class="hover:bg-stone-800/40 transition-colors">
-                    <td class="px-5 py-4 text-adega-muted tabular-nums whitespace-nowrap">05/04 11:05</td>
-                    <td class="px-5 py-4 font-medium text-stone-100">Pedro Alves</td>
-                    <td class="px-5 py-4 text-stone-400">(21) 97700-1122</td>
-                    <td class="px-5 py-4 text-stone-300 max-w-xs truncate" title="Tem entrega hoje para Zona Sul?">Tem entrega hoje para Zona Sul?</td>
-                    <td class="px-5 py-4"><span class="inline-flex items-center rounded-full bg-emerald-500/15 px-2.5 py-0.5 text-xs font-medium text-emerald-400">Respondido</span></td>
-                  </tr>
-                  <tr class="hover:bg-stone-800/40 transition-colors">
-                    <td class="px-5 py-4 text-adega-muted tabular-nums whitespace-nowrap">04/04 18:47</td>
-                    <td class="px-5 py-4 font-medium text-stone-100">Ana Ribeiro</td>
-                    <td class="px-5 py-4 text-stone-400">(31) 99912-3344</td>
-                    <td class="px-5 py-4 text-stone-300 max-w-xs truncate" title="Catálogo de espumantes até R$ 150?">Catálogo de espumantes até R$ 150?</td>
-                    <td class="px-5 py-4"><span class="inline-flex items-center rounded-full bg-emerald-500/15 px-2.5 py-0.5 text-xs font-medium text-emerald-400">Respondido</span></td>
-                  </tr>
-                  <tr class="hover:bg-stone-800/40 transition-colors">
-                    <td class="px-5 py-4 text-adega-muted tabular-nums whitespace-nowrap">04/04 09:12</td>
-                    <td class="px-5 py-4 font-medium text-stone-100">Lucas Mendes</td>
-                    <td class="px-5 py-4 text-stone-400">(47) 98456-7788</td>
-                    <td class="px-5 py-4 text-stone-300 max-w-xs truncate" title="Pedido #8821 — confirmar pagamento PIX.">Pedido #8821 — confirmar pagamento PIX.</td>
-                    <td class="px-5 py-4"><span class="inline-flex items-center rounded-full bg-sky-500/15 px-2.5 py-0.5 text-xs font-medium text-sky-400">Em análise</span></td>
-                  </tr>
-                  <tr class="hover:bg-stone-800/40 transition-colors">
-                    <td class="px-5 py-4 text-adega-muted tabular-nums whitespace-nowrap">03/04 16:20</td>
-                    <td class="px-5 py-4 font-medium text-stone-100">Juliana Freitas</td>
-                    <td class="px-5 py-4 text-stone-400">(61) 99123-4567</td>
-                    <td class="px-5 py-4 text-stone-300 max-w-xs truncate" title="Evento sábado — preciso de 6 garrafas de branco seco.">Evento sábado — preciso de 6 garrafas de branco seco.</td>
-                    <td class="px-5 py-4"><span class="inline-flex items-center rounded-full bg-amber-500/15 px-2.5 py-0.5 text-xs font-medium text-amber-400">Pendente</span></td>
-                  </tr>
-                </tbody>
-              </table>
+        <!-- Mockup -->
+        <div class="relative mx-auto mt-12 max-w-xl sm:mt-16">
+          <div class="pointer-events-none absolute -inset-8 rounded-full bg-violet-600/15 blur-3xl" aria-hidden="true"></div>
+          <div class="device relative z-10 overflow-hidden rounded-2xl border border-white/[0.08] bg-[#11111b] p-3 sm:p-4">
+            <div class="mb-3 flex items-center gap-1.5 px-0.5">
+              <span class="h-2.5 w-2.5 rounded-full bg-red-500/60"></span>
+              <span class="h-2.5 w-2.5 rounded-full bg-amber-500/60"></span>
+              <span class="h-2.5 w-2.5 rounded-full bg-emerald-500/60"></span>
             </div>
-            <div class="border-t border-stone-800 px-5 py-3 flex items-center justify-between text-xs text-adega-muted">
-              <span>Mostrando 5 registros de exemplo</span>
-              <button type="button" class="text-adega-accent hover:underline">Atualizar lista</button>
+            <div class="grid grid-cols-3 gap-2.5 rounded-xl bg-[#07070d] p-3 sm:gap-3 sm:p-4">
+              <div class="col-span-2 rounded-xl border border-white/[0.05] bg-[#0c0c14]/80 p-3 sm:p-4">
+                <div class="flex items-start justify-between gap-2">
+                  <div>
+                    <p class="text-[10px] font-medium text-zinc-300 sm:text-xs">Total de gastos no mês</p>
+                    <p class="mt-0.5 text-[8px] text-zinc-600 sm:text-[9px]">Referência: Junho de 2026 (mês atual)</p>
+                  </div>
+                  <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-violet-600/20 text-violet-400">
+                    <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+                  </span>
+                </div>
+                <p class="mt-2 text-lg font-semibold text-white sm:text-xl">R$ 3.521,69</p>
+                <div class="mt-3 flex h-12 items-end gap-1 sm:mt-4 sm:h-14">
+                  <div class="gfp-bar h-[42%] flex-1 rounded-sm bg-violet-600/45"></div>
+                  <div class="gfp-bar h-[68%] flex-1 rounded-sm bg-violet-500/55"></div>
+                  <div class="gfp-bar h-[50%] flex-1 rounded-sm bg-violet-400/45"></div>
+                  <div class="gfp-bar h-[82%] flex-1 rounded-sm bg-emerald-500/40"></div>
+                </div>
+              </div>
+              <div class="rounded-xl border border-white/[0.05] bg-[#0c0c14]/80 p-3 sm:p-4">
+                <p class="text-[9px] text-zinc-600 sm:text-[10px]">Patrimônio</p>
+                <p class="mt-1.5 text-sm font-bold text-white sm:text-base">R$ 218k</p>
+                <div class="mt-4 space-y-1.5">
+                  <div class="h-1.5 w-full overflow-hidden rounded-full bg-white/5">
+                    <div class="h-full w-[68%] rounded-full bg-violet-500/70"></div>
+                  </div>
+                  <div class="h-1.5 w-full overflow-hidden rounded-full bg-white/5">
+                    <div class="h-full w-[38%] rounded-full bg-emerald-500/55"></div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        </section>
-
-        <!-- ========== ABA: ESTOQUE (placeholder editável) ========== -->
-        <section id="tab-estoque" class="tab-panel" role="tabpanel" hidden>
-          <header class="mb-8">
-            <h2 class="font-display text-2xl text-stone-100">Estoque</h2>
-            <p class="text-sm text-adega-muted mt-1">Área reservada para lista de produtos, alertas de baixa, etc.</p>
-          </header>
-          <div class="rounded-xl border border-dashed border-stone-700 bg-adega-panel/40 p-12 text-center">
-            <i data-lucide="package-search" class="h-12 w-12 mx-auto text-stone-600 mb-4"></i>
-            <p class="text-stone-400 max-w-md mx-auto">Adicione aqui sua grade de estoque, gráficos ou integração com planilha/API.</p>
+          <div class="absolute -bottom-5 -right-2 z-20 w-[7.5rem] rounded-[1.35rem] border border-white/[0.1] bg-[#11111b] p-1.5 shadow-2xl shadow-black/50 sm:-bottom-7 sm:-right-5 sm:w-[8.5rem]">
+            <div class="rounded-[1.05rem] border border-white/[0.04] bg-[#07070d] p-2.5">
+              <p class="text-[8px] text-zinc-600">Capital Novo</p>
+              <p class="mt-0.5 text-xs font-semibold text-white">R$ 5.120</p>
+              <div class="mt-2 h-7 rounded-md bg-gradient-to-r from-violet-600/25 to-violet-500/15"></div>
+            </div>
           </div>
-        </section>
+        </div>
+      </div>
+    </section>
 
-        <!-- ========== ABA: CONFIGURAÇÕES ========== -->
-        <section id="tab-config" class="tab-panel" role="tabpanel" hidden>
-          <header class="mb-8">
-            <h2 class="font-display text-2xl text-stone-100">Configurações</h2>
-            <p class="text-sm text-adega-muted mt-1">Preferências da adega e URLs de webhook (ex.: n8n).</p>
-          </header>
-          <div class="max-w-xl space-y-6 rounded-xl border border-stone-800 bg-adega-panel/60 p-6">
-            <div>
-              <label class="block text-sm font-medium text-stone-300 mb-2">URL do webhook n8n (exemplo)</label>
-              <input type="url" readonly class="w-full rounded-lg border border-stone-700 bg-stone-900/50 px-3 py-2 text-sm text-stone-400" value="https://seu-n8n.com/webhook/..." />
-              <p class="mt-1 text-xs text-adega-muted">Remova readonly e conecte ao seu fluxo quando for usar de verdade.</p>
+    <!-- ANTES / DEPOIS -->
+    <section class="border-y border-white/5 bg-[#0c0814] py-14">
+      <div class="mx-auto max-w-6xl px-4 sm:px-6">
+        <h2 class="text-center text-xl font-bold sm:text-2xl">Sem controle vs. Com Capital Novo</h2>
+        <div class="mt-8 grid gap-4 sm:grid-cols-2">
+          <div class="rounded-2xl border border-red-500/15 bg-red-950/20 p-6">
+            <p class="text-xs font-bold uppercase text-red-400">Antes</p>
+            <ul class="mt-4 space-y-3 text-sm text-zinc-400">
+              <li>✗ Planilhas e cadernos que trazem dor de cabeça e desorganização</li>
+              <li>✗ Esqueceu de pagar uma conta e levou multa</li>
+              <li>✗ Surpresa na fatura todo mês</li>
+              <li>✗ Patrimônio “mais ou menos” na cabeça</li>
+            </ul>
+          </div>
+          <div class="rounded-2xl border border-emerald-500/20 bg-emerald-950/20 p-6">
+            <p class="text-xs font-bold uppercase text-emerald-400">Depois</p>
+            <ul class="mt-4 space-y-3 text-sm text-zinc-300">
+              <li>✓ Tudo registrado em um painel só</li>
+              <li>✓ Saiba quando e o que precisa pagar antecipadamente</li>
+              <li>✓ Saldo e categorias sempre visíveis</li>
+              <li>✓ Patrimônio e metas com números reais</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- BENEFÍCIOS -->
+    <section class="py-14">
+      <div class="mx-auto max-w-6xl px-4 sm:px-6">
+        <h2 class="text-2xl font-bold">Feito para quem leva dinheiro a sério</h2>
+        <p class="mt-2 text-sm text-zinc-500">Seis pilares que só o Capital Novo entrega com essa profundidade.</p>
+        <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <article class="rounded-2xl border border-white/[0.06] bg-[#14101f] p-5">
+            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-600/15 text-violet-400">
+              <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 12l3-3 3 3 5-5"/></svg>
             </div>
-            <div>
-              <label class="block text-sm font-medium text-stone-300 mb-2">Nome da adega</label>
-              <input type="text" class="w-full rounded-lg border border-stone-700 bg-stone-900/50 px-3 py-2 text-sm text-stone-200" placeholder="Adega do Centro" />
+            <h3 class="mt-4 font-semibold">Onde vai cada real</h3>
+            <p class="mt-2 text-sm leading-relaxed text-zinc-500">Gráficos por categoria e origem para você saber exatamente o que gasta em cada parte da sua vida.</p>
+          </article>
+          <article class="rounded-2xl border border-white/[0.06] bg-[#14101f] p-5">
+            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-600/15 text-emerald-400">
+              <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect width="20" height="14" x="2" y="5" rx="2"/><path d="M2 10h20"/></svg>
             </div>
-            <button type="button" class="rounded-lg bg-adega-accent px-4 py-2 text-sm font-medium text-adega-dark hover:brightness-110 transition-all">
-              Salvar (demo)
+            <h3 class="mt-4 font-semibold">Cartões sob controle</h3>
+            <p class="mt-2 text-sm leading-relaxed text-zinc-500">Controle todos os seus cartões de crédito em um só lugar e organize o seu dia a dia.</p>
+          </article>
+          <article class="rounded-2xl border border-white/[0.06] bg-[#14101f] p-5">
+            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-600/15 text-amber-400">
+              <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2v20M2 12h20"/></svg>
+            </div>
+            <h3 class="mt-4 font-semibold">Projete o seu sonho</h3>
+            <p class="mt-2 text-sm leading-relaxed text-zinc-500">Simulador profissional de longo prazo: juros compostos, aportes em dólar e real e patrimônio real descontado da inflação.</p>
+          </article>
+          <article class="rounded-2xl border border-white/[0.06] bg-[#14101f] p-5">
+            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600/15 text-blue-400">
+              <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-9-9"/><path d="M21 3v5h-5"/></svg>
+            </div>
+            <h3 class="mt-4 font-semibold">Patrimônio personalizado</h3>
+            <p class="mt-2 text-sm leading-relaxed text-zinc-500">O único dashboard que permite personalizar 100% como o seu patrimônio é constituído.</p>
+          </article>
+          <article class="rounded-2xl border border-white/[0.06] bg-[#14101f] p-5">
+            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-green-600/15 text-green-400">
+              <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+            </div>
+            <h3 class="mt-4 font-semibold">Lance pelo WhatsApp</h3>
+            <p class="mt-2 text-sm leading-relaxed text-zinc-500">Registre um gasto com uma mensagem rápida — uma linha ou um dado por linha. Consulte seus números pelo celular. Tudo sincroniza direto no dashboard.</p>
+          </article>
+          <article class="rounded-2xl border border-white/[0.06] bg-[#14101f] p-5">
+            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-600/15 text-sky-400">
+              <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <h3 class="mt-4 font-semibold">Segurança e privacidade</h3>
+            <p class="mt-2 text-sm leading-relaxed text-zinc-500">Seus dados financeiros são exclusivos da sua conta. Só você acessa — nem nossa equipe vê suas finanças.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- DEPOIMENTOS -->
+    <section class="border-t border-white/5 bg-[#0c0814] py-14">
+      <div class="mx-auto max-w-4xl px-4 sm:px-6">
+        <h2 class="mb-8 text-center text-xl font-bold text-white sm:text-2xl">Depoimentos</h2>
+        <div class="rounded-3xl border border-violet-500/20 bg-violet-600/5 p-8 text-center">
+          <p class="text-lg font-medium leading-relaxed text-zinc-200">"O Capital Novo virou meu ritual de domingo.<br />Em 20 minutos sei onde estou e para onde vou."</p>
+          <p class="mt-4 text-sm text-violet-300">— Ricardo A. · assinante</p>
+        </div>
+        <div class="mt-4 grid gap-4 sm:grid-cols-2">
+          <div class="rounded-2xl border border-white/5 bg-[#14101f] p-5">
+            <p class="text-sm leading-relaxed text-zinc-400">"O simulador me deixa testar cenários com ou sem inflação. Pela primeira vez enxerguei se minha meta de aposentadoria era realista."</p>
+            <p class="mt-3 text-xs text-violet-300/80">— Marina S. · assinante</p>
+          </div>
+          <div class="rounded-2xl border border-white/5 bg-[#14101f] p-5">
+            <p class="text-sm leading-relaxed text-zinc-400">"Personalizei tudo do meu jeito — categorias, metas e a composição do patrimônio. Do gasto do dia a dia até cada ativo, ficou realmente meu."</p>
+            <p class="mt-3 text-xs text-violet-300/80">— Lucas F. · assinante</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- OFERTA -->
+    <section id="oferta" class="py-16">
+      <div class="mx-auto max-w-md px-4 text-center sm:px-6">
+        <div class="rounded-3xl border-2 border-emerald-500/40 bg-gradient-to-b from-emerald-600/20 to-transparent p-8">
+          <p class="text-sm font-bold text-emerald-300">7 DIAS PARA TESTAR</p>
+          <p class="mt-4 text-5xl font-bold">R$ 29,90<span class="text-lg text-zinc-400">/mês</span></p>
+          <p class="mt-3 text-xs leading-relaxed text-zinc-500">
+            Acesso ao dashboard financeiro completo. Pagamento processado por provedor de cobrança certificado.
+          </p>
+          <a
+            id="btn-assinar-stripe"
+            href="#"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="glow-btn mt-6 inline-flex w-full items-center justify-center rounded-2xl bg-emerald-500 py-4 font-bold text-black transition hover:bg-emerald-400"
+          >
+            Assinar agora
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="border-t border-white/5 py-14">
+      <div class="mx-auto max-w-lg px-4 sm:px-6">
+        <h2 class="mb-6 text-center font-bold">Dúvidas Frequentes</h2>
+        <details class="mb-2 rounded-xl bg-[#14101f] px-4 py-3">
+          <summary class="font-medium text-sm">É seguro?</summary>
+          <p class="mt-2 text-sm leading-relaxed text-zinc-500">Sim. Cada conta é individual — ninguém mais acessa seus números, gastos ou investimentos. Seus dados ficam protegidos com login e senha, e a comunicação com o servidor usa criptografia. O Capital Novo não vende nem compartilha suas informações com terceiros.</p>
+        </details>
+        <details class="mb-2 rounded-xl bg-[#14101f] px-4 py-3">
+          <summary class="font-medium text-sm">Como funciona a assistente do WhatsApp? É IA?</summary>
+          <p class="mt-2 text-sm leading-relaxed text-zinc-500">
+            A assistente do WhatsApp é um canal prático para <strong class="font-medium text-zinc-400">lançar gastos e consultar seus números</strong> sem abrir o site. Você manda uma mensagem, confirma com <em>SIM</em> ou <em>NÃO</em>, e o lançamento vai direto para o seu dashboard — sincronizado na nuvem.
+          </p>
+          <p class="mt-2 text-sm leading-relaxed text-zinc-500">
+            <strong class="font-medium text-zinc-400">Não é inteligência artificial generativa</strong> (não é um chatbot estilo ChatGPT). Não inventamos categorias nem decidimos gastos por você. O fluxo é guiado: menus para consultas e lançamentos no formato que você informa — uma frase ou um dado por linha.
+          </p>
+          <p class="mt-2 text-sm leading-relaxed text-zinc-500">
+            Isso mantém a mesma filosofia do Capital Novo: <strong class="font-medium text-zinc-400">você registra com consciência</strong>. A assistente só organiza o que você enviou e pede confirmação antes de salvar. Áreas mais sensíveis do dashboard — como sua renda ou seu patrimônio — ficam privadas e acessíveis só no site, não pelo WhatsApp.
+          </p>
+          <p class="mt-2 text-sm leading-relaxed text-zinc-500">
+            Para ativar, vincule seu número no dashboard (Assistente WhatsApp). Assinantes ativos têm acesso ao bot.
+          </p>
+        </details>
+        <details class="mb-2 rounded-xl bg-[#14101f] px-4 py-3">
+          <summary class="font-medium text-sm">Por que não usam IA ou Open Finance?</summary>
+          <p class="mt-2 text-sm leading-relaxed text-zinc-500">
+            Apps com Open Finance ou IA enxergam só o nome da maquininha e a categoria do estabelecimento — não sabem o que você comprou de verdade. Comprou um pneu de moto numa loja cadastrada como petshop? A IA marca como &quot;pets&quot;. Para ter precisão, você acaba corrigindo manualmente mesmo.
+          </p>
+          <p class="mt-2 text-sm leading-relaxed text-zinc-500">
+            E há um problema maior: quando a IA faz tudo sozinha, o usuário não &quot;sente&quot; o gasto. A automação retira a consciência financeira. A organização vira só mais um extrato que você abre no fim do mês e se assusta com o total — como fatura de cartão que ninguém acompanhou no dia a dia.
+          </p>
+          <p class="mt-2 text-sm leading-relaxed text-zinc-500">
+            No Capital Novo, cada lançamento é seu — e esse esforço é proposital. Registrar &quot;R$ 300 — pneu da moto&quot; faz o cérebro registrar o gasto; ajudamos na mudança de comportamento financeiro, não só em tirar um retrato do passado. A IA te dá comodidade com erros; nós te damos disciplina e mentalidade para sua liberdade financeira.
+          </p>
+        </details>
+        <details class="mb-2 rounded-xl bg-[#14101f] px-4 py-3">
+          <summary class="font-medium text-sm">Posso cancelar?</summary>
+          <p class="mt-2 text-sm leading-relaxed text-zinc-500">Sim, quando quiser. Não há fidelidade nem multa. Você cancela direto pelo dashboard (botão Assinatura). Se assinou há menos de 7 dias e quer reembolso integral, escreva para <a href="mailto:contato@capitalnovo.com.br" class="text-violet-400 hover:text-violet-300">contato@capitalnovo.com.br</a> com o mesmo e-mail da conta. Depois dos 7 dias, o acesso continua até o fim do período já pago, sem nova cobrança.</p>
+        </details>
+        <details class="mb-2 rounded-xl bg-[#14101f] px-4 py-3">
+          <summary class="font-medium text-sm">Funciona no celular?</summary>
+          <p class="mt-2 text-sm leading-relaxed text-zinc-500">Funciona em qualquer dispositivo com navegador — celular, tablet ou computador. Não precisa instalar app: abra o site, faça login e pronto. Tudo fica sincronizado na nuvem, então o que você registra no celular aparece no desktop e vice-versa. Pelo WhatsApp, você também lança e consulta sem abrir o dashboard.</p>
+        </details>
+        <details class="rounded-xl bg-[#14101f] px-4 py-3">
+          <summary class="font-medium text-sm">É consultoria?</summary>
+          <p class="mt-2 text-sm leading-relaxed text-zinc-500">Não. O Capital Novo é uma ferramenta de organização financeira pessoal — ajuda você a ver gastos, contas, patrimônio e metas em um só lugar. Não recomendamos onde investir, não damos orientação tributária e não substituímos um contador ou planejador financeiro. A decisão é sempre sua.</p>
+        </details>
+      </div>
+    </section>
+
+    <!-- Modal: liberar demonstração com e-mail -->
+    <div
+      id="modal-demo"
+      class="fixed inset-0 z-[100000] hidden items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-demo-titulo"
+    >
+      <div class="w-full max-w-md rounded-2xl border border-white/10 bg-[#14141f] p-6 shadow-2xl">
+        <h2 id="modal-demo-titulo" class="text-lg font-semibold text-white">Ver demonstração</h2>
+        <p class="mt-2 text-sm leading-relaxed text-zinc-400">
+          Informe seu e-mail para liberar o painel com dados de exemplo. Sem cartão, sem compromisso —
+          só para você conhecer o Capital Novo por dentro.
+        </p>
+        <form id="form-demo-lead" class="mt-5 space-y-4">
+          <div>
+            <label for="demo-email" class="block text-xs font-medium text-zinc-400">Seu e-mail</label>
+            <input
+              id="demo-email"
+              type="email"
+              required
+              autocomplete="email"
+              placeholder="seu@email.com"
+              class="mt-1.5 w-full rounded-xl border border-bank-border bg-[#0c0c14] px-4 py-2.5 text-sm text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
+            />
+          </div>
+          <p id="demo-erro" class="hidden rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-200"></p>
+          <div class="flex flex-wrap gap-2">
+            <button
+              type="submit"
+              id="btn-demo-continuar"
+              class="flex-1 rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-violet-500 disabled:opacity-60"
+            >
+              Entrar na demonstração
+            </button>
+            <button
+              type="button"
+              id="btn-demo-fechar"
+              class="rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-medium text-zinc-300 transition hover:bg-white/10"
+            >
+              Cancelar
             </button>
           </div>
-        </section>
-
+        </form>
+        <p class="mt-3 text-[11px] leading-snug text-zinc-500">
+          Podemos enviar novidades do produto para este e-mail. Você pode pedir para sair da lista quando quiser.
+        </p>
       </div>
-    </main>
-  </div>
+    </div>
 
-  <!--
-    =============================================================================
-    LUCIDE ICONS (CDN)
-    - Após carregar o script, lucide.createIcons() substitui <i data-lucide="nome">
-    - Lista de ícones: https://lucide.dev/icons/
-    =============================================================================
-  -->
-  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <footer class="border-t border-white/5 py-8 text-center text-xs leading-relaxed text-zinc-500">
+      <div class="flex items-center justify-center gap-2.5">
+        <img
+          src="assets/logo-capital-novo.png"
+          alt=""
+          width="1024"
+          height="953"
+          class="h-8 w-8 object-contain"
+          decoding="async"
+        />
+        <p class="font-semibold text-zinc-400">Capital Novo</p>
+      </div>
+      <p class="mt-3">Ferramenta de organização financeira pessoal. Não constitui consultoria ou recomendação de investimentos.</p>
+      <nav class="mt-3 flex flex-wrap items-center justify-center gap-x-1 gap-y-1" aria-label="Links legais">
+        <a href="/privacidade" class="text-zinc-500 transition hover:text-violet-300">Política de Privacidade</a>
+        <span class="text-zinc-600" aria-hidden="true">·</span>
+        <a href="/termos" class="text-zinc-500 transition hover:text-violet-300">Termos de Uso</a>
+        <span class="text-zinc-600" aria-hidden="true">·</span>
+        <a href="/contato" class="text-zinc-500 transition hover:text-violet-300">Contato</a>
+      </nav>
+      <div id="gfp-footer-social" class="mt-3 flex justify-center gap-3" aria-label="Redes sociais"></div>
+      <p class="mt-3 text-zinc-600">© 2026 Capital Novo</p>
+    </footer>
 
-  <!--
-    =============================================================================
-    JAVASCRIPT — troca de abas sem recarregar a página
-    - Cada botão .nav-btn tem data-tab="id-da-section"
-    - Ao clicar: remove .tab-active de todos os painéis e botões; aplica no alvo
-    - hidden + aria: melhora leitores de tela (opcional mas recomendado)
-    =============================================================================
-  -->
-  <script>
-    (function () {
-      var navButtons = document.querySelectorAll('.nav-btn');
-      var panels = document.querySelectorAll('.tab-panel');
+    <script>
+      (function () {
+        var params = new URLSearchParams(window.location.search);
+        var erroEl = document.getElementById("login-erro");
+        var okEl = document.getElementById("login-ok");
+        var posPagamentoOkEl = document.getElementById("pos-pagamento-ok");
 
-      function showTab(tabId) {
-        panels.forEach(function (panel) {
-          var isActive = panel.id === tabId;
-          panel.classList.toggle('tab-active', isActive);
-          panel.hidden = !isActive;
-        });
-        navButtons.forEach(function (btn) {
-          btn.classList.toggle('nav-active', btn.getAttribute('data-tab') === tabId);
-        });
-        /* Fecha o seletor de mês (Total de Vendas) ao mudar de aba */
-        var popVendas = document.getElementById('vendas-mes-popover');
-        var btnVendas = document.getElementById('btn-vendas-mes-picker');
-        if (popVendas) popVendas.classList.add('hidden');
-        if (btnVendas) btnVendas.setAttribute('aria-expanded', 'false');
-        if (window.lucide) lucide.createIcons();
-      }
-
-      navButtons.forEach(function (btn) {
-        btn.addEventListener('click', function () {
-          var tabId = btn.getAttribute('data-tab');
-          if (tabId) showTab(tabId);
-        });
-      });
-
-      // Garante estado inicial coerente (primeira aba visível)
-      var first = document.querySelector('.nav-btn.nav-active') || navButtons[0];
-      if (first) showTab(first.getAttribute('data-tab'));
-
-      // Primeira renderização dos ícones Lucide
-      if (window.lucide) lucide.createIcons();
-    })();
-
-    /*
-     * -------------------------------------------------------------------------
-     * TOTAL DE VENDAS — painel ao clicar na sacola
-     * - Setas: um mês antes / um mês depois (até o mês calendário atual).
-     * - Tabela: mês atual + anteriores (últimos 24); clique na linha = mesmo efeito.
-     * - valorDemo(date): troque por dados da sua API.
-     * -------------------------------------------------------------------------
-     */
-    (function () {
-      var btn = document.getElementById('btn-vendas-mes-picker');
-      var popover = document.getElementById('vendas-mes-popover');
-      var btnPrev = document.getElementById('vendas-mes-prev');
-      var btnNext = document.getElementById('vendas-mes-next');
-      var elDestaque = document.getElementById('vendas-popover-mes-destaque');
-      var tbody = document.getElementById('vendas-mes-tbody');
-      var elMes = document.getElementById('vendas-ref-mes');
-      var elTotal = document.getElementById('vendas-total');
-      var elTrend = document.getElementById('vendas-trend');
-      var elTrendText = document.getElementById('vendas-trend-text');
-      var wrapIcon = document.getElementById('vendas-trend-icon-wrap');
-      if (!btn || !popover || !btnPrev || !btnNext || !elDestaque || !tbody || !elMes || !elTotal || !elTrend || !elTrendText || !wrapIcon) return;
-
-      var MESES_HISTORICO = 24;
-      var hojePrimeiro = new Date();
-      hojePrimeiro.setDate(1);
-      hojePrimeiro.setHours(0, 0, 0, 0);
-
-      var maisAntigo = new Date(hojePrimeiro);
-      maisAntigo.setMonth(maisAntigo.getMonth() - (MESES_HISTORICO - 1));
-
-      var cursor = new Date(hojePrimeiro);
-
-      function valorDemo(d) {
-        var n = d.getFullYear() * 12 + d.getMonth();
-        return 35000 + (n * 1379 % 22000);
-      }
-
-      function fmtMes(d) {
-        return d.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
-      }
-
-      function mesmoMes(a, b) {
-        return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth();
-      }
-
-      function mesChave(d) {
-        return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
-      }
-
-      /** Lista do mais recente (mês atual) para o mais antigo permitido */
-      function listaMeses() {
-        var out = [];
-        var d = new Date(hojePrimeiro);
-        for (var i = 0; i < MESES_HISTORICO; i++) {
-          out.push(new Date(d));
-          d.setMonth(d.getMonth() - 1);
+        function showErro(msg) {
+          erroEl.textContent = msg;
+          erroEl.classList.remove("hidden");
+          okEl.classList.add("hidden");
+          document.getElementById("sidebar-auth").scrollIntoView({ behavior: "smooth", block: "start" });
         }
-        return out;
-      }
 
-      function renderCartao() {
-        elMes.textContent = fmtMes(cursor);
-        var v = valorDemo(cursor);
-        elTotal.textContent =
-          'R$ ' +
-          v.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-
-        var prev = new Date(cursor);
-        prev.setMonth(prev.getMonth() - 1);
-        var vp = valorDemo(prev);
-        var pct = vp ? Math.round(((v - vp) / vp) * 100) : 0;
-        var up = pct >= 0;
-        elTrendText.textContent =
-          (up ? '+' : '') + pct + '% vs. mês anterior';
-        elTrend.classList.toggle('text-emerald-400/90', up);
-        elTrend.classList.toggle('text-rose-400/90', !up);
-        wrapIcon.innerHTML =
-          '<i data-lucide="' +
-          (up ? 'trending-up' : 'trending-down') +
-          '" class="h-4 w-4"></i>';
-        if (window.lucide) lucide.createIcons();
-      }
-
-      function podeAnterior() {
-        return (
-          cursor.getFullYear() > maisAntigo.getFullYear() ||
-          (cursor.getFullYear() === maisAntigo.getFullYear() && cursor.getMonth() > maisAntigo.getMonth())
-        );
-      }
-
-      function podeSeguinte() {
-        return !mesmoMes(cursor, hojePrimeiro);
-      }
-
-      function renderPopoverInterno() {
-        elDestaque.textContent = fmtMes(cursor);
-        btnPrev.disabled = !podeAnterior();
-        btnNext.disabled = !podeSeguinte();
-
-        tbody.innerHTML = '';
-        listaMeses().forEach(function (m) {
-          var tr = document.createElement('tr');
-          tr.className =
-            'cursor-pointer transition-colors hover:bg-stone-800/50 ' +
-            (mesmoMes(m, cursor) ? 'bg-adega-accent/10 ring-1 ring-inset ring-adega-accent/30' : '');
-          tr.setAttribute('data-mes', mesChave(m));
-          tr.setAttribute('role', 'button');
-          tr.setAttribute('tabindex', '0');
-
-          var tdMes = document.createElement('td');
-          tdMes.className = 'px-3 py-2.5 text-stone-200 capitalize';
-          tdMes.textContent = fmtMes(m);
-
-          var tdVal = document.createElement('td');
-          tdVal.className = 'px-3 py-2.5 text-right tabular-nums text-stone-300';
-          tdVal.textContent =
-            'R$ ' +
-            valorDemo(m).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-
-          var tdTag = document.createElement('td');
-          tdTag.className = 'px-3 py-2.5 text-right';
-          if (mesmoMes(m, hojePrimeiro)) {
-            var span = document.createElement('span');
-            span.className =
-              'inline-block rounded px-1.5 py-0.5 text-[10px] font-medium bg-emerald-500/20 text-emerald-400';
-            span.textContent = 'Atual';
-            tdTag.appendChild(span);
-          }
-
-          tr.appendChild(tdMes);
-          tr.appendChild(tdVal);
-          tr.appendChild(tdTag);
-
-          function aplicarMes() {
-            cursor.setFullYear(m.getFullYear(), m.getMonth(), 1);
-            renderCartao();
-            renderPopoverInterno();
-            if (window.lucide) lucide.createIcons();
-          }
-          tr.addEventListener('click', function (e) {
-            e.stopPropagation();
-            aplicarMes();
+        document.querySelectorAll(".btn-toggle-senha").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            var input = document.getElementById(btn.getAttribute("data-target"));
+            if (!input) return;
+            var mostrar = input.type === "password";
+            input.type = mostrar ? "text" : "password";
+            btn.setAttribute("aria-label", mostrar ? "Ocultar senha" : "Mostrar senha");
+            btn.setAttribute("aria-pressed", mostrar ? "true" : "false");
+            var open = btn.querySelector(".icon-eye-open");
+            var off = btn.querySelector(".icon-eye-off");
+            if (open) open.classList.toggle("hidden", mostrar);
+            if (off) off.classList.toggle("hidden", !mostrar);
           });
-          tr.addEventListener('keydown', function (e) {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              aplicarMes();
-            }
-          });
-
-          tbody.appendChild(tr);
         });
-      }
 
-      function popoverAberto() {
-        return !popover.classList.contains('hidden');
-      }
+        if (params.get("erro") === "config") {
+          showErro("Configure o arquivo config.js com a URL e a chave do Supabase antes de publicar.");
+        } else if (params.get("erro") === "assinatura") {
+          showErro("Assinatura inativa ou não encontrada. Use Assinar agora ou o mesmo e-mail do pagamento.");
+        } else if (params.get("erro")) {
+          showErro("Não foi possível verificar o acesso. Tente entrar novamente.");
+        }
 
-      function fecharPopover() {
-        popover.classList.add('hidden');
-        btn.setAttribute('aria-expanded', 'false');
-      }
+        var linkAssinar = document.getElementById("btn-assinar-stripe");
+        if (linkAssinar && window.GFP_STRIPE_PAYMENT_LINK && window.GFP_STRIPE_PAYMENT_LINK.indexOf("stripe.com") !== -1) {
+          linkAssinar.href = window.GFP_STRIPE_PAYMENT_LINK;
+        } else if (linkAssinar) {
+          linkAssinar.classList.add("pointer-events-none", "opacity-50");
+          linkAssinar.textContent = "Link de pagamento não configurado";
+        }
 
-      function abrirPopover() {
-        popover.classList.remove('hidden');
-        btn.setAttribute('aria-expanded', 'true');
-        renderPopoverInterno();
-        if (window.lucide) lucide.createIcons();
-      }
+        if (
+          !window.GFP_SUPABASE_URL ||
+          !window.GFP_SUPABASE_ANON_KEY ||
+          window.GFP_SUPABASE_URL.indexOf("SEU_PROJETO") !== -1
+        ) {
+          showErro("Edite config.js com os dados do Supabase (Settings → API).");
+          return;
+        }
 
-      btn.addEventListener('click', function () {
-        if (popoverAberto()) fecharPopover();
-        else abrirPopover();
-      });
+        function gfpFnUrl(name) {
+          var base = window.GFP_SUPABASE_URL.replace(/\/$/, "");
+          return base + "/functions/v1/" + name;
+        }
 
-      btnPrev.addEventListener('click', function () {
-        if (!podeAnterior()) return;
-        cursor.setMonth(cursor.getMonth() - 1);
-        renderCartao();
-        renderPopoverInterno();
-        if (window.lucide) lucide.createIcons();
-      });
+        var sb = window.supabase.createClient(window.GFP_SUPABASE_URL, window.GFP_SUPABASE_ANON_KEY);
 
-      btnNext.addEventListener('click', function () {
-        if (!podeSeguinte()) return;
-        cursor.setMonth(cursor.getMonth() + 1);
-        renderCartao();
-        renderPopoverInterno();
-        if (window.lucide) lucide.createIcons();
-      });
+        function showBlocoPosPagamento(msg) {
+          document.getElementById("bloco-pos-pagamento").classList.remove("hidden");
+          document.getElementById("sidebar-auth").scrollIntoView({ behavior: "smooth", block: "start" });
+          okEl.classList.add("hidden");
+          if (msg) {
+            posPagamentoOkEl.textContent = msg;
+            posPagamentoOkEl.classList.remove("hidden");
+          } else {
+            posPagamentoOkEl.classList.add("hidden");
+          }
+        }
 
-      document.addEventListener('click', function (e) {
-        if (!popoverAberto()) return;
-        var t = e.target;
-        if (btn.contains(t) || popover.contains(t)) return;
-        fecharPopover();
-      });
+        if (params.get("checkout") === "success") {
+          showBlocoPosPagamento(
+            "Pagamento recebido! Aguarde alguns segundos e preencha o formulário abaixo."
+          );
+        }
 
-      document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape' && popoverAberto()) fecharPopover();
-      });
+        document.getElementById("btn-mostrar-criar-senha").addEventListener("click", function () {
+          showBlocoPosPagamento(
+            "Se acabou de pagar, aguarde alguns segundos antes de criar a senha."
+          );
+        });
 
-      renderCartao();
-    })();
-  </script>
-</body>
+        document.getElementById("btn-mostrar-esqueci").addEventListener("click", function () {
+          document.getElementById("form-esqueci-senha").classList.toggle("hidden");
+        });
+
+        document.getElementById("form-esqueci-senha").addEventListener("submit", async function (e) {
+          e.preventDefault();
+          var btn = document.getElementById("btn-enviar-reset");
+          btn.disabled = true;
+          erroEl.classList.add("hidden");
+          var email = document.getElementById("reset-email").value.trim();
+          var redirectTo = new URL("/redefinir-senha", window.location.origin).href;
+          var result = await sb.auth.resetPasswordForEmail(email, { redirectTo: redirectTo });
+          btn.disabled = false;
+          if (result.error) {
+            showErro(result.error.message || "Não foi possível enviar o e-mail.");
+            return;
+          }
+          okEl.textContent =
+            "Se existir uma conta com esse e-mail, enviamos um link para redefinir a senha. Confira também a caixa de spam.";
+          okEl.classList.remove("hidden");
+          document.getElementById("form-esqueci-senha").classList.add("hidden");
+        });
+
+        if (window.GFP_ALLOW_TEST_SIGNUP === true) {
+          document.getElementById("bloco-teste-signup").classList.remove("hidden");
+        }
+
+        sb.auth.getSession().then(function (res) {
+          if (res.data && res.data.session) {
+            window.location.replace("/dashboard");
+          }
+        });
+
+        var btnMostrarCad = document.getElementById("btn-mostrar-cadastro");
+        if (btnMostrarCad) {
+          btnMostrarCad.addEventListener("click", function () {
+            document.getElementById("form-cadastro").classList.toggle("hidden");
+          });
+        }
+
+        document.getElementById("form-criar-senha").addEventListener("submit", async function (e) {
+          e.preventDefault();
+          var btn = document.getElementById("btn-criar-senha");
+          btn.disabled = true;
+          erroEl.classList.add("hidden");
+          okEl.classList.add("hidden");
+          posPagamentoOkEl.classList.add("hidden");
+          var email = document.getElementById("senha-email").value.trim();
+          var senha = document.getElementById("senha-nova").value;
+          try {
+            var res = await fetch(gfpFnUrl("criar-senha-assinante"), {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: "Bearer " + window.GFP_SUPABASE_ANON_KEY,
+                apikey: window.GFP_SUPABASE_ANON_KEY,
+              },
+              body: JSON.stringify({ email: email, password: senha }),
+            });
+            var data = await res.json();
+            if (!res.ok) {
+              showErro(data.error || data.message || "Não foi possível criar a senha.");
+              btn.disabled = false;
+              return;
+            }
+            var login = await sb.auth.signInWithPassword({ email: email, password: senha });
+            btn.disabled = false;
+            if (login.error) {
+              showErro("Senha criada. Entre manualmente com e-mail e senha.");
+              return;
+            }
+            window.location.replace("/dashboard");
+          } catch (err) {
+            btn.disabled = false;
+            showErro("Serviço indisponível. Confira se as Edge Functions foram publicadas no Supabase.");
+          }
+        });
+
+        document.getElementById("form-login").addEventListener("submit", async function (e) {
+          e.preventDefault();
+          var btn = document.getElementById("btn-login");
+          btn.disabled = true;
+          erroEl.classList.add("hidden");
+          var email = document.getElementById("login-email").value.trim();
+          var senha = document.getElementById("login-senha").value;
+          var result = await sb.auth.signInWithPassword({ email: email, password: senha });
+          btn.disabled = false;
+          if (result.error) {
+            showErro(
+              result.error.message === "Invalid login credentials"
+                ? "E-mail ou senha incorretos. Se acabou de pagar, use «Acabei de pagar · criar minha senha». Se já tinha conta, use «Esqueci minha senha»."
+                : result.error.message
+            );
+            return;
+          }
+          window.location.replace("/dashboard");
+        });
+
+        var formCadastro = document.getElementById("form-cadastro");
+        if (formCadastro) formCadastro.addEventListener("submit", async function (e) {
+          e.preventDefault();
+          var btn = document.getElementById("btn-cadastro");
+          btn.disabled = true;
+          erroEl.classList.add("hidden");
+          var email = document.getElementById("cadastro-email").value.trim();
+          var senha = document.getElementById("cadastro-senha").value;
+          var result = await sb.auth.signUp({ email: email, password: senha });
+          btn.disabled = false;
+          if (result.error) {
+            showErro(result.error.message);
+            return;
+          }
+          if (result.data && result.data.session) {
+            window.location.replace("/dashboard");
+            return;
+          }
+          okEl.textContent = "Conta criada! Se o Supabase exigir confirmação por e-mail, confira sua caixa de entrada e depois entre.";
+          okEl.classList.remove("hidden");
+        });
+
+        /* —— Demonstração com captura de e-mail —— */
+        var modalDemo = document.getElementById("modal-demo");
+        var btnVerDemo = document.getElementById("btn-ver-demo");
+        var btnDemoFechar = document.getElementById("btn-demo-fechar");
+        var formDemo = document.getElementById("form-demo-lead");
+        var demoErro = document.getElementById("demo-erro");
+
+        function abrirModalDemo() {
+          if (!modalDemo) return;
+          modalDemo.classList.remove("hidden");
+          modalDemo.classList.add("flex");
+          var inp = document.getElementById("demo-email");
+          if (inp) setTimeout(function () { inp.focus(); }, 50);
+        }
+        function fecharModalDemo() {
+          if (!modalDemo) return;
+          modalDemo.classList.add("hidden");
+          modalDemo.classList.remove("flex");
+          if (demoErro) demoErro.classList.add("hidden");
+        }
+
+        if (btnVerDemo) btnVerDemo.addEventListener("click", abrirModalDemo);
+        if (btnDemoFechar) btnDemoFechar.addEventListener("click", fecharModalDemo);
+        if (modalDemo) {
+          modalDemo.addEventListener("click", function (ev) {
+            if (ev.target === modalDemo) fecharModalDemo();
+          });
+        }
+
+        async function registrarLeadDemo(email) {
+          // Tenta gravar no Supabase (tabela demo_leads). Se não existir, segue mesmo assim.
+          try {
+            await sb.from("demo_leads").insert({
+              email: email,
+              source: "landing_demo",
+              created_at: new Date().toISOString(),
+            });
+          } catch (e) {}
+          try {
+            var lista = [];
+            var raw = localStorage.getItem("gfp_demo_leads_local");
+            if (raw) lista = JSON.parse(raw) || [];
+            if (!Array.isArray(lista)) lista = [];
+            lista.push({ email: email, at: new Date().toISOString() });
+            if (lista.length > 200) lista = lista.slice(-200);
+            localStorage.setItem("gfp_demo_leads_local", JSON.stringify(lista));
+          } catch (e2) {}
+        }
+
+        if (formDemo) {
+          formDemo.addEventListener("submit", async function (e) {
+            e.preventDefault();
+            var btn = document.getElementById("btn-demo-continuar");
+            var email = (document.getElementById("demo-email").value || "").trim().toLowerCase();
+            if (!email || email.indexOf("@") < 1) {
+              if (demoErro) {
+                demoErro.textContent = "Informe um e-mail válido.";
+                demoErro.classList.remove("hidden");
+              }
+              return;
+            }
+            if (btn) btn.disabled = true;
+            if (demoErro) demoErro.classList.add("hidden");
+            try {
+              if (typeof window.gfpMarkDemoSession === "function") {
+                window.gfpMarkDemoSession(email);
+              } else {
+                sessionStorage.setItem("gfp_demo_active", "1");
+                sessionStorage.setItem("gfp_demo_email", email);
+              }
+              await registrarLeadDemo(email);
+            } catch (err) {}
+            window.location.href = "/dashboard?demo=1";
+          });
+        }
+      })();
+    </script>
+  </body>
 </html>
