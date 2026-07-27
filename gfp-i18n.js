@@ -292,6 +292,34 @@
       "dash.home.catPctMonth":
         "Percentual por categoria em {month} · Lançamentos do mês + fixas pagas fora do crédito + fixas em crédito",
       "dash.home.close": "Fechar",
+      "dash.home.cancel": "Cancelar",
+      "dash.home.refMonthTitle": "Mês de referência dos gastos",
+      "dash.home.goCurrentMonth": "Ir para mês atual",
+      "dash.home.gastosExplain":
+        "Lançamentos (todos os meios) + fixas pagas fora do crédito + fixas em crédito pela cobrança do mês + juros/taxas. Pagar fatura de cartões não entra aqui, porque o gasto já foi adicionado no lançamento ou na conta fixa em crédito.",
+      "dash.home.pieNoCredit": "Gastos fora do crédito",
+      "dash.home.pieNoCreditHint":
+        "Lançamentos (sem Crédito) e contas fixas fora do crédito com valor pago preenchido, por meio: Débito, Pix, Dinheiro, Vale alimentação e outros.",
+      "dash.home.pieNoCreditEmpty":
+        "Nenhum gasto fora do crédito neste mês (lançamentos ou contas fixas não-crédito pagas).",
+      "dash.home.pieCard": "Gastos no cartão",
+      "dash.home.pieCardHint":
+        "Lançamentos com meio Crédito e contas fixas em Crédito, por origem (cartão). Pagar a fatura não entra aqui.",
+      "dash.home.pieCardEmpty": "Nenhum gasto no crédito neste mês.",
+      "dash.home.pieCat": "Gastos por categoria",
+      "dash.home.pieCatEmpty": "Nenhum gasto neste mês para este gráfico.",
+      "dash.home.incomeDetailTitle": "Renda mensal — detalhe ({month})",
+      "dash.home.incomeDetailDesc":
+        'Some as subcategorias abaixo; use <strong class="text-zinc-300">{add}</strong> para mais linhas. O total atualiza a renda de <strong class="text-zinc-300">{month}</strong> no cartão do dashboard e no valor do botão «{changeMonth}».',
+      "dash.home.addSubcat": "Adicionar subcategoria",
+      "dash.home.incomeTotal": "Total ({month}): {amount}",
+      "dash.home.saveThisMonth": "Salvar só neste mês",
+      "dash.home.saveFollowing": "Salvar neste e nos meses seguintes",
+      "dash.home.saveHint":
+        "«{saveThis}» grava apenas em {monthYear}, com todas as subcategorias e valores. «{saveFollowing}» copia o mesmo detalhamento (incluindo linhas extras) para {month} até {december} (desativado se o mês exibido for {december}).",
+      "dash.home.december": "dezembro",
+      "dash.home.saveFollowingDisabled": "Não há meses seguintes após dezembro no mesmo ano.",
+      "dash.home.detailIncomeOf": "Detalhar renda de {month} por subcategorias",
     },
     en: {
       "lang.switchTo": "PT",
@@ -579,6 +607,34 @@
       "dash.home.catPctMonth":
         "Share by category in {month} · Month transactions + paid fixed bills outside credit + fixed bills on credit",
       "dash.home.close": "Close",
+      "dash.home.cancel": "Cancel",
+      "dash.home.refMonthTitle": "Spending reference month",
+      "dash.home.goCurrentMonth": "Go to current month",
+      "dash.home.gastosExplain":
+        "Transactions (all methods) + paid fixed bills outside credit + fixed bills on credit for this month’s charge + interest/fees. Paying a card statement is not included here, because the expense was already added in the transaction or the fixed bill on credit.",
+      "dash.home.pieNoCredit": "Spending outside credit",
+      "dash.home.pieNoCreditHint":
+        "Transactions (excluding Credit) and fixed bills outside credit with paid amount filled, by method: Debit, Pix, Cash, Meal voucher and other.",
+      "dash.home.pieNoCreditEmpty":
+        "No non-credit spending this month (transactions or paid non-credit fixed bills).",
+      "dash.home.pieCard": "Card spending",
+      "dash.home.pieCardHint":
+        "Transactions with Credit method and fixed bills on Credit, by origin (card). Paying the statement is not included here.",
+      "dash.home.pieCardEmpty": "No credit spending this month.",
+      "dash.home.pieCat": "Spending by category",
+      "dash.home.pieCatEmpty": "No spending this month for this chart.",
+      "dash.home.incomeDetailTitle": "Monthly income — detail ({month})",
+      "dash.home.incomeDetailDesc":
+        'Add up the subcategories below; use <strong class="text-zinc-300">{add}</strong> for more lines. The total updates <strong class="text-zinc-300">{month}</strong> income on the dashboard card and the «{changeMonth}» button.',
+      "dash.home.addSubcat": "Add subcategory",
+      "dash.home.incomeTotal": "Total ({month}): {amount}",
+      "dash.home.saveThisMonth": "Save only this month",
+      "dash.home.saveFollowing": "Save this and following months",
+      "dash.home.saveHint":
+        "«{saveThis}» saves only in {monthYear}, with all subcategories and amounts. «{saveFollowing}» copies the same breakdown (including extra lines) from {month} through {december} (disabled if the displayed month is {december}).",
+      "dash.home.december": "December",
+      "dash.home.saveFollowingDisabled": "There are no following months after December in the same year.",
+      "dash.home.detailIncomeOf": "Break down {month} income by subcategories",
     },
   };
 
