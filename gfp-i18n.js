@@ -86,6 +86,7 @@
         '"Personalizei tudo do meu jeito — categorias, metas e a composição do patrimônio. Do gasto do dia a dia até cada ativo, ficou realmente meu."',
       "landing.testimonials.3.a": "— Lucas F. · assinante",
       "landing.offer.badge": "7 DIAS PARA TESTAR",
+      "landing.offer.price": "R$ 29,90",
       "landing.offer.priceSuffix": "/mês",
       "landing.offer.hint":
         "Acesso ao dashboard financeiro completo. Pagamento processado por provedor de cobrança certificado.",
@@ -178,7 +179,7 @@
       "landing.hero.sub":
         "Capital Novo brings expenses, bills and investments into one elegant panel — so you stay in control with a long-term view of your wealth.",
       "landing.cta.demo": "Try the free demo",
-      "landing.cta.start": "Start at R$ 29.90/mo",
+      "landing.cta.start": "Start at $9.90/mo",
       "landing.cta.hint": "Explore the dashboard with sample data — no card, no commitment.",
       "landing.mock.gastos": "Total spending this month",
       "landing.mock.ref": "Reference: June 2026 (current month)",
@@ -244,6 +245,7 @@
         '"I customized everything my way — categories, goals and how my net worth is built. From daily spending to every asset, it truly feels mine."',
       "landing.testimonials.3.a": "— Lucas F. · subscriber",
       "landing.offer.badge": "7 DAYS TO TRY",
+      "landing.offer.price": "$9.90",
       "landing.offer.priceSuffix": "/mo",
       "landing.offer.hint":
         "Full finance dashboard access. Payment processed by a certified billing provider.",
