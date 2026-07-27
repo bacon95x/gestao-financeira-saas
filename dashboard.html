@@ -29,6 +29,7 @@
     <script src="auth-guard.js"></script>
     <script src="gfp-cloud-sync.js"></script>
     <script src="gfp-ativos.js"></script>
+    <script src="gfp-i18n.js"></script>
     <script src="gfp-whatsapp.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -963,6 +964,7 @@
     <div
       id="gfp-auth-loading"
       class="fixed inset-0 z-[99999] flex items-center justify-center bg-[#0c0c14] text-sm text-zinc-300"
+      data-i18n="dash.authLoading"
     >
       Verificando acesso…
     </div>
@@ -981,7 +983,7 @@
             <h1 class="text-xl font-semibold tracking-tight text-white sm:text-2xl">
               Capital Novo
             </h1>
-            <p class="text-sm text-bank-muted">Seus gastos e investimentos em um só lugar</p>
+            <p class="text-sm text-bank-muted" data-i18n="dash.tagline">Seus gastos e investimentos em um só lugar</p>
           </div>
         </div>
         <div
@@ -992,18 +994,20 @@
             class="flex w-full flex-wrap items-center justify-end gap-3"
             id="header-tema-aparencia"
           >
+          <div id="gfp-lang-slot" class="shrink-0"></div>
           <div
             class="flex flex-wrap items-center gap-2 rounded-2xl border border-bank-border bg-bank-card/80 px-2 py-2 backdrop-blur-sm sm:justify-end"
             role="group"
             aria-label="Tom de fundo da página"
           >
-            <span class="pl-1 text-xs font-medium text-bank-muted">Fundo</span>
+            <span class="pl-1 text-xs font-medium text-bank-muted" data-i18n="dash.bg">Fundo</span>
             <button
               type="button"
               class="theme-fundo-btn rounded-lg px-2.5 py-1.5 text-xs font-semibold transition hover:opacity-90"
               data-theme-fundo="violet"
               aria-pressed="true"
               title="Roxo"
+              data-i18n="dash.bg.violet"
               style="background: linear-gradient(135deg, rgba(124, 58, 237, 0.45), rgba(139, 92, 246, 0.25)); color: #e9d5ff"
             >
               Roxo
@@ -1014,6 +1018,7 @@
               data-theme-fundo="orange"
               aria-pressed="false"
               title="Laranja claro"
+              data-i18n="dash.bg.orange"
               style="background: linear-gradient(135deg, rgba(255, 200, 120, 0.55), rgba(255, 230, 180, 0.35)); color: #3d2808"
             >
               Laranja
@@ -1024,6 +1029,7 @@
               data-theme-fundo="blue"
               aria-pressed="false"
               title="Azul"
+              data-i18n="dash.bg.blue"
               style="background: linear-gradient(135deg, rgba(37, 99, 235, 0.5), rgba(59, 130, 246, 0.25)); color: #dbeafe"
             >
               Azul
@@ -1034,6 +1040,7 @@
               data-theme-fundo="green"
               aria-pressed="false"
               title="Verde claro"
+              data-i18n="dash.bg.green"
               style="background: linear-gradient(135deg, rgba(110, 231, 183, 0.45), rgba(167, 243, 208, 0.3)); color: #064e3b"
             >
               Verde
@@ -1043,13 +1050,14 @@
               role="group"
               aria-label="Intensidade da iluminação do fundo"
             >
-              <span class="whitespace-nowrap text-[10px] font-medium leading-tight text-bank-muted"
+              <span class="whitespace-nowrap text-[10px] font-medium leading-tight text-bank-muted" data-i18n="dash.light"
                 >Iluminação</span
               >
               <div class="mt-1 flex items-center gap-1.5">
                 <span
                   class="shrink-0 text-[9px] font-medium tabular-nums text-zinc-500 sm:text-[10px]"
                   title="Luminosidade baixa"
+                  data-i18n="dash.light.low"
                   >Baixa</span
                 >
                 <input
@@ -1068,6 +1076,7 @@
                 <span
                   class="shrink-0 text-[9px] font-medium tabular-nums text-zinc-500 sm:text-[10px]"
                   title="Luminosidade alta"
+                  data-i18n="dash.light.high"
                   >Alta</span
                 >
               </div>
@@ -1078,13 +1087,14 @@
             role="group"
             aria-label="Modo claro ou escuro"
           >
-            <span class="pl-1 text-xs font-medium text-bank-muted">Tema</span>
+            <span class="pl-1 text-xs font-medium text-bank-muted" data-i18n="dash.theme">Tema</span>
             <button
               type="button"
               class="appearance-btn rounded-lg border border-bank-border bg-bank-bg px-2.5 py-1.5 text-xs font-semibold text-zinc-300 transition hover:bg-bank-card"
               data-aparicao="light"
               aria-pressed="false"
               title="Fundo claro e texto escuro"
+              data-i18n="dash.theme.light"
             >
               Claro
             </button>
@@ -1094,6 +1104,7 @@
               data-aparicao="dark"
               aria-pressed="true"
               title="Fundo escuro (padrão)"
+              data-i18n="dash.theme.dark"
             >
               Escuro
             </button>
@@ -1105,7 +1116,7 @@
             title="Tour rápido com narração: gastos, cartões e WhatsApp"
           >
             <i data-lucide="help-circle" class="h-4 w-4"></i>
-            Como funciona?
+            <span data-i18n="dash.how">Como funciona?</span>
           </button>
           <button
             type="button"
@@ -1114,19 +1125,20 @@
             title="Gravar tela: troca de abas automática, painéis inteiros visíveis. Roteiro em APRESENTACAO-CAPITAL-NOVO-ROTEIRO.txt"
           >
             <i data-lucide="clapperboard" class="h-4 w-4"></i>
-            Apresentação
+            <span data-i18n="dash.presentation">Apresentação</span>
           </button>
           <div
             class="flex flex-wrap items-center gap-2 rounded-2xl border border-bank-border bg-bank-card/80 px-2 py-2 backdrop-blur-sm"
             role="group"
             aria-label="Backup dos dados salvos"
           >
-            <span class="pl-1 text-xs font-medium text-bank-muted">Backup</span>
+            <span class="pl-1 text-xs font-medium text-bank-muted" data-i18n="dash.backup">Backup</span>
             <button
               type="button"
               id="btn-gerenciar-assinatura"
               class="hidden rounded-lg border border-violet-500/35 bg-violet-600/15 px-2.5 py-1.5 text-xs font-semibold text-violet-200 transition hover:bg-violet-600/25 disabled:opacity-60"
               title="Cancelar ou gerenciar assinatura. Reembolso nos 7 dias: contato@capitalnovo.com.br"
+              data-i18n="dash.subscription"
             >
               Assinatura
             </button>
@@ -1135,6 +1147,7 @@
               id="btn-logout"
               class="rounded-lg border border-zinc-500/35 bg-zinc-600/15 px-2.5 py-1.5 text-xs font-semibold text-zinc-200 transition hover:bg-zinc-600/25"
               title="Sair da conta"
+              data-i18n="dash.logout"
             >
               Sair
             </button>
@@ -1143,6 +1156,7 @@
               id="btn-backup-exportar"
               class="rounded-lg border border-emerald-500/35 bg-emerald-600/15 px-2.5 py-1.5 text-xs font-semibold text-emerald-200 transition hover:bg-emerald-600/25"
               title="Exportar seus dados salvos no navegador para arquivo JSON"
+              data-i18n="dash.export"
             >
               Exportar
             </button>
@@ -1151,6 +1165,7 @@
               id="btn-backup-importar"
               class="rounded-lg border border-cyan-500/35 bg-cyan-600/15 px-2.5 py-1.5 text-xs font-semibold text-cyan-200 transition hover:bg-cyan-600/25"
               title="Importar backup JSON e restaurar os dados neste navegador"
+              data-i18n="dash.import"
             >
               Importar
             </button>
@@ -1162,12 +1177,13 @@
             role="group"
             aria-label="Sincronização na nuvem"
           >
-            <span class="pl-1 text-xs font-medium text-violet-200">Nuvem</span>
+            <span class="pl-1 text-xs font-medium text-violet-200" data-i18n="dash.cloud">Nuvem</span>
             <button
               type="button"
               id="btn-cloud-sync"
               class="rounded-lg border border-violet-500/35 bg-violet-600/20 px-2.5 py-1.5 text-xs font-semibold text-violet-100 transition hover:bg-violet-600/35"
               title="Salvar agora os dados do navegador no Supabase"
+              data-i18n="dash.cloudSave"
             >
               Salvar na nuvem
             </button>
@@ -1250,16 +1266,18 @@
             class="flex w-full max-w-full flex-nowrap items-center justify-start gap-2 overflow-x-auto overflow-y-hidden rounded-2xl border border-bank-border bg-bank-card/80 p-1.5 backdrop-blur-sm sm:justify-start [-ms-overflow-style:none] [scrollbar-width:thin]"
             role="tablist"
             aria-label="Seções"
+            data-i18n-aria="dash.nav"
           >
             <button
               type="button"
               role="tab"
               data-tab="dashboard"
               title="Voltar ao início · visão geral"
+              data-i18n-title="dash.tab.dashboardTitle"
               class="tab-btn inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl border border-transparent px-4 py-2.5 text-sm font-medium text-zinc-400 transition hover:text-zinc-200"
             >
               <i data-lucide="layout-dashboard" class="h-4 w-4"></i>
-              Dashboard
+              <span data-i18n="dash.tab.dashboard">Dashboard</span>
             </button>
             <button
               type="button"
@@ -1268,7 +1286,7 @@
               class="tab-btn inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl border border-transparent px-4 py-2.5 text-sm font-medium text-zinc-400 transition hover:text-zinc-200"
             >
               <i data-lucide="receipt" class="h-4 w-4"></i>
-              Lançamentos
+              <span data-i18n="dash.tab.lancamentos">Lançamentos</span>
             </button>
             <button
               type="button"
@@ -1277,7 +1295,7 @@
               class="tab-btn inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl border border-transparent px-4 py-2.5 text-sm font-medium text-zinc-400 transition hover:text-zinc-200"
             >
               <i data-lucide="calendar-days" class="h-4 w-4"></i>
-              Contas fixas
+              <span data-i18n="dash.tab.fixas">Contas fixas</span>
             </button>
             <button
               type="button"
@@ -1286,7 +1304,7 @@
               class="tab-btn inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl border border-transparent px-4 py-2.5 text-sm font-medium text-zinc-400 transition hover:text-zinc-200"
             >
               <i data-lucide="credit-card" class="h-4 w-4"></i>
-              Cartões
+              <span data-i18n="dash.tab.cartoes">Cartões</span>
             </button>
             <button
               type="button"
@@ -1295,7 +1313,7 @@
               class="tab-btn inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl border border-transparent px-4 py-2.5 text-sm font-medium text-zinc-400 transition hover:text-zinc-200"
             >
               <i data-lucide="calendar-clock" class="h-4 w-4"></i>
-              Juros/taxas
+              <span data-i18n="dash.tab.juros">Juros/taxas</span>
             </button>
             <button
               type="button"
@@ -1304,7 +1322,7 @@
               class="tab-btn inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl border border-transparent px-4 py-2.5 text-sm font-medium text-zinc-400 transition hover:text-zinc-200"
             >
               <i data-lucide="trending-up" class="h-4 w-4"></i>
-              Investimentos
+              <span data-i18n="dash.tab.invest">Investimentos</span>
             </button>
             <button
               type="button"
@@ -1313,7 +1331,7 @@
               class="tab-btn inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl border border-transparent px-4 py-2.5 text-sm font-medium text-zinc-400 transition hover:text-zinc-200"
             >
               <i data-lucide="pie-chart" class="h-4 w-4"></i>
-              Patrimônio
+              <span data-i18n="dash.tab.patrimonio">Patrimônio</span>
             </button>
             <button
               type="button"
@@ -1322,7 +1340,7 @@
               class="tab-btn inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl border border-transparent px-4 py-2.5 text-sm font-medium text-zinc-400 transition hover:text-zinc-200"
             >
               <i data-lucide="layers" class="h-4 w-4"></i>
-              Meus Ativos
+              <span data-i18n="dash.tab.ativos">Meus Ativos</span>
             </button>
             <button
               type="button"
@@ -1331,7 +1349,7 @@
               class="tab-btn inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl border border-transparent px-4 py-2.5 text-sm font-medium text-zinc-400 transition hover:text-zinc-200"
             >
               <i data-lucide="bitcoin" class="h-4 w-4"></i>
-              Bitcoin
+              <span data-i18n="dash.tab.bitcoin">Bitcoin</span>
             </button>
           </nav>
         </div>
@@ -13749,6 +13767,17 @@
           renderCalendarioJurosTabela();
           renderCalendarioOrigensResumo();
           updateDashboard();
+          try {
+            if (window.GFP && GFP.i18n) {
+              GFP.i18n.mountLangToggle(
+                document.getElementById("gfp-lang-slot"),
+                "inline-flex h-9 min-w-[2.75rem] shrink-0 items-center justify-center rounded-xl border border-bank-border bg-bank-card/80 px-2.5 text-xs font-bold tracking-wide text-zinc-200 transition hover:bg-white/10"
+              );
+              GFP.i18n.applyI18n();
+            }
+          } catch (eLang) {
+            console.warn("i18n:", eLang);
+          }
           try {
             if (typeof lucide !== "undefined" && lucide.createIcons) lucide.createIcons();
           } catch (e) {
