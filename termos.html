@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Termos de Uso · Capital Novo</title>
+    <link rel="icon" type="image/png" href="assets/logo-capital-novo.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -35,125 +36,223 @@
           #0c0c14;
       }
     </style>
+    <script src="gfp-i18n.js"></script>
   </head>
   <body class="min-h-screen text-zinc-100 antialiased">
     <main class="mx-auto max-w-2xl px-4 py-10 sm:py-14">
-      <p class="mb-6">
-        <a href="/" class="text-sm text-violet-400 transition hover:text-violet-300">← Voltar ao início</a>
-      </p>
-      <h1 class="text-2xl font-semibold text-white sm:text-3xl">Termos de Uso</h1>
-      <p class="mt-2 text-sm text-bank-muted">Última atualização: junho de 2026</p>
+      <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <a href="/" class="text-sm text-violet-400 transition hover:text-violet-300" data-i18n="legal.back"
+          >← Voltar ao início</a
+        >
+        <div id="gfp-lang-slot"></div>
+      </div>
 
-      <div class="mt-8 space-y-6 text-sm leading-relaxed text-zinc-300">
-        <section>
-          <h2 class="text-base font-semibold text-zinc-100">1. Aceitação</h2>
-          <p class="mt-2 text-bank-muted">
-            Ao assinar ou usar o Capital Novo, você concorda com estes Termos e com a
-            <a href="/privacidade" class="text-violet-400 hover:text-violet-300">Política de Privacidade</a>.
-            Se não concordar, não utilize o serviço.
-          </p>
-        </section>
+      <div data-lang-block="pt">
+        <h1 class="text-2xl font-semibold text-white sm:text-3xl">Termos de Uso</h1>
+        <p class="mt-2 text-sm text-bank-muted">Última atualização: junho de 2026</p>
+        <div class="mt-8 space-y-6 text-sm leading-relaxed text-zinc-300">
+          <section>
+            <h2 class="text-base font-semibold text-zinc-100">1. Aceitação</h2>
+            <p class="mt-2 text-bank-muted">
+              Ao assinar ou usar o Capital Novo, você concorda com estes Termos e com a
+              <a href="/privacidade" class="text-violet-400 hover:text-violet-300">Política de Privacidade</a>.
+              Se não concordar, não utilize o serviço.
+            </p>
+          </section>
+          <section>
+            <h2 class="text-base font-semibold text-zinc-100">2. O serviço</h2>
+            <p class="mt-2 text-bank-muted">
+              O Capital Novo é uma ferramenta de <strong class="text-zinc-300">organização financeira pessoal</strong>:
+              registro de gastos, contas, patrimônio e acompanhamento de investimentos informados por você.
+              <strong class="text-zinc-300">Não somos instituição financeira, corretora, consultoria ou assessoria de investimentos.</strong>
+              Não recomendamos ativos, não executamos operações e não garantimos resultados financeiros.
+            </p>
+          </section>
+          <section>
+            <h2 class="text-base font-semibold text-zinc-100">3. Assinatura e pagamento</h2>
+            <p class="mt-2 text-bank-muted">
+              O acesso ao dashboard completo requer assinatura mensal (valor vigente na página inicial do site), processada por
+              <strong class="text-zinc-300">provedor de cobrança certificado</strong> (não armazenamos número de cartão).
+              A renovação é automática até cancelamento. Não há fidelidade nem multa por cancelamento.
+              Você pode gerenciar ou cancelar a assinatura pelo
+              <strong class="text-zinc-300">portal de assinatura</strong>, disponível após o login no dashboard (botão Assinatura).
+            </p>
+            <p class="mt-3 text-bank-muted">
+              <strong class="text-zinc-300">Garantia de 7 dias:</strong> se você assinar e não ficar satisfeito, pode solicitar
+              <strong class="text-zinc-300">reembolso integral</strong> da primeira cobrança quando o pedido for feito em até
+              7 (sete) dias corridos a partir da data do pagamento, conforme a seção 8 abaixo.
+            </p>
+          </section>
+          <section>
+            <h2 class="text-base font-semibold text-zinc-100">4. Conta e responsabilidades</h2>
+            <ul class="mt-2 list-inside list-disc space-y-1 text-bank-muted">
+              <li>Você é responsável pela veracidade dos dados que lança no sistema.</li>
+              <li>Mantenha e-mail e senha em sigilo.</li>
+              <li>Não use o serviço para fins ilegais ou para tentar acessar dados de terceiros.</li>
+              <li>Decisões financeiras e de investimento são exclusivamente suas.</li>
+            </ul>
+          </section>
+          <section>
+            <h2 class="text-base font-semibold text-zinc-100">5. Disponibilidade</h2>
+            <p class="mt-2 text-bank-muted">
+              Buscamos manter o serviço disponível, mas podem ocorrer manutenções, atualizações ou indisponibilidades temporárias.
+              O serviço é fornecido “como está”, dentro das possibilidades técnicas razoáveis.
+            </p>
+          </section>
+          <section>
+            <h2 class="text-base font-semibold text-zinc-100">6. Propriedade intelectual</h2>
+            <p class="mt-2 text-bank-muted">
+              A marca Capital Novo, interface, código e identidade visual pertencem ao titular do serviço.
+              Os <strong class="text-zinc-300">dados financeiros que você registra</strong> continuam sendo seus.
+            </p>
+          </section>
+          <section>
+            <h2 class="text-base font-semibold text-zinc-100">7. Limitação de responsabilidade</h2>
+            <p class="mt-2 text-bank-muted">
+              Não nos responsabilizamos por perdas financeiras, decisões de investimento, erros de lançamento ou interpretação
+              dos gráficos e totais exibidos. O dashboard é uma ferramenta de apoio à organização, não substitui orientação
+              profissional quando necessária.
+            </p>
+          </section>
+          <section>
+            <h2 class="text-base font-semibold text-zinc-100">8. Cancelamento e reembolso</h2>
+            <p class="mt-2 text-bank-muted">
+              Você pode cancelar a assinatura a qualquer momento pelo portal de assinatura no dashboard, sem burocracia.
+              Após o cancelamento, o acesso permanece até o fim do período já pago, salvo reembolso nos primeiros 7 dias
+              conforme descrito abaixo.
+            </p>
+            <p class="mt-3 text-bank-muted">
+              <strong class="text-zinc-300">Reembolso nos primeiros 7 dias:</strong> se você solicitar o cancelamento com reembolso
+              em até 7 (sete) dias corridos após a primeira cobrança, devolvemos o valor integral pago naquela assinatura,
+              pelo mesmo meio de pagamento utilizado, assim que o pedido for confirmado. Para solicitar, use a
+              <a href="/contato" class="text-violet-400 hover:text-violet-300">página de Contato</a> com o mesmo e-mail da conta
+              ou cancele pelo portal e informe que deseja o reembolso dentro do prazo. O acesso é encerrado após o reembolso processado.
+            </p>
+            <p class="mt-3 text-bank-muted">
+              Cancelamentos após o 7º dia não geram reembolso proporcional da mensalidade em curso; o acesso continua até o
+              vencimento do período já pago. Para exclusão de conta e dados, entre em contato conforme a Política de Privacidade.
+            </p>
+          </section>
+          <section>
+            <h2 class="text-base font-semibold text-zinc-100">9. Contato</h2>
+            <p class="mt-2 text-bank-muted">
+              Dúvidas sobre estes termos: <a href="/contato" class="text-violet-400 hover:text-violet-300">página de Contato</a>.
+            </p>
+          </section>
+        </div>
+      </div>
 
-        <section>
-          <h2 class="text-base font-semibold text-zinc-100">2. O serviço</h2>
-          <p class="mt-2 text-bank-muted">
-            O Capital Novo é uma ferramenta de <strong class="text-zinc-300">organização financeira pessoal</strong>:
-            registro de gastos, contas, patrimônio e acompanhamento de investimentos informados por você.
-            <strong class="text-zinc-300">Não somos instituição financeira, corretora, consultoria ou assessoria de investimentos.</strong>
-            Não recomendamos ativos, não executamos operações e não garantimos resultados financeiros.
-          </p>
-        </section>
-
-        <section>
-          <h2 class="text-base font-semibold text-zinc-100">3. Assinatura e pagamento</h2>
-          <p class="mt-2 text-bank-muted">
-            O acesso ao dashboard completo requer assinatura mensal (valor vigente na página inicial do site), processada por
-            <strong class="text-zinc-300">provedor de cobrança certificado</strong> (não armazenamos número de cartão).
-            A renovação é automática até cancelamento. Não há fidelidade nem multa por cancelamento.
-            Você pode gerenciar ou cancelar a assinatura pelo
-            <strong class="text-zinc-300">portal de assinatura</strong>, disponível após o login no dashboard (botão Assinatura).
-          </p>
-          <p class="mt-3 text-bank-muted">
-            <strong class="text-zinc-300">Garantia de 7 dias:</strong> se você assinar e não ficar satisfeito, pode solicitar
-            <strong class="text-zinc-300">reembolso integral</strong> da primeira cobrança quando o pedido for feito em até
-            7 (sete) dias corridos a partir da data do pagamento, conforme a seção 8 abaixo.
-          </p>
-        </section>
-
-        <section>
-          <h2 class="text-base font-semibold text-zinc-100">4. Conta e responsabilidades</h2>
-          <ul class="mt-2 list-inside list-disc space-y-1 text-bank-muted">
-            <li>Você é responsável pela veracidade dos dados que lança no sistema.</li>
-            <li>Mantenha e-mail e senha em sigilo.</li>
-            <li>Não use o serviço para fins ilegais ou para tentar acessar dados de terceiros.</li>
-            <li>Decisões financeiras e de investimento são exclusivamente suas.</li>
-          </ul>
-        </section>
-
-        <section>
-          <h2 class="text-base font-semibold text-zinc-100">5. Disponibilidade</h2>
-          <p class="mt-2 text-bank-muted">
-            Buscamos manter o serviço disponível, mas podem ocorrer manutenções, atualizações ou indisponibilidades temporárias.
-            O serviço é fornecido “como está”, dentro das possibilidades técnicas razoáveis.
-          </p>
-        </section>
-
-        <section>
-          <h2 class="text-base font-semibold text-zinc-100">6. Propriedade intelectual</h2>
-          <p class="mt-2 text-bank-muted">
-            A marca Capital Novo, interface, código e identidade visual pertencem ao titular do serviço.
-            Os <strong class="text-zinc-300">dados financeiros que você registra</strong> continuam sendo seus.
-          </p>
-        </section>
-
-        <section>
-          <h2 class="text-base font-semibold text-zinc-100">7. Limitação de responsabilidade</h2>
-          <p class="mt-2 text-bank-muted">
-            Não nos responsabilizamos por perdas financeiras, decisões de investimento, erros de lançamento ou interpretação
-            dos gráficos e totais exibidos. O dashboard é uma ferramenta de apoio à organização, não substitui orientação
-            profissional quando necessária.
-          </p>
-        </section>
-
-        <section>
-          <h2 class="text-base font-semibold text-zinc-100">8. Cancelamento e reembolso</h2>
-          <p class="mt-2 text-bank-muted">
-            Você pode cancelar a assinatura a qualquer momento pelo portal de assinatura no dashboard, sem burocracia.
-            Após o cancelamento, o acesso permanece até o fim do período já pago, salvo reembolso nos primeiros 7 dias
-            conforme descrito abaixo.
-          </p>
-          <p class="mt-3 text-bank-muted">
-            <strong class="text-zinc-300">Reembolso nos primeiros 7 dias:</strong> se você solicitar o cancelamento com reembolso
-            em até 7 (sete) dias corridos após a primeira cobrança, devolvemos o valor integral pago naquela assinatura,
-            pelo mesmo meio de pagamento utilizado, assim que o pedido for confirmado. Para solicitar, use a
-            <a href="/contato" class="text-violet-400 hover:text-violet-300">página de Contato</a> com o mesmo e-mail da conta
-            ou cancele pelo portal e informe que deseja o reembolso dentro do prazo. O acesso é encerrado após o reembolso processado.
-          </p>
-          <p class="mt-3 text-bank-muted">
-            Cancelamentos após o 7º dia não geram reembolso proporcional da mensalidade em curso; o acesso continua até o
-            vencimento do período já pago. Para exclusão de conta e dados, entre em contato conforme a Política de Privacidade.
-          </p>
-        </section>
-
-        <section>
-          <h2 class="text-base font-semibold text-zinc-100">9. Contato</h2>
-          <p class="mt-2 text-bank-muted">
-            Dúvidas sobre estes termos: <a href="/contato" class="text-violet-400 hover:text-violet-300">página de Contato</a>.
-          </p>
-        </section>
+      <div data-lang-block="en" class="hidden" hidden>
+        <h1 class="text-2xl font-semibold text-white sm:text-3xl">Terms of Use</h1>
+        <p class="mt-2 text-sm text-bank-muted">Last updated: June 2026</p>
+        <div class="mt-8 space-y-6 text-sm leading-relaxed text-zinc-300">
+          <section>
+            <h2 class="text-base font-semibold text-zinc-100">1. Acceptance</h2>
+            <p class="mt-2 text-bank-muted">
+              By subscribing to or using Capital Novo, you agree to these Terms and the
+              <a href="/privacidade" class="text-violet-400 hover:text-violet-300">Privacy Policy</a>.
+              If you do not agree, do not use the service.
+            </p>
+          </section>
+          <section>
+            <h2 class="text-base font-semibold text-zinc-100">2. The service</h2>
+            <p class="mt-2 text-bank-muted">
+              Capital Novo is a <strong class="text-zinc-300">personal finance organization</strong> tool:
+              logging expenses, bills, net worth and tracking investments you enter yourself.
+              <strong class="text-zinc-300">We are not a bank, broker, consultancy or investment advisory firm.</strong>
+              We do not recommend assets, execute trades or guarantee financial results.
+            </p>
+          </section>
+          <section>
+            <h2 class="text-base font-semibold text-zinc-100">3. Subscription and payment</h2>
+            <p class="mt-2 text-bank-muted">
+              Full dashboard access requires a monthly subscription (price shown on the homepage), processed by a
+              <strong class="text-zinc-300">certified billing provider</strong> (we do not store card numbers).
+              Renewal is automatic until cancellation. There is no lock-in or cancellation fee.
+              You can manage or cancel via the
+              <strong class="text-zinc-300">subscription portal</strong>, available after signing in to the dashboard (Subscription button).
+            </p>
+            <p class="mt-3 text-bank-muted">
+              <strong class="text-zinc-300">7-day guarantee:</strong> if you subscribe and are not satisfied, you may request a
+              <strong class="text-zinc-300">full refund</strong> of the first charge when the request is made within
+              7 (seven) calendar days from the payment date, as described in section 8 below.
+            </p>
+          </section>
+          <section>
+            <h2 class="text-base font-semibold text-zinc-100">4. Account and responsibilities</h2>
+            <ul class="mt-2 list-inside list-disc space-y-1 text-bank-muted">
+              <li>You are responsible for the accuracy of data you enter.</li>
+              <li>Keep your email and password confidential.</li>
+              <li>Do not use the service for illegal purposes or to access third-party data.</li>
+              <li>Financial and investment decisions are yours alone.</li>
+            </ul>
+          </section>
+          <section>
+            <h2 class="text-base font-semibold text-zinc-100">5. Availability</h2>
+            <p class="mt-2 text-bank-muted">
+              We aim to keep the service available, but maintenance, updates or temporary outages may occur.
+              The service is provided “as is,” within reasonable technical possibilities.
+            </p>
+          </section>
+          <section>
+            <h2 class="text-base font-semibold text-zinc-100">6. Intellectual property</h2>
+            <p class="mt-2 text-bank-muted">
+              The Capital Novo brand, interface, code and visual identity belong to the service owner.
+              The <strong class="text-zinc-300">financial data you record</strong> remains yours.
+            </p>
+          </section>
+          <section>
+            <h2 class="text-base font-semibold text-zinc-100">7. Limitation of liability</h2>
+            <p class="mt-2 text-bank-muted">
+              We are not liable for financial losses, investment decisions, data-entry errors or misinterpretation of
+              charts and totals shown. The dashboard supports organization; it does not replace professional advice when needed.
+            </p>
+          </section>
+          <section>
+            <h2 class="text-base font-semibold text-zinc-100">8. Cancellation and refund</h2>
+            <p class="mt-2 text-bank-muted">
+              You may cancel anytime via the subscription portal in the dashboard, with no bureaucracy.
+              After cancellation, access continues until the end of the period already paid, except for refunds in the first 7 days
+              as described below.
+            </p>
+            <p class="mt-3 text-bank-muted">
+              <strong class="text-zinc-300">Refund in the first 7 days:</strong> if you request cancellation with a refund within
+              7 (seven) calendar days after the first charge, we return the full amount paid for that subscription,
+              via the same payment method, once the request is confirmed. To request it, use the
+              <a href="/contato" class="text-violet-400 hover:text-violet-300">Contact page</a> with the same account email,
+              or cancel in the portal and state you want the refund within the deadline. Access ends after the refund is processed.
+            </p>
+            <p class="mt-3 text-bank-muted">
+              Cancellations after day 7 do not generate a pro-rata refund of the current month; access continues until the
+              end of the paid period. To delete your account and data, contact us as described in the Privacy Policy.
+            </p>
+          </section>
+          <section>
+            <h2 class="text-base font-semibold text-zinc-100">9. Contact</h2>
+            <p class="mt-2 text-bank-muted">
+              Questions about these terms: <a href="/contato" class="text-violet-400 hover:text-violet-300">Contact page</a>.
+            </p>
+          </section>
+        </div>
       </div>
 
       <footer class="gfp-site-footer mt-12 border-t border-white/[0.08] pt-6 text-center text-xs leading-relaxed text-zinc-500">
         <nav class="flex flex-wrap items-center justify-center gap-x-1 gap-y-1" aria-label="Links legais">
-          <a href="/privacidade" class="text-zinc-500 transition hover:text-violet-300">Política de Privacidade</a>
+          <a href="/privacidade" class="text-zinc-500 transition hover:text-violet-300" data-i18n="landing.footer.privacy">Política de Privacidade</a>
           <span class="text-zinc-600" aria-hidden="true">·</span>
-          <a href="/termos" class="text-violet-300">Termos de Uso</a>
+          <a href="/termos" class="text-violet-300" data-i18n="landing.footer.terms">Termos de Uso</a>
           <span class="text-zinc-600" aria-hidden="true">·</span>
-          <a href="/contato" class="text-zinc-500 transition hover:text-violet-300">Contato</a>
+          <a href="/contato" class="text-zinc-500 transition hover:text-violet-300" data-i18n="landing.footer.contact">Contato</a>
         </nav>
         <div id="gfp-footer-social" class="mt-3 flex justify-center gap-3" aria-label="Redes sociais"></div>
         <p class="mt-3 text-zinc-600">© 2026 Capital Novo</p>
       </footer>
     </main>
+    <script>
+      if (window.GFP && GFP.i18n) {
+        GFP.i18n.mountLangToggle(document.getElementById("gfp-lang-slot"));
+        GFP.i18n.applyI18n();
+      }
+    </script>
   </body>
 </html>
