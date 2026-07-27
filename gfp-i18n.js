@@ -25,6 +25,9 @@
       "landing.mock.gastos": "Total de gastos no mês",
       "landing.mock.ref": "Referência: Junho de 2026 (mês atual)",
       "landing.mock.patrimonio": "Patrimônio",
+      "landing.mock.valorGastos": "R$ 3.521,69",
+      "landing.mock.valorPatrimonio": "R$ 218k",
+      "landing.mock.valorMini": "R$ 5.120",
 
       "landing.login.title": "Já tem senha? Entre",
       "landing.login.email": "E-mail",
@@ -180,6 +183,9 @@
       "landing.mock.gastos": "Total spending this month",
       "landing.mock.ref": "Reference: June 2026 (current month)",
       "landing.mock.patrimonio": "Net worth",
+      "landing.mock.valorGastos": "$3,521.69",
+      "landing.mock.valorPatrimonio": "$218k",
+      "landing.mock.valorMini": "$5,120",
 
       "landing.login.title": "Already have a password? Sign in",
       "landing.login.email": "Email",
