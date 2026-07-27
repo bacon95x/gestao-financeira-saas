@@ -2,9 +2,12 @@
 window.GFP_SUPABASE_URL = "https://rghwbjysexlhroidtelx.supabase.co";
 window.GFP_SUPABASE_ANON_KEY = "sb_publishable_vVMZInEBwUmvMwZW7w240Q_CxhutxEy";
 
-// Stripe (produção) — link de pagamento da assinatura R$ 29,90/mês
+// Stripe (produção) — link BRL R$ 29,90/mês
 window.GFP_STRIPE_PAYMENT_LINK = "https://buy.stripe.com/14A3cv6LcgILgxe34Y1Nu01";
 window.GFP_STRIPE_PRICE_ID = "price_1TfP4hEYrZTD5Sl51ggP3EiW";
+// Stripe USD US$ 9,90/mês — cole o link copiado do Payment Link em dólar:
+window.GFP_STRIPE_PAYMENT_LINK_USD = "https://buy.stripe.com/fZueVdc5w50380I34Y1Nu02";
+window.GFP_STRIPE_PRICE_ID_USD = "";
 
 // E-mails com acesso sem assinatura (admin / dono). Coloque o seu:
 window.GFP_ADMIN_EMAILS = ["baconx95@gmail.com", "anbtunado@gmail.com", "bnbezerra@gmail.com"];
