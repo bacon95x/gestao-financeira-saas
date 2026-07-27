@@ -492,7 +492,7 @@
       <div class="mx-auto max-w-md px-4 text-center sm:px-6">
         <div class="rounded-3xl border-2 border-emerald-500/40 bg-gradient-to-b from-emerald-600/20 to-transparent p-8">
           <p class="text-sm font-bold text-emerald-300" data-i18n="landing.offer.badge">7 DIAS PARA TESTAR</p>
-          <p class="mt-4 text-5xl font-bold">R$ 29,90<span class="text-lg text-zinc-400" data-i18n="landing.offer.priceSuffix">/mês</span></p>
+          <p class="mt-4 text-5xl font-bold"><span data-i18n="landing.offer.price">R$ 29,90</span><span class="text-lg text-zinc-400" data-i18n="landing.offer.priceSuffix">/mês</span></p>
           <p class="mt-3 text-xs leading-relaxed text-zinc-500" data-i18n="landing.offer.hint">
             Acesso ao dashboard financeiro completo. Pagamento processado por provedor de cobrança certificado.
           </p>
@@ -627,6 +627,24 @@
           GFP.i18n.mountLangToggle(document.getElementById("gfp-lang-slot"));
           GFP.i18n.applyI18n();
         }
+
+        function syncStripeCheckoutLink() {
+          var linkAssinar = document.getElementById("btn-assinar-stripe");
+          if (!linkAssinar) return;
+          var lang = window.GFP && GFP.i18n ? GFP.i18n.getLang() : "pt";
+          var urlBrl = window.GFP_STRIPE_PAYMENT_LINK || "";
+          var urlUsd = window.GFP_STRIPE_PAYMENT_LINK_USD || "";
+          var url =
+            lang === "en" && urlUsd.indexOf("stripe.com") !== -1
+              ? urlUsd
+              : urlBrl;
+          if (url && url.indexOf("stripe.com") !== -1) {
+            linkAssinar.href = url;
+          }
+        }
+        syncStripeCheckoutLink();
+        document.addEventListener("gfp:langchange", syncStripeCheckoutLink);
+
         var params = new URLSearchParams(window.location.search);
         var erroEl = document.getElementById("login-erro");
         var okEl = document.getElementById("login-ok");
@@ -663,11 +681,13 @@
         }
 
         var linkAssinar = document.getElementById("btn-assinar-stripe");
-        if (linkAssinar && window.GFP_STRIPE_PAYMENT_LINK && window.GFP_STRIPE_PAYMENT_LINK.indexOf("stripe.com") !== -1) {
-          linkAssinar.href = window.GFP_STRIPE_PAYMENT_LINK;
-        } else if (linkAssinar) {
-          linkAssinar.classList.add("pointer-events-none", "opacity-50");
-          linkAssinar.textContent = "Link de pagamento não configurado";
+        syncStripeCheckoutLink();
+        if (linkAssinar) {
+          var hrefOk = linkAssinar.getAttribute("href") || "";
+          if (hrefOk.indexOf("stripe.com") === -1) {
+            linkAssinar.classList.add("pointer-events-none", "opacity-50");
+            linkAssinar.textContent = "Link de pagamento não configurado";
+          }
         }
 
         if (
