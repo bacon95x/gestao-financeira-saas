@@ -639,7 +639,13 @@
               ? urlUsd
               : urlBrl;
           if (url && url.indexOf("stripe.com") !== -1) {
-            linkAssinar.href = url;
+            try {
+              var u = new URL(url);
+              u.searchParams.set("locale", lang === "en" ? "en" : "pt-BR");
+              linkAssinar.href = u.toString();
+            } catch (e) {
+              linkAssinar.href = url;
+            }
           }
         }
         syncStripeCheckoutLink();
