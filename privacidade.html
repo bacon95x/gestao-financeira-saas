@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Política de Privacidade · Capital Novo</title>
+    <link rel="icon" type="image/png" href="assets/logo-capital-novo.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -35,119 +36,212 @@
           #0c0c14;
       }
     </style>
+    <script src="gfp-i18n.js"></script>
   </head>
   <body class="min-h-screen text-zinc-100 antialiased">
     <main class="mx-auto max-w-2xl px-4 py-10 sm:py-14">
-      <p class="mb-6">
-        <a href="/" class="text-sm text-violet-400 transition hover:text-violet-300">← Voltar ao login</a>
-      </p>
-      <h1 class="text-2xl font-semibold text-white sm:text-3xl">Política de Privacidade</h1>
-      <p class="mt-2 text-sm text-bank-muted">Última atualização: junho de 2026</p>
+      <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <a href="/" class="text-sm text-violet-400 transition hover:text-violet-300" data-i18n="legal.back"
+          >← Voltar ao início</a
+        >
+        <div id="gfp-lang-slot"></div>
+      </div>
 
-      <div class="prose-zinc mt-8 space-y-6 text-sm leading-relaxed text-zinc-300">
-        <section>
-          <h2 class="text-base font-semibold text-zinc-100">1. Quem somos</h2>
-          <p class="mt-2 text-bank-muted">
-            O <strong class="text-zinc-300">Capital Novo</strong> (<a href="https://www.capitalnovo.com.br" class="text-violet-400 hover:text-violet-300">www.capitalnovo.com.br</a>)
-            é um serviço online de organização financeira pessoal: gastos, contas, patrimônio e investimentos em um só lugar.
-          </p>
-        </section>
+      <div data-lang-block="pt">
+        <h1 class="text-2xl font-semibold text-white sm:text-3xl">Política de Privacidade</h1>
+        <p class="mt-2 text-sm text-bank-muted">Última atualização: junho de 2026</p>
+        <div class="prose-zinc mt-8 space-y-6 text-sm leading-relaxed text-zinc-300">
+          <section>
+            <h2 class="text-base font-semibold text-zinc-100">1. Quem somos</h2>
+            <p class="mt-2 text-bank-muted">
+              O <strong class="text-zinc-300">Capital Novo</strong> (<a href="https://www.capitalnovo.com.br" class="text-violet-400 hover:text-violet-300">www.capitalnovo.com.br</a>)
+              é um serviço online de organização financeira pessoal: gastos, contas, patrimônio e investimentos em um só lugar.
+            </p>
+          </section>
+          <section>
+            <h2 class="text-base font-semibold text-zinc-100">2. Quem pode ver seus dados financeiros</h2>
+            <p class="mt-2 text-bank-muted">
+              <strong class="text-zinc-300">Somente você.</strong> Seus lançamentos, patrimônio, categorias e demais registros
+              cadastrados no dashboard são de uso exclusivo da sua conta.
+            </p>
+            <p class="mt-2 text-bank-muted">
+              <strong class="text-zinc-300">Nem outros usuários, nem a equipe que desenvolve e opera o Capital Novo</strong>
+              podem visualizar, consultar, exportar ou utilizar essas informações financeiras.
+            </p>
+            <p class="mt-2 text-bank-muted">
+              O serviço foi construído <strong class="text-zinc-300">sem painel para leitura das finanças dos clientes</strong>.
+              O que você registra só pode ser aberto com o seu login e senha. Não vendemos, não compartilhamos e não analisamos
+              seus dados financeiros para marketing ou qualquer outro fim.
+            </p>
+          </section>
+          <section>
+            <h2 class="text-base font-semibold text-zinc-100">3. Dados que o serviço armazena</h2>
+            <p class="mt-2 text-bank-muted">
+              Para o dashboard funcionar e sincronizar entre seus dispositivos, o sistema guarda automaticamente na sua conta:
+            </p>
+            <ul class="mt-3 list-inside list-disc space-y-1 text-bank-muted">
+              <li><strong class="text-zinc-300">Conta:</strong> e-mail e senha (login).</li>
+              <li><strong class="text-zinc-300">Assinatura:</strong> pagamento processado por empresa de cobrança especializada (não armazenamos número de cartão).</li>
+              <li><strong class="text-zinc-300">Dashboard:</strong> gastos, categorias, patrimônio e demais informações que você cadastra.</li>
+              <li><strong class="text-zinc-300">Técnicos:</strong> registros mínimos de acesso e segurança da infraestrutura (sem conteúdo dos seus lançamentos).</li>
+            </ul>
+          </section>
+          <section>
+            <h2 class="text-base font-semibold text-zinc-100">4. Finalidade do armazenamento</h2>
+            <p class="mt-2 text-bank-muted">
+              Seus dados financeiros são guardados <strong class="text-zinc-300">apenas</strong> para que você possa consultá-los e
+              editá-los na sua própria conta — inclusive ao entrar de outro aparelho. O armazenamento é automático e vinculado ao seu login.
+            </p>
+            <p class="mt-2 text-bank-muted">
+              Utilizamos ainda e-mail e dados de assinatura para autenticação, cobrança e comunicações necessárias do serviço
+              (como redefinição de senha).
+            </p>
+          </section>
+          <section>
+            <h2 class="text-base font-semibold text-zinc-100">5. Onde os dados ficam</h2>
+            <p class="mt-2 text-bank-muted">
+              As informações da sua conta ficam em servidores de nuvem seguros, com acesso restrito ao seu login.
+              Cada conta é isolada das demais por regras de segurança do próprio sistema.
+              Pagamentos são processados por provedor de cobrança certificado. E-mails do serviço são enviados por provedor de e-mail transacional.
+            </p>
+          </section>
+          <section>
+            <h2 class="text-base font-semibold text-zinc-100">6. Seus direitos (LGPD)</h2>
+            <p class="mt-2 text-bank-muted">
+              Você pode solicitar acesso, correção ou exclusão dos seus dados, além de revogar consentimentos quando aplicável.
+              Para isso, entre em contato pelo e-mail indicado na página <a href="/contato" class="text-violet-400 hover:text-violet-300">Contato</a>.
+            </p>
+          </section>
+          <section>
+            <h2 class="text-base font-semibold text-zinc-100">7. Retenção e exclusão</h2>
+            <p class="mt-2 text-bank-muted">
+              Mantemos os dados enquanto sua conta estiver ativa ou enquanto necessário para cumprir obrigações legais.
+              Ao cancelar a assinatura, você pode solicitar a exclusão da conta e dos dados associados.
+            </p>
+          </section>
+          <section>
+            <h2 class="text-base font-semibold text-zinc-100">8. Segurança</h2>
+            <p class="mt-2 text-bank-muted">
+              Adotamos medidas técnicas razoáveis (HTTPS, autenticação, armazenamento em nuvem). Nenhum sistema é 100% seguro;
+              use uma senha forte e não compartilhe seu acesso.
+            </p>
+          </section>
+          <section>
+            <h2 class="text-base font-semibold text-zinc-100">9. Alterações</h2>
+            <p class="mt-2 text-bank-muted">
+              Esta política pode ser atualizada. A data no topo indica a versão vigente. O uso continuado do serviço após alterações
+              implica ciência da nova versão.
+            </p>
+          </section>
+        </div>
+      </div>
 
-        <section>
-          <h2 class="text-base font-semibold text-zinc-100">2. Quem pode ver seus dados financeiros</h2>
-          <p class="mt-2 text-bank-muted">
-            <strong class="text-zinc-300">Somente você.</strong> Seus lançamentos, patrimônio, categorias e demais registros
-            cadastrados no dashboard são de uso exclusivo da sua conta.
-          </p>
-          <p class="mt-2 text-bank-muted">
-            <strong class="text-zinc-300">Nem outros usuários, nem a equipe que desenvolve e opera o Capital Novo</strong>
-            podem visualizar, consultar, exportar ou utilizar essas informações financeiras.
-          </p>
-          <p class="mt-2 text-bank-muted">
-            O serviço foi construído <strong class="text-zinc-300">sem painel para leitura das finanças dos clientes</strong>.
-            O que você registra só pode ser aberto com o seu login e senha. Não vendemos, não compartilhamos e não analisamos
-            seus dados financeiros para marketing ou qualquer outro fim.
-          </p>
-        </section>
-
-        <section>
-          <h2 class="text-base font-semibold text-zinc-100">3. Dados que o serviço armazena</h2>
-          <p class="mt-2 text-bank-muted">
-            Para o dashboard funcionar e sincronizar entre seus dispositivos, o sistema guarda automaticamente na sua conta:
-          </p>
-          <ul class="mt-3 list-inside list-disc space-y-1 text-bank-muted">
-            <li><strong class="text-zinc-300">Conta:</strong> e-mail e senha (login).</li>
-            <li><strong class="text-zinc-300">Assinatura:</strong> pagamento processado por empresa de cobrança especializada (não armazenamos número de cartão).</li>
-            <li><strong class="text-zinc-300">Dashboard:</strong> gastos, categorias, patrimônio e demais informações que você cadastra.</li>
-            <li><strong class="text-zinc-300">Técnicos:</strong> registros mínimos de acesso e segurança da infraestrutura (sem conteúdo dos seus lançamentos).</li>
-          </ul>
-        </section>
-
-        <section>
-          <h2 class="text-base font-semibold text-zinc-100">4. Finalidade do armazenamento</h2>
-          <p class="mt-2 text-bank-muted">
-            Seus dados financeiros são guardados <strong class="text-zinc-300">apenas</strong> para que você possa consultá-los e
-            editá-los na sua própria conta — inclusive ao entrar de outro aparelho. O armazenamento é automático e vinculado ao seu login.
-          </p>
-          <p class="mt-2 text-bank-muted">
-            Utilizamos ainda e-mail e dados de assinatura para autenticação, cobrança e comunicações necessárias do serviço
-            (como redefinição de senha).
-          </p>
-        </section>
-
-        <section>
-          <h2 class="text-base font-semibold text-zinc-100">5. Onde os dados ficam</h2>
-          <p class="mt-2 text-bank-muted">
-            As informações da sua conta ficam em servidores de nuvem seguros, com acesso restrito ao seu login.
-            Cada conta é isolada das demais por regras de segurança do próprio sistema.
-            Pagamentos são processados por provedor de cobrança certificado. E-mails do serviço são enviados por provedor de e-mail transacional.
-          </p>
-        </section>
-
-        <section>
-          <h2 class="text-base font-semibold text-zinc-100">6. Seus direitos (LGPD)</h2>
-          <p class="mt-2 text-bank-muted">
-            Você pode solicitar acesso, correção ou exclusão dos seus dados, além de revogar consentimentos quando aplicável.
-            Para isso, entre em contato pelo e-mail indicado na página <a href="/contato" class="text-violet-400 hover:text-violet-300">Contato</a>.
-          </p>
-        </section>
-
-        <section>
-          <h2 class="text-base font-semibold text-zinc-100">7. Retenção e exclusão</h2>
-          <p class="mt-2 text-bank-muted">
-            Mantemos os dados enquanto sua conta estiver ativa ou enquanto necessário para cumprir obrigações legais.
-            Ao cancelar a assinatura, você pode solicitar a exclusão da conta e dos dados associados.
-          </p>
-        </section>
-
-        <section>
-          <h2 class="text-base font-semibold text-zinc-100">8. Segurança</h2>
-          <p class="mt-2 text-bank-muted">
-            Adotamos medidas técnicas razoáveis (HTTPS, autenticação, armazenamento em nuvem). Nenhum sistema é 100% seguro;
-            use uma senha forte e não compartilhe seu acesso.
-          </p>
-        </section>
-
-        <section>
-          <h2 class="text-base font-semibold text-zinc-100">9. Alterações</h2>
-          <p class="mt-2 text-bank-muted">
-            Esta política pode ser atualizada. A data no topo indica a versão vigente. O uso continuado do serviço após alterações
-            implica ciência da nova versão.
-          </p>
-        </section>
+      <div data-lang-block="en" class="hidden" hidden>
+        <h1 class="text-2xl font-semibold text-white sm:text-3xl">Privacy Policy</h1>
+        <p class="mt-2 text-sm text-bank-muted">Last updated: June 2026</p>
+        <div class="prose-zinc mt-8 space-y-6 text-sm leading-relaxed text-zinc-300">
+          <section>
+            <h2 class="text-base font-semibold text-zinc-100">1. Who we are</h2>
+            <p class="mt-2 text-bank-muted">
+              <strong class="text-zinc-300">Capital Novo</strong> (<a href="https://www.capitalnovo.com.br" class="text-violet-400 hover:text-violet-300">www.capitalnovo.com.br</a>)
+              is an online personal finance organization service: expenses, bills, net worth and investments in one place.
+            </p>
+          </section>
+          <section>
+            <h2 class="text-base font-semibold text-zinc-100">2. Who can see your financial data</h2>
+            <p class="mt-2 text-bank-muted">
+              <strong class="text-zinc-300">Only you.</strong> Your transactions, net worth, categories and other records
+              stored in the dashboard are for your account only.
+            </p>
+            <p class="mt-2 text-bank-muted">
+              <strong class="text-zinc-300">Neither other users nor the team that builds and runs Capital Novo</strong>
+              can view, query, export or use that financial information.
+            </p>
+            <p class="mt-2 text-bank-muted">
+              The product was built <strong class="text-zinc-300">without an admin panel to read customers’ finances</strong>.
+              What you record can only be opened with your login and password. We do not sell, share or analyze your
+              financial data for marketing or any other purpose.
+            </p>
+          </section>
+          <section>
+            <h2 class="text-base font-semibold text-zinc-100">3. Data the service stores</h2>
+            <p class="mt-2 text-bank-muted">
+              For the dashboard to work and sync across your devices, the system automatically stores in your account:
+            </p>
+            <ul class="mt-3 list-inside list-disc space-y-1 text-bank-muted">
+              <li><strong class="text-zinc-300">Account:</strong> email and password (login).</li>
+              <li><strong class="text-zinc-300">Subscription:</strong> payment processed by a specialized billing provider (we do not store card numbers).</li>
+              <li><strong class="text-zinc-300">Dashboard:</strong> expenses, categories, net worth and other information you enter.</li>
+              <li><strong class="text-zinc-300">Technical:</strong> minimal access and infrastructure security logs (without the content of your entries).</li>
+            </ul>
+          </section>
+          <section>
+            <h2 class="text-base font-semibold text-zinc-100">4. Purpose of storage</h2>
+            <p class="mt-2 text-bank-muted">
+              Your financial data is stored <strong class="text-zinc-300">only</strong> so you can view and edit it in your
+              own account — including when signing in from another device. Storage is automatic and tied to your login.
+            </p>
+            <p class="mt-2 text-bank-muted">
+              We also use email and subscription data for authentication, billing and necessary service communications
+              (such as password reset).
+            </p>
+          </section>
+          <section>
+            <h2 class="text-base font-semibold text-zinc-100">5. Where data lives</h2>
+            <p class="mt-2 text-bank-muted">
+              Your account information is kept on secure cloud servers, with access restricted to your login.
+              Each account is isolated from others by the system’s own security rules.
+              Payments are processed by a certified billing provider. Service emails are sent by a transactional email provider.
+            </p>
+          </section>
+          <section>
+            <h2 class="text-base font-semibold text-zinc-100">6. Your rights (LGPD / privacy laws)</h2>
+            <p class="mt-2 text-bank-muted">
+              You may request access, correction or deletion of your data, and revoke consents when applicable.
+              To do so, contact us via the email on the <a href="/contato" class="text-violet-400 hover:text-violet-300">Contact</a> page.
+            </p>
+          </section>
+          <section>
+            <h2 class="text-base font-semibold text-zinc-100">7. Retention and deletion</h2>
+            <p class="mt-2 text-bank-muted">
+              We keep data while your account is active or as needed to meet legal obligations.
+              After canceling your subscription, you may request deletion of the account and associated data.
+            </p>
+          </section>
+          <section>
+            <h2 class="text-base font-semibold text-zinc-100">8. Security</h2>
+            <p class="mt-2 text-bank-muted">
+              We use reasonable technical measures (HTTPS, authentication, cloud storage). No system is 100% secure;
+              use a strong password and do not share your access.
+            </p>
+          </section>
+          <section>
+            <h2 class="text-base font-semibold text-zinc-100">9. Changes</h2>
+            <p class="mt-2 text-bank-muted">
+              This policy may be updated. The date at the top shows the current version. Continued use of the service after
+              changes means you acknowledge the new version.
+            </p>
+          </section>
+        </div>
       </div>
 
       <footer class="gfp-site-footer mt-12 border-t border-white/[0.08] pt-6 text-center text-xs leading-relaxed text-zinc-500">
         <nav class="flex flex-wrap items-center justify-center gap-x-1 gap-y-1" aria-label="Links legais">
-          <a href="/privacidade" class="text-violet-300">Política de Privacidade</a>
+          <a href="/privacidade" class="text-violet-300" data-i18n="landing.footer.privacy">Política de Privacidade</a>
           <span class="text-zinc-600" aria-hidden="true">·</span>
-          <a href="/termos" class="text-zinc-500 transition hover:text-violet-300">Termos de Uso</a>
+          <a href="/termos" class="text-zinc-500 transition hover:text-violet-300" data-i18n="landing.footer.terms">Termos de Uso</a>
           <span class="text-zinc-600" aria-hidden="true">·</span>
-          <a href="/contato" class="text-zinc-500 transition hover:text-violet-300">Contato</a>
+          <a href="/contato" class="text-zinc-500 transition hover:text-violet-300" data-i18n="landing.footer.contact">Contato</a>
         </nav>
         <div id="gfp-footer-social" class="mt-3 flex justify-center gap-3" aria-label="Redes sociais"></div>
         <p class="mt-3 text-zinc-600">© 2026 Capital Novo</p>
       </footer>
     </main>
+    <script>
+      if (window.GFP && GFP.i18n) {
+        GFP.i18n.mountLangToggle(document.getElementById("gfp-lang-slot"));
+        GFP.i18n.applyI18n();
+      }
+    </script>
   </body>
 </html>
