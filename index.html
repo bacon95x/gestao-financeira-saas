@@ -3,9 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Capital Novo · Organize hoje. Construa o capital de amanhã.</title>
+    <title data-i18n-doc="landing.meta.title">Capital Novo · Organize hoje. Construa o capital de amanhã.</title>
     <meta
       name="description"
+      data-i18n-doc="landing.meta.desc"
       content="Capital Novo — dashboard financeiro pessoal. Gastos, contas fixas, cartões, patrimônio e simulador de longo prazo em um só painel, com privacidade."
     />
     <link rel="canonical" href="https://www.capitalnovo.com.br/" />
@@ -73,6 +74,7 @@
     </style>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
+    <script src="gfp-i18n.js"></script>
     <script src="gfp-demo-data.js"></script>
   </head>
   <body class="text-zinc-100 antialiased">
@@ -81,6 +83,9 @@
       <div class="pointer-events-none absolute -left-32 top-20 h-96 w-96 rounded-full bg-violet-600/20 blur-[100px]"></div>
       <div class="pointer-events-none absolute -right-20 bottom-0 h-80 w-80 rounded-full bg-emerald-500/10 blur-[80px]"></div>
       <div class="relative mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:py-20">
+        <div class="mb-6 flex justify-end">
+          <div id="gfp-lang-slot"></div>
+        </div>
         <div class="grid gap-10 lg:grid-cols-[1fr_320px] lg:items-start">
           <div>
             <a href="./" class="inline-flex items-center gap-3" aria-label="Capital Novo">
@@ -94,13 +99,18 @@
               />
               <span class="text-xl font-semibold tracking-tight text-white sm:text-2xl">Capital Novo</span>
             </a>
-            <p class="mt-3 text-xs uppercase tracking-[0.25em] text-zinc-600">Dashboard financeiro inteligente</p>
-            <h1 class="mt-4 text-4xl font-bold leading-[1.08] tracking-tight sm:text-5xl lg:text-6xl">
+            <p class="mt-3 text-xs uppercase tracking-[0.25em] text-zinc-600" data-i18n="landing.eyebrow">
+              Dashboard financeiro inteligente
+            </p>
+            <h1
+              class="mt-4 text-4xl font-bold leading-[1.08] tracking-tight sm:text-5xl lg:text-6xl"
+              data-i18n-html="landing.hero.title"
+            >
               Organize hoje.<br />
               Construa o capital<br />
               <span class="text-zinc-500">de amanhã.</span>
             </h1>
-            <p class="mt-5 max-w-lg text-base leading-relaxed text-zinc-400 sm:text-lg">
+            <p class="mt-5 max-w-lg text-base leading-relaxed text-zinc-400 sm:text-lg" data-i18n="landing.hero.sub">
               O Capital Novo reúne gastos, contas e investimentos em um painel elegante — para você ter controle da sua vida financeira com visão de longo prazo para seu patrimônio.
             </p>
             <div class="mt-8 flex flex-wrap items-center gap-3">
@@ -108,14 +118,21 @@
                 type="button"
                 id="btn-ver-demo"
                 class="inline-flex rounded-2xl border border-violet-400/40 bg-violet-600/20 px-7 py-4 text-base font-bold text-violet-100 transition hover:bg-violet-600/35"
+                data-i18n="landing.cta.demo"
               >
                 Ver demonstração grátis
               </button>
-              <a href="#oferta" class="glow-btn inline-flex rounded-2xl bg-emerald-500 px-7 py-4 text-base font-bold text-black transition hover:bg-emerald-400">
+              <a
+                href="#oferta"
+                class="glow-btn inline-flex rounded-2xl bg-emerald-500 px-7 py-4 text-base font-bold text-black transition hover:bg-emerald-400"
+                data-i18n="landing.cta.start"
+              >
                 Começar por R$ 29,90/mês
               </a>
             </div>
-            <p class="mt-3 text-xs text-zinc-500">Explore o dashboard com dados de exemplo — sem cartão e sem compromisso.</p>
+            <p class="mt-3 text-xs text-zinc-500" data-i18n="landing.cta.hint">
+              Explore o dashboard com dados de exemplo — sem cartão e sem compromisso.
+            </p>
           </div>
 
           <div id="sidebar-auth" class="space-y-4 lg:sticky lg:top-8">
@@ -123,8 +140,8 @@
               id="bloco-pos-pagamento"
               class="hidden rounded-2xl border border-violet-500/30 bg-violet-600/10 p-6 shadow-xl"
             >
-              <p class="text-center text-sm font-semibold text-violet-200">Pagamento confirmado</p>
-              <p class="mt-2 text-center text-xs leading-relaxed text-bank-muted">
+              <p class="text-center text-sm font-semibold text-violet-200" data-i18n="landing.login.createTitle">Pagamento confirmado</p>
+              <p class="mt-2 text-center text-xs leading-relaxed text-bank-muted" data-i18n-html="landing.login.createHint">
                 Crie sua senha com o <strong class="text-zinc-300">mesmo e-mail</strong> que você usou para o pagamento.
               </p>
               <p
@@ -169,6 +186,7 @@
                   type="submit"
                   id="btn-criar-senha"
                   class="w-full rounded-xl bg-violet-600 py-2.5 text-sm font-semibold text-white transition hover:bg-violet-500 disabled:opacity-60"
+                  data-i18n="landing.login.createSubmit"
                 >
                   Criar senha e entrar
                 </button>
@@ -176,13 +194,13 @@
             </div>
 
             <div class="rounded-2xl border border-white/[0.08] bg-[#14141f] p-6 shadow-xl">
-              <p class="mb-4 text-center text-xs font-medium uppercase tracking-wide text-zinc-500">Já tem senha? Entre</p>
+              <p class="mb-4 text-center text-xs font-medium uppercase tracking-wide text-zinc-500" data-i18n="landing.login.title">Já tem senha? Entre</p>
               <p id="login-erro" class="mb-4 hidden rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200"></p>
               <p id="login-ok" class="mb-4 hidden rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200"></p>
 
               <form id="form-login" class="space-y-4">
                 <div>
-                  <label for="login-email" class="block text-xs font-medium text-zinc-400">E-mail</label>
+                  <label for="login-email" class="block text-xs font-medium text-zinc-400" data-i18n="landing.login.email">E-mail</label>
                   <input
                     id="login-email"
                     type="email"
@@ -193,7 +211,7 @@
                   />
                 </div>
                 <div>
-                  <label for="login-senha" class="block text-xs font-medium text-zinc-400">Senha</label>
+                  <label for="login-senha" class="block text-xs font-medium text-zinc-400" data-i18n="landing.login.password">Senha</label>
                   <div class="relative mt-1.5">
                     <input
                       id="login-senha"
@@ -220,26 +238,27 @@
                   type="submit"
                   id="btn-login"
                   class="w-full rounded-xl bg-violet-600 py-2.5 text-sm font-semibold text-white transition hover:bg-violet-500 disabled:opacity-60"
+                  data-i18n="landing.login.submit"
                 >
                   Entrar
                 </button>
               </form>
 
               <div class="mt-4 flex flex-col items-center gap-2 text-center text-xs">
-                <button type="button" id="btn-mostrar-esqueci" class="text-violet-400 transition hover:text-violet-300">
+                <button type="button" id="btn-mostrar-esqueci" class="text-violet-400 transition hover:text-violet-300" data-i18n="landing.login.forgot">
                   Esqueci minha senha
                 </button>
-                <button type="button" id="btn-mostrar-criar-senha" class="text-zinc-500 transition hover:text-zinc-400">
+                <button type="button" id="btn-mostrar-criar-senha" class="text-zinc-500 transition hover:text-zinc-400" data-i18n="landing.login.create">
                   Acabei de pagar · criar minha senha
                 </button>
               </div>
 
               <form id="form-esqueci-senha" class="mt-4 hidden space-y-3 border-t border-bank-border pt-4">
-                <p class="text-center text-xs text-bank-muted">
+                <p class="text-center text-xs text-bank-muted" data-i18n="landing.login.resetHint">
                   Enviaremos um link para redefinir a senha no e-mail da sua conta.
                 </p>
                 <div>
-                  <label for="reset-email" class="block text-xs font-medium text-zinc-400">E-mail da conta</label>
+                  <label for="reset-email" class="block text-xs font-medium text-zinc-400" data-i18n="landing.login.resetEmail">E-mail da conta</label>
                   <input
                     id="reset-email"
                     type="email"
@@ -253,6 +272,7 @@
                   type="submit"
                   id="btn-enviar-reset"
                   class="w-full rounded-xl border border-violet-500/40 bg-violet-600/20 py-2.5 text-sm font-semibold text-violet-200 transition hover:bg-violet-600/30 disabled:opacity-60"
+                  data-i18n="landing.login.resetSubmit"
                 >
                   Enviar link de redefinição
                 </button>
@@ -370,24 +390,24 @@
     <!-- ANTES / DEPOIS -->
     <section class="border-y border-white/5 bg-[#0c0814] py-14">
       <div class="mx-auto max-w-6xl px-4 sm:px-6">
-        <h2 class="text-center text-xl font-bold sm:text-2xl">Sem controle vs. Com Capital Novo</h2>
+        <h2 class="text-center text-xl font-bold sm:text-2xl" data-i18n="landing.compare.title">Sem controle vs. Com Capital Novo</h2>
         <div class="mt-8 grid gap-4 sm:grid-cols-2">
           <div class="rounded-2xl border border-red-500/15 bg-red-950/20 p-6">
-            <p class="text-xs font-bold uppercase text-red-400">Antes</p>
+            <p class="text-xs font-bold uppercase text-red-400" data-i18n="landing.compare.before">Antes</p>
             <ul class="mt-4 space-y-3 text-sm text-zinc-400">
-              <li>✗ Planilhas e cadernos que trazem dor de cabeça e desorganização</li>
-              <li>✗ Esqueceu de pagar uma conta e levou multa</li>
-              <li>✗ Surpresa na fatura todo mês</li>
-              <li>✗ Patrimônio “mais ou menos” na cabeça</li>
+              <li data-i18n="landing.compare.b1">✗ Planilhas e cadernos que trazem dor de cabeça e desorganização</li>
+              <li data-i18n="landing.compare.b2">✗ Esqueceu de pagar uma conta e levou multa</li>
+              <li data-i18n="landing.compare.b3">✗ Surpresa na fatura todo mês</li>
+              <li data-i18n="landing.compare.b4">✗ Patrimônio “mais ou menos” na cabeça</li>
             </ul>
           </div>
           <div class="rounded-2xl border border-emerald-500/20 bg-emerald-950/20 p-6">
-            <p class="text-xs font-bold uppercase text-emerald-400">Depois</p>
+            <p class="text-xs font-bold uppercase text-emerald-400" data-i18n="landing.compare.after">Depois</p>
             <ul class="mt-4 space-y-3 text-sm text-zinc-300">
-              <li>✓ Tudo registrado em um painel só</li>
-              <li>✓ Saiba quando e o que precisa pagar antecipadamente</li>
-              <li>✓ Saldo e categorias sempre visíveis</li>
-              <li>✓ Patrimônio e metas com números reais</li>
+              <li data-i18n="landing.compare.a1">✓ Tudo registrado em um painel só</li>
+              <li data-i18n="landing.compare.a2">✓ Saiba quando e o que precisa pagar antecipadamente</li>
+              <li data-i18n="landing.compare.a3">✓ Saldo e categorias sempre visíveis</li>
+              <li data-i18n="landing.compare.a4">✓ Patrimônio e metas com números reais</li>
             </ul>
           </div>
         </div>
@@ -397,50 +417,50 @@
     <!-- BENEFÍCIOS -->
     <section class="py-14">
       <div class="mx-auto max-w-6xl px-4 sm:px-6">
-        <h2 class="text-2xl font-bold">Feito para quem leva dinheiro a sério</h2>
-        <p class="mt-2 text-sm text-zinc-500">Seis pilares que só o Capital Novo entrega com essa profundidade.</p>
+        <h2 class="text-2xl font-bold" data-i18n="landing.benefits.title">Feito para quem leva dinheiro a sério</h2>
+        <p class="mt-2 text-sm text-zinc-500" data-i18n="landing.benefits.sub">Seis pilares que só o Capital Novo entrega com essa profundidade.</p>
         <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <article class="rounded-2xl border border-white/[0.06] bg-[#14101f] p-5">
             <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-600/15 text-violet-400">
               <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 12l3-3 3 3 5-5"/></svg>
             </div>
-            <h3 class="mt-4 font-semibold">Onde vai cada real</h3>
-            <p class="mt-2 text-sm leading-relaxed text-zinc-500">Gráficos por categoria e origem para você saber exatamente o que gasta em cada parte da sua vida.</p>
+            <h3 class="mt-4 font-semibold" data-i18n="landing.benefits.1.t">Onde vai cada real</h3>
+            <p class="mt-2 text-sm leading-relaxed text-zinc-500" data-i18n="landing.benefits.1.d">Gráficos por categoria e origem para você saber exatamente o que gasta em cada parte da sua vida.</p>
           </article>
           <article class="rounded-2xl border border-white/[0.06] bg-[#14101f] p-5">
             <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-600/15 text-emerald-400">
               <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect width="20" height="14" x="2" y="5" rx="2"/><path d="M2 10h20"/></svg>
             </div>
-            <h3 class="mt-4 font-semibold">Cartões sob controle</h3>
-            <p class="mt-2 text-sm leading-relaxed text-zinc-500">Controle todos os seus cartões de crédito em um só lugar e organize o seu dia a dia.</p>
+            <h3 class="mt-4 font-semibold" data-i18n="landing.benefits.2.t">Cartões sob controle</h3>
+            <p class="mt-2 text-sm leading-relaxed text-zinc-500" data-i18n="landing.benefits.2.d">Controle todos os seus cartões de crédito em um só lugar e organize o seu dia a dia.</p>
           </article>
           <article class="rounded-2xl border border-white/[0.06] bg-[#14101f] p-5">
             <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-600/15 text-amber-400">
               <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2v20M2 12h20"/></svg>
             </div>
-            <h3 class="mt-4 font-semibold">Projete o seu sonho</h3>
-            <p class="mt-2 text-sm leading-relaxed text-zinc-500">Simulador profissional de longo prazo: juros compostos, aportes em dólar e real e patrimônio real descontado da inflação.</p>
+            <h3 class="mt-4 font-semibold" data-i18n="landing.benefits.3.t">Projete o seu sonho</h3>
+            <p class="mt-2 text-sm leading-relaxed text-zinc-500" data-i18n="landing.benefits.3.d">Simulador profissional de longo prazo: juros compostos, aportes em dólar e real e patrimônio real descontado da inflação.</p>
           </article>
           <article class="rounded-2xl border border-white/[0.06] bg-[#14101f] p-5">
             <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600/15 text-blue-400">
               <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-9-9"/><path d="M21 3v5h-5"/></svg>
             </div>
-            <h3 class="mt-4 font-semibold">Patrimônio personalizado</h3>
-            <p class="mt-2 text-sm leading-relaxed text-zinc-500">O único dashboard que permite personalizar 100% como o seu patrimônio é constituído.</p>
+            <h3 class="mt-4 font-semibold" data-i18n="landing.benefits.4.t">Patrimônio personalizado</h3>
+            <p class="mt-2 text-sm leading-relaxed text-zinc-500" data-i18n="landing.benefits.4.d">O único dashboard que permite personalizar 100% como o seu patrimônio é constituído.</p>
           </article>
           <article class="rounded-2xl border border-white/[0.06] bg-[#14101f] p-5">
             <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-green-600/15 text-green-400">
               <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
             </div>
-            <h3 class="mt-4 font-semibold">Lance pelo WhatsApp</h3>
-            <p class="mt-2 text-sm leading-relaxed text-zinc-500">Registre um gasto com uma mensagem rápida — uma linha ou um dado por linha. Consulte seus números pelo celular. Tudo sincroniza direto no dashboard.</p>
+            <h3 class="mt-4 font-semibold" data-i18n="landing.benefits.5.t">Lance pelo WhatsApp</h3>
+            <p class="mt-2 text-sm leading-relaxed text-zinc-500" data-i18n="landing.benefits.5.d">Registre um gasto com uma mensagem rápida — uma linha ou um dado por linha. Consulte seus números pelo celular. Tudo sincroniza direto no dashboard.</p>
           </article>
           <article class="rounded-2xl border border-white/[0.06] bg-[#14101f] p-5">
             <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-600/15 text-sky-400">
               <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
             </div>
-            <h3 class="mt-4 font-semibold">Segurança e privacidade</h3>
-            <p class="mt-2 text-sm leading-relaxed text-zinc-500">Seus dados financeiros são exclusivos da sua conta. Só você acessa — nem nossa equipe vê suas finanças.</p>
+            <h3 class="mt-4 font-semibold" data-i18n="landing.benefits.6.t">Segurança e privacidade</h3>
+            <p class="mt-2 text-sm leading-relaxed text-zinc-500" data-i18n="landing.benefits.6.d">Seus dados financeiros são exclusivos da sua conta. Só você acessa — nem nossa equipe vê suas finanças.</p>
           </article>
         </div>
       </div>
@@ -449,7 +469,7 @@
     <!-- DEPOIMENTOS -->
     <section class="border-t border-white/5 bg-[#0c0814] py-14">
       <div class="mx-auto max-w-4xl px-4 sm:px-6">
-        <h2 class="mb-8 text-center text-xl font-bold text-white sm:text-2xl">Depoimentos</h2>
+        <h2 class="mb-8 text-center text-xl font-bold text-white sm:text-2xl" data-i18n="landing.testimonials.title">Depoimentos</h2>
         <div class="rounded-3xl border border-violet-500/20 bg-violet-600/5 p-8 text-center">
           <p class="text-lg font-medium leading-relaxed text-zinc-200">"O Capital Novo virou meu ritual de domingo.<br />Em 20 minutos sei onde estou e para onde vou."</p>
           <p class="mt-4 text-sm text-violet-300">— Ricardo A. · assinante</p>
@@ -471,9 +491,9 @@
     <section id="oferta" class="py-16">
       <div class="mx-auto max-w-md px-4 text-center sm:px-6">
         <div class="rounded-3xl border-2 border-emerald-500/40 bg-gradient-to-b from-emerald-600/20 to-transparent p-8">
-          <p class="text-sm font-bold text-emerald-300">7 DIAS PARA TESTAR</p>
-          <p class="mt-4 text-5xl font-bold">R$ 29,90<span class="text-lg text-zinc-400">/mês</span></p>
-          <p class="mt-3 text-xs leading-relaxed text-zinc-500">
+          <p class="text-sm font-bold text-emerald-300" data-i18n="landing.offer.badge">7 DIAS PARA TESTAR</p>
+          <p class="mt-4 text-5xl font-bold">R$ 29,90<span class="text-lg text-zinc-400" data-i18n="landing.offer.priceSuffix">/mês</span></p>
+          <p class="mt-3 text-xs leading-relaxed text-zinc-500" data-i18n="landing.offer.hint">
             Acesso ao dashboard financeiro completo. Pagamento processado por provedor de cobrança certificado.
           </p>
           <a
@@ -482,6 +502,7 @@
             target="_blank"
             rel="noopener noreferrer"
             class="glow-btn mt-6 inline-flex w-full items-center justify-center rounded-2xl bg-emerald-500 py-4 font-bold text-black transition hover:bg-emerald-400"
+            data-i18n="landing.offer.cta"
           >
             Assinar agora
           </a>
@@ -492,13 +513,13 @@
     <!-- FAQ -->
     <section class="border-t border-white/5 py-14">
       <div class="mx-auto max-w-lg px-4 sm:px-6">
-        <h2 class="mb-6 text-center font-bold">Dúvidas Frequentes</h2>
+        <h2 class="mb-6 text-center font-bold" data-i18n="landing.faq.title">Dúvidas Frequentes</h2>
         <details class="mb-2 rounded-xl bg-[#14101f] px-4 py-3">
-          <summary class="font-medium text-sm">É seguro?</summary>
-          <p class="mt-2 text-sm leading-relaxed text-zinc-500">Sim. Cada conta é individual — ninguém mais acessa seus números, gastos ou investimentos. Seus dados ficam protegidos com login e senha, e a comunicação com o servidor usa criptografia. O Capital Novo não vende nem compartilha suas informações com terceiros.</p>
+          <summary class="font-medium text-sm" data-i18n="landing.faq.1.q">É seguro?</summary>
+          <p class="mt-2 text-sm leading-relaxed text-zinc-500" data-i18n="landing.faq.1.a">Sim. Cada conta é individual — ninguém mais acessa seus números, gastos ou investimentos. Seus dados ficam protegidos com login e senha, e a comunicação com o servidor usa criptografia. O Capital Novo não vende nem compartilha suas informações com terceiros.</p>
         </details>
         <details class="mb-2 rounded-xl bg-[#14101f] px-4 py-3">
-          <summary class="font-medium text-sm">Como funciona a assistente do WhatsApp? É IA?</summary>
+          <summary class="font-medium text-sm" data-i18n="landing.faq.2.q">Como funciona a assistente do WhatsApp? É IA?</summary>
           <p class="mt-2 text-sm leading-relaxed text-zinc-500">
             A assistente do WhatsApp é um canal prático para <strong class="font-medium text-zinc-400">lançar gastos e consultar seus números</strong> sem abrir o site. Você manda uma mensagem, confirma com <em>SIM</em> ou <em>NÃO</em>, e o lançamento vai direto para o seu dashboard — sincronizado na nuvem.
           </p>
@@ -513,7 +534,7 @@
           </p>
         </details>
         <details class="mb-2 rounded-xl bg-[#14101f] px-4 py-3">
-          <summary class="font-medium text-sm">Por que não usam IA ou Open Finance?</summary>
+          <summary class="font-medium text-sm" data-i18n="landing.faq.3.q">Por que não usam IA ou Open Finance?</summary>
           <p class="mt-2 text-sm leading-relaxed text-zinc-500">
             Apps com Open Finance ou IA enxergam só o nome da maquininha e a categoria do estabelecimento — não sabem o que você comprou de verdade. Comprou um pneu de moto numa loja cadastrada como petshop? A IA marca como &quot;pets&quot;. Para ter precisão, você acaba corrigindo manualmente mesmo.
           </p>
@@ -525,15 +546,15 @@
           </p>
         </details>
         <details class="mb-2 rounded-xl bg-[#14101f] px-4 py-3">
-          <summary class="font-medium text-sm">Posso cancelar?</summary>
+          <summary class="font-medium text-sm" data-i18n="landing.faq.4.q">Posso cancelar?</summary>
           <p class="mt-2 text-sm leading-relaxed text-zinc-500">Sim, quando quiser. Não há fidelidade nem multa. Você cancela direto pelo dashboard (botão Assinatura). Se assinou há menos de 7 dias e quer reembolso integral, escreva para <a href="mailto:contato@capitalnovo.com.br" class="text-violet-400 hover:text-violet-300">contato@capitalnovo.com.br</a> com o mesmo e-mail da conta. Depois dos 7 dias, o acesso continua até o fim do período já pago, sem nova cobrança.</p>
         </details>
         <details class="mb-2 rounded-xl bg-[#14101f] px-4 py-3">
-          <summary class="font-medium text-sm">Funciona no celular?</summary>
+          <summary class="font-medium text-sm" data-i18n="landing.faq.5.q">Funciona no celular?</summary>
           <p class="mt-2 text-sm leading-relaxed text-zinc-500">Funciona em qualquer dispositivo com navegador — celular, tablet ou computador. Não precisa instalar app: abra o site, faça login e pronto. Tudo fica sincronizado na nuvem, então o que você registra no celular aparece no desktop e vice-versa. Pelo WhatsApp, você também lança e consulta sem abrir o dashboard.</p>
         </details>
         <details class="rounded-xl bg-[#14101f] px-4 py-3">
-          <summary class="font-medium text-sm">É consultoria?</summary>
+          <summary class="font-medium text-sm" data-i18n="landing.faq.6.q">É consultoria?</summary>
           <p class="mt-2 text-sm leading-relaxed text-zinc-500">Não. O Capital Novo é uma ferramenta de organização financeira pessoal — ajuda você a ver gastos, contas, patrimônio e metas em um só lugar. Não recomendamos onde investir, não damos orientação tributária e não substituímos um contador ou planejador financeiro. A decisão é sempre sua.</p>
         </details>
       </div>
@@ -548,14 +569,14 @@
       aria-labelledby="modal-demo-titulo"
     >
       <div class="w-full max-w-md rounded-2xl border border-white/10 bg-[#14141f] p-6 shadow-2xl">
-        <h2 id="modal-demo-titulo" class="text-lg font-semibold text-white">Ver demonstração</h2>
-        <p class="mt-2 text-sm leading-relaxed text-zinc-400">
+        <h2 id="modal-demo-titulo" class="text-lg font-semibold text-white" data-i18n="landing.demo.title">Ver demonstração</h2>
+        <p class="mt-2 text-sm leading-relaxed text-zinc-400" data-i18n="landing.demo.body">
           Informe seu e-mail para liberar o painel com dados de exemplo. Sem cartão, sem compromisso —
           só para você conhecer o Capital Novo por dentro.
         </p>
         <form id="form-demo-lead" class="mt-5 space-y-4">
           <div>
-            <label for="demo-email" class="block text-xs font-medium text-zinc-400">Seu e-mail</label>
+            <label for="demo-email" class="block text-xs font-medium text-zinc-400" data-i18n="landing.demo.email">Seu e-mail</label>
             <input
               id="demo-email"
               type="email"
@@ -571,6 +592,7 @@
               type="submit"
               id="btn-demo-continuar"
               class="flex-1 rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-violet-500 disabled:opacity-60"
+              data-i18n="landing.demo.continue"
             >
               Entrar na demonstração
             </button>
@@ -578,12 +600,13 @@
               type="button"
               id="btn-demo-fechar"
               class="rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-medium text-zinc-300 transition hover:bg-white/10"
+              data-i18n="landing.demo.cancel"
             >
               Cancelar
             </button>
           </div>
         </form>
-        <p class="mt-3 text-[11px] leading-snug text-zinc-500">
+        <p class="mt-3 text-[11px] leading-snug text-zinc-500" data-i18n="landing.demo.privacy">
           Podemos enviar novidades do produto para este e-mail. Você pode pedir para sair da lista quando quiser.
         </p>
       </div>
@@ -601,13 +624,13 @@
         />
         <p class="font-semibold text-zinc-400">Capital Novo</p>
       </div>
-      <p class="mt-3">Ferramenta de organização financeira pessoal. Não constitui consultoria ou recomendação de investimentos.</p>
+      <p class="mt-3" data-i18n="landing.footer.legal">Ferramenta de organização financeira pessoal. Não constitui consultoria ou recomendação de investimentos.</p>
       <nav class="mt-3 flex flex-wrap items-center justify-center gap-x-1 gap-y-1" aria-label="Links legais">
-        <a href="/privacidade" class="text-zinc-500 transition hover:text-violet-300">Política de Privacidade</a>
+        <a href="/privacidade" class="text-zinc-500 transition hover:text-violet-300" data-i18n="landing.footer.privacy">Política de Privacidade</a>
         <span class="text-zinc-600" aria-hidden="true">·</span>
-        <a href="/termos" class="text-zinc-500 transition hover:text-violet-300">Termos de Uso</a>
+        <a href="/termos" class="text-zinc-500 transition hover:text-violet-300" data-i18n="landing.footer.terms">Termos de Uso</a>
         <span class="text-zinc-600" aria-hidden="true">·</span>
-        <a href="/contato" class="text-zinc-500 transition hover:text-violet-300">Contato</a>
+        <a href="/contato" class="text-zinc-500 transition hover:text-violet-300" data-i18n="landing.footer.contact">Contato</a>
       </nav>
       <div id="gfp-footer-social" class="mt-3 flex justify-center gap-3" aria-label="Redes sociais"></div>
       <p class="mt-3 text-zinc-600">© 2026 Capital Novo</p>
@@ -615,6 +638,10 @@
 
     <script>
       (function () {
+        if (window.GFP && GFP.i18n) {
+          GFP.i18n.mountLangToggle(document.getElementById("gfp-lang-slot"));
+          GFP.i18n.applyI18n();
+        }
         var params = new URLSearchParams(window.location.search);
         var erroEl = document.getElementById("login-erro");
         var okEl = document.getElementById("login-ok");
