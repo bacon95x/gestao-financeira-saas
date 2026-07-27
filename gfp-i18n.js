@@ -179,6 +179,7 @@
       "dash.lanc.hint":
         "Meio de pagamento é como você pagou; origem é qual cartão (quando couber). Em Crédito, a coluna em Cartões é o mês do vencimento da fatura (ciclo que cruza o mês anterior ao fechamento). Parcelas (opcional) repartem o valor nas colunas dos vencimentos seguintes. A descrição é opcional. Não registre aqui o que já está em Contas fixas no mesmo mês — evita somar em dobro no dashboard.",
       "dash.lanc.date": "Data",
+      "dash.lanc.datePh": "dd/mm/aaaa",
       "dash.lanc.value": "Valor (R$)",
       "dash.lanc.valuePh": "0,00",
       "dash.lanc.method": "Meio de pagamento",
@@ -233,6 +234,15 @@
       "dash.lanc.emptyFilter":
         "Nenhum lançamento neste mês corresponde aos filtros selecionados. Ajuste categoria, meio ou origem para ver outros registros.",
       "dash.lanc.totalsTitle": "Totais do mês por categoria",
+      "dash.lanc.refEmpty": "Nenhum gasto salvo ainda neste navegador.",
+      "dash.lanc.refList":
+        "Lista filtrada por {month}{current}. {filters}Sem parcelas: só aparecem lançamentos cuja data está neste mês. Com parcelas — indicador (parcela/total), número da parcela em vermelho — o mesmo item aparece em cada mês com o valor daquela parcela; a data da compra continua na primeira coluna.",
+      "dash.lanc.refCurrent": " (mês atual)",
+      "dash.lanc.refFilters": "Filtros ativos: {list}. ",
+      "dash.lanc.refFilterDate": "data",
+      "dash.lanc.refFilterCat": "categoria",
+      "dash.lanc.refFilterMethod": "meio",
+      "dash.lanc.refFilterOrigin": "origem",
 
       "dash.panel.fixas": "Contas fixas",
       "dash.panel.fixasHint":
@@ -247,6 +257,41 @@
       "dash.common.year": "Ano",
       "dash.cloud.savedAuto": "Salvo automaticamente",
       "dash.cloud.saved": "Salvo na nuvem",
+
+      "dash.home.totalGastos": "Total de gastos no mês",
+      "dash.home.refPrefix": "Referência: ",
+      "dash.home.currentMonth": " (mês atual)",
+      "dash.home.note": "Anotação",
+      "dash.home.noteTitle": "Bloco de notas deste mês de referência",
+      "dash.home.nextDue": "Próximo vencimento",
+      "dash.home.nextDueHint":
+        "Data do vencimento mais próximo (sem pagamento naquele mês). Ícone: lista completa.",
+      "dash.home.nextDueList": "Próximos vencimentos",
+      "dash.home.nextDueListHint":
+        "Ordenados do mais próximo ao mais distante (contas sem data de pagamento naquele mês).",
+      "dash.home.nextDueEmpty": "Nenhum vencimento futuro encontrado.",
+      "dash.home.income": "Renda mensal",
+      "dash.home.changeMonth": "Mudar mês",
+      "dash.home.monthOfYear": "{month} de {year}",
+      "dash.home.history": "Histórico",
+      "dash.home.historyDesc": "Últimos 12 meses — renda e gastos por mês.",
+      "dash.home.historyDescUntil":
+        "Últimos 12 meses até {month}. Barras mais claras = mês de referência dos gastos.",
+      "dash.home.compare": "Comparar",
+      "dash.home.expenses": "Gastos",
+      "dash.home.incomeShort": "Renda",
+      "dash.home.historyEmpty": "Sem dados de renda ou gastos nos últimos 12 meses.",
+      "dash.home.showValue": "Visualizar valor",
+      "dash.home.hideValue": "Ocultar valor",
+      "dash.home.showExpenses": "Visualizar valor dos gastos",
+      "dash.home.hideExpenses": "Ocultar valor dos gastos",
+      "dash.home.showIncome": "Visualizar valor da renda",
+      "dash.home.hideIncome": "Ocultar valor da renda",
+      "dash.home.catPctCurrent":
+        "Percentual por categoria no mês atual · Lançamentos do mês + fixas pagas fora do crédito + fixas em crédito",
+      "dash.home.catPctMonth":
+        "Percentual por categoria em {month} · Lançamentos do mês + fixas pagas fora do crédito + fixas em crédito",
+      "dash.home.close": "Fechar",
     },
     en: {
       "lang.switchTo": "PT",
@@ -421,6 +466,7 @@
       "dash.lanc.hint":
         "Payment method is how you paid; origin is which card (when applicable). On Credit, the Cards column is the statement due month (cycle that spans the month before closing). Installments (optional) split the amount across the following due-date columns. Description is optional. Do not log here what is already in Fixed bills for the same month — that would double-count on the dashboard.",
       "dash.lanc.date": "Date",
+      "dash.lanc.datePh": "mm/dd/yyyy",
       "dash.lanc.value": "Amount ($)",
       "dash.lanc.valuePh": "0.00",
       "dash.lanc.method": "Payment method",
@@ -475,6 +521,15 @@
       "dash.lanc.emptyFilter":
         "No transactions this month match the selected filters. Adjust category, method or origin to see other records.",
       "dash.lanc.totalsTitle": "Monthly totals by category",
+      "dash.lanc.refEmpty": "No expenses saved in this browser yet.",
+      "dash.lanc.refList":
+        "List filtered by {month}{current}. {filters}Without installments: only transactions dated in this month appear. With installments — badge (installment/total), installment number in red — the same item appears in each month with that installment’s amount; the purchase date stays in the first column.",
+      "dash.lanc.refCurrent": " (current month)",
+      "dash.lanc.refFilters": "Active filters: {list}. ",
+      "dash.lanc.refFilterDate": "date",
+      "dash.lanc.refFilterCat": "category",
+      "dash.lanc.refFilterMethod": "method",
+      "dash.lanc.refFilterOrigin": "origin",
 
       "dash.panel.fixas": "Fixed bills",
       "dash.panel.fixasHint":
@@ -489,6 +544,41 @@
       "dash.common.year": "Year",
       "dash.cloud.savedAuto": "Saved automatically",
       "dash.cloud.saved": "Saved to cloud",
+
+      "dash.home.totalGastos": "Total spending this month",
+      "dash.home.refPrefix": "Reference: ",
+      "dash.home.currentMonth": " (current month)",
+      "dash.home.note": "Note",
+      "dash.home.noteTitle": "Notes for this expense reference month",
+      "dash.home.nextDue": "Next due date",
+      "dash.home.nextDueHint":
+        "Nearest due date (no payment recorded that month). Icon: full list.",
+      "dash.home.nextDueList": "Upcoming due dates",
+      "dash.home.nextDueListHint":
+        "Sorted nearest to farthest (bills without a payment date that month).",
+      "dash.home.nextDueEmpty": "No upcoming due dates found.",
+      "dash.home.income": "Monthly income",
+      "dash.home.changeMonth": "Change month",
+      "dash.home.monthOfYear": "{month} {year}",
+      "dash.home.history": "History",
+      "dash.home.historyDesc": "Last 12 months — income and expenses by month.",
+      "dash.home.historyDescUntil":
+        "Last 12 months through {month}. Lighter bars = expense reference month.",
+      "dash.home.compare": "Compare",
+      "dash.home.expenses": "Expenses",
+      "dash.home.incomeShort": "Income",
+      "dash.home.historyEmpty": "No income or expense data in the last 12 months.",
+      "dash.home.showValue": "Show value",
+      "dash.home.hideValue": "Hide value",
+      "dash.home.showExpenses": "Show expense amount",
+      "dash.home.hideExpenses": "Hide expense amount",
+      "dash.home.showIncome": "Show income amount",
+      "dash.home.hideIncome": "Hide income amount",
+      "dash.home.catPctCurrent":
+        "Share by category in the current month · Month transactions + paid fixed bills outside credit + fixed bills on credit",
+      "dash.home.catPctMonth":
+        "Share by category in {month} · Month transactions + paid fixed bills outside credit + fixed bills on credit",
+      "dash.home.close": "Close",
     },
   };
 
