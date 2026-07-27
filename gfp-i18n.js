@@ -120,6 +120,10 @@
       "landing.footer.terms": "Termos de Uso",
       "landing.footer.contact": "Contato",
 
+      "legal.back": "← Voltar ao início",
+      "legal.updated": "Última atualização: junho de 2026",
+      "legal.updatedEn": "Last updated: June 2026",
+
       "dash.authLoading": "Verificando acesso…",
       "dash.tagline": "Seus gastos e investimentos em um só lugar",
       "dash.bg": "Fundo",
@@ -268,6 +272,10 @@
       "landing.footer.terms": "Terms of Use",
       "landing.footer.contact": "Contact",
 
+      "legal.back": "← Back to home",
+      "legal.updated": "Last updated: June 2026",
+      "legal.updatedEn": "Last updated: June 2026",
+
       "dash.authLoading": "Checking access…",
       "dash.tagline": "Your expenses and investments in one place",
       "dash.bg": "Background",
@@ -379,6 +387,17 @@
       btn.textContent = t("lang.switchTo");
       btn.setAttribute("title", t("lang.switchTitle"));
       btn.setAttribute("aria-label", t("lang.aria") + ": " + t("lang.switchTitle"));
+    });
+
+    document.querySelectorAll("[data-lang-block]").forEach(function (el) {
+      var block = el.getAttribute("data-lang-block");
+      if (block === current) {
+        el.classList.remove("hidden");
+        el.removeAttribute("hidden");
+      } else {
+        el.classList.add("hidden");
+        el.setAttribute("hidden", "");
+      }
     });
   }
 
