@@ -22,6 +22,9 @@
       "landing.cta.demo": "Ver demonstração grátis",
       "landing.cta.start": "Começar por R$ 29,90/mês",
       "landing.cta.hint": "Explore o dashboard com dados de exemplo — sem cartão e sem compromisso.",
+      "landing.mock.gastos": "Total de gastos no mês",
+      "landing.mock.ref": "Referência: Junho de 2026 (mês atual)",
+      "landing.mock.patrimonio": "Patrimônio",
 
       "landing.login.title": "Já tem senha? Entre",
       "landing.login.email": "E-mail",
@@ -174,6 +177,9 @@
       "landing.cta.demo": "Try the free demo",
       "landing.cta.start": "Start at R$ 29.90/mo",
       "landing.cta.hint": "Explore the dashboard with sample data — no card, no commitment.",
+      "landing.mock.gastos": "Total spending this month",
+      "landing.mock.ref": "Reference: June 2026 (current month)",
+      "landing.mock.patrimonio": "Net worth",
 
       "landing.login.title": "Already have a password? Sign in",
       "landing.login.email": "Email",
