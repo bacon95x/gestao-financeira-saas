@@ -268,9 +268,15 @@
     lastCloudHash = gfpHashSnapshot(snap);
     var stamp = gfpFormatTime();
     if (opts.auto) {
-      gfpSetCloudStatus("Salvo automaticamente · " + stamp, "ok");
+      gfpSetCloudStatus(
+        (window.GFP && GFP.t ? GFP.t("dash.cloud.savedAuto") : "Salvo automaticamente") + " · " + stamp,
+        "ok"
+      );
     } else {
-      gfpSetCloudStatus("Salvo na nuvem · " + stamp, "ok");
+      gfpSetCloudStatus(
+        (window.GFP && GFP.t ? GFP.t("dash.cloud.saved") : "Salvo na nuvem") + " · " + stamp,
+        "ok"
+      );
     }
     return { ok: true };
   }
