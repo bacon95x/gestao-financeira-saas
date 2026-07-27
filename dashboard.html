@@ -1955,8 +1955,8 @@
         <div
           class="rounded-2xl border border-bank-border bg-bank-card p-6 shadow-glow sm:p-8"
         >
-          <h2 id="gasto-form-titulo" class="text-lg font-semibold text-white">Novo lançamento</h2>
-          <p class="mt-1 text-sm text-bank-muted">
+          <h2 id="gasto-form-titulo" class="text-lg font-semibold text-white" data-i18n="dash.lanc.new">Novo lançamento</h2>
+          <p class="mt-1 text-sm text-bank-muted" data-i18n="dash.lanc.hint">
             Meio de pagamento é como você pagou; origem é qual cartão (quando couber). Em Crédito, a coluna em
             Cartões é o mês do vencimento da fatura (ciclo que cruza o mês anterior ao fechamento).
             Parcelas (opcional) repartem o valor nas colunas dos vencimentos seguintes. A descrição é opcional.
@@ -1964,7 +1964,7 @@
           </p>
           <form id="form-gasto" class="mt-6 grid gap-5 sm:grid-cols-2">
             <div>
-              <label class="block text-sm font-medium text-zinc-300" for="gasto-data">Data</label>
+              <label class="block text-sm font-medium text-zinc-300" for="gasto-data" data-i18n="dash.lanc.date">Data</label>
               <input
                 id="gasto-data"
                 name="data"
@@ -1974,7 +1974,7 @@
               />
             </div>
             <div>
-              <label class="block text-sm font-medium text-zinc-300" for="gasto-valor">Valor (R$)</label>
+              <label class="block text-sm font-medium text-zinc-300" for="gasto-valor" data-i18n="dash.lanc.value">Valor (R$)</label>
               <input
                 id="gasto-valor"
                 name="valor"
@@ -1983,12 +1983,13 @@
                 autocomplete="off"
                 required
                 placeholder="0,00"
+                data-i18n-placeholder="dash.lanc.valuePh"
                 class="input-moeda-br mt-1.5 w-full rounded-xl border border-bank-border bg-bank-bg px-4 py-3 text-white placeholder-zinc-600 outline-none ring-violet-500/50 focus:border-violet-500/50 focus:ring-2"
               />
             </div>
             <div class="grid gap-5 sm:col-span-2 sm:grid-cols-2">
               <div>
-                <label class="block text-sm font-medium text-zinc-300" for="gasto-meio">Meio de pagamento</label>
+                <label class="block text-sm font-medium text-zinc-300" for="gasto-meio" data-i18n="dash.lanc.method">Meio de pagamento</label>
                 <select
                   id="gasto-meio"
                   name="meioPagamento"
@@ -1999,8 +2000,8 @@
                 </select>
               </div>
               <div>
-                <label class="block text-sm font-medium text-zinc-300" for="gasto-parcelas">Parcelas</label>
-                <p class="mt-0.5 text-[11px] leading-snug text-bank-muted">
+                <label class="block text-sm font-medium text-zinc-300" for="gasto-parcelas" data-i18n="dash.lanc.installments">Parcelas</label>
+                <p class="mt-0.5 text-[11px] leading-snug text-bank-muted" data-i18n="dash.lanc.installmentsHint">
                   Opcional (2 a 24). Divide o valor nas colunas dos meses seguintes em Cartões, pela
                   origem.
                 </p>
@@ -2013,12 +2014,13 @@
                   step="1"
                   inputmode="numeric"
                   placeholder="À vista"
+                  data-i18n-placeholder="dash.lanc.installmentsPh"
                   class="mt-1.5 w-full rounded-xl border border-bank-border bg-bank-bg px-4 py-3 text-white placeholder-zinc-600 outline-none ring-violet-500/50 focus:border-violet-500/50 focus:ring-2"
                 />
               </div>
             </div>
             <div class="sm:col-span-2">
-              <p class="text-sm font-medium text-zinc-300">Origem</p>
+              <p class="text-sm font-medium text-zinc-300" data-i18n="dash.lanc.origin">Origem</p>
               <div class="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
                 <button
                   type="button"
@@ -2028,10 +2030,10 @@
                   aria-controls="painel-origens"
                 >
                   <i data-lucide="credit-card" class="h-4 w-4"></i>
-                  Origem
+                  <span data-i18n="dash.lanc.origin">Origem</span>
                 </button>
                 <p class="text-sm text-bank-muted">
-                  Selecionada:
+                  <span data-i18n="dash.lanc.selected">Selecionada:</span>
                   <span id="origem-label" class="font-medium text-cyan-300">—</span>
                 </p>
               </div>
@@ -2040,11 +2042,12 @@
                 id="painel-origens"
                 class="mt-3 hidden rounded-2xl border border-bank-border bg-bank-bg/80 p-4"
                 role="group"
+                data-i18n-aria="dash.lanc.originList"
                 aria-label="Lista de origens"
               >
                 <div class="mb-3 flex flex-wrap items-end gap-2 border-b border-bank-border pb-3">
                   <div class="min-w-[10rem] flex-1">
-                    <label for="nova-origem-input" class="mb-1 block text-xs text-bank-muted"
+                    <label for="nova-origem-input" class="mb-1 block text-xs text-bank-muted" data-i18n="dash.lanc.newOrigin"
                       >Nova origem</label
                     >
                     <input
@@ -2052,6 +2055,7 @@
                       id="nova-origem-input"
                       autocomplete="off"
                       placeholder="Ex.: banco x"
+                      data-i18n-placeholder="dash.lanc.newOriginPh"
                       class="w-full rounded-lg border border-bank-border bg-bank-bg px-3 py-2 text-sm text-white outline-none ring-cyan-500/30 focus:border-cyan-500/50 focus:ring-1"
                     />
                   </div>
@@ -2059,16 +2063,17 @@
                     type="button"
                     id="btn-add-origem"
                     class="rounded-lg border border-cyan-500/40 bg-cyan-600/20 px-4 py-2 text-sm font-medium text-cyan-100 hover:bg-cyan-600/30"
+                    data-i18n="dash.lanc.add"
                   >
                     Adicionar
                   </button>
                 </div>
                 <div id="lista-botoes-origem" class="flex flex-wrap gap-2"></div>
                 <details class="mt-4 rounded-xl border border-bank-border/80 bg-bank-bg/40 px-3 py-2">
-                  <summary class="cursor-pointer text-xs font-medium text-bank-muted hover:text-zinc-300">
+                  <summary class="cursor-pointer text-xs font-medium text-bank-muted hover:text-zinc-300" data-i18n="dash.lanc.editOrigin">
                     Editar nome ou excluir origem
                   </summary>
-                  <p class="mt-2 text-xs text-bank-muted">
+                  <p class="mt-2 text-xs text-bank-muted" data-i18n="dash.lanc.editOriginHint">
                     Alterações atualizam lançamentos e vínculos em Cartões.
                   </p>
                   <div id="lista-gerir-origens" class="mt-2 flex flex-col gap-2"></div>
@@ -2082,7 +2087,7 @@
               ></p>
             </div>
             <div class="sm:col-span-2">
-              <p class="text-sm font-medium text-zinc-300">Categoria</p>
+              <p class="text-sm font-medium text-zinc-300" data-i18n="dash.lanc.category">Categoria</p>
               <div class="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
                 <button
                   type="button"
@@ -2092,10 +2097,10 @@
                   aria-controls="painel-categorias"
                 >
                   <i data-lucide="tags" class="h-4 w-4"></i>
-                  Categoria
+                  <span data-i18n="dash.lanc.category">Categoria</span>
                 </button>
                 <p class="text-sm text-bank-muted">
-                  Selecionada:
+                  <span data-i18n="dash.lanc.selected">Selecionada:</span>
                   <span id="categoria-label" class="font-medium text-violet-300">—</span>
                 </p>
               </div>
@@ -2104,11 +2109,12 @@
                 id="painel-categorias"
                 class="mt-3 hidden rounded-2xl border border-bank-border bg-bank-bg/80 p-4"
                 role="group"
+                data-i18n-aria="dash.lanc.categoryList"
                 aria-label="Lista de categorias"
               >
                 <div class="mb-3 flex flex-wrap items-end gap-2 border-b border-bank-border pb-3">
                   <div class="min-w-[10rem] flex-1">
-                    <label for="nova-categoria-input" class="mb-1 block text-xs text-bank-muted"
+                    <label for="nova-categoria-input" class="mb-1 block text-xs text-bank-muted" data-i18n="dash.lanc.newCategory"
                       >Nova categoria</label
                     >
                     <input
@@ -2116,6 +2122,7 @@
                       id="nova-categoria-input"
                       autocomplete="off"
                       placeholder="Ex.: Pet"
+                      data-i18n-placeholder="dash.lanc.newCategoryPh"
                       class="w-full rounded-lg border border-bank-border bg-bank-bg px-3 py-2 text-sm text-white outline-none ring-violet-500/30 focus:border-violet-500/50 focus:ring-1"
                     />
                   </div>
@@ -2123,16 +2130,17 @@
                     type="button"
                     id="btn-add-categoria"
                     class="rounded-lg border border-violet-500/40 bg-violet-600/25 px-4 py-2 text-sm font-medium text-violet-100 hover:bg-violet-600/35"
+                    data-i18n="dash.lanc.add"
                   >
                     Adicionar
                   </button>
                 </div>
                 <div id="lista-botoes-categoria" class="flex flex-wrap gap-2"></div>
                 <details class="mt-4 rounded-xl border border-bank-border/80 bg-bank-bg/40 px-3 py-2">
-                  <summary class="cursor-pointer text-xs font-medium text-bank-muted hover:text-zinc-300">
+                  <summary class="cursor-pointer text-xs font-medium text-bank-muted hover:text-zinc-300" data-i18n="dash.lanc.editCategory">
                     Editar nome ou excluir categoria
                   </summary>
-                  <p class="mt-2 text-xs text-bank-muted">
+                  <p class="mt-2 text-xs text-bank-muted" data-i18n="dash.lanc.editCategoryHint">
                     Alterações atualizam lançamentos, vínculos por categoria e totais do mês.
                   </p>
                   <div id="lista-gerir-categorias" class="mt-2 flex flex-col gap-2"></div>
@@ -2145,8 +2153,8 @@
               >
                 <div class="flex items-center gap-2 text-sm font-medium text-zinc-300">
                   <i data-lucide="calculator" class="h-4 w-4 text-violet-400"></i>
-                  Total gasto no dia
-                  <span class="font-normal text-bank-muted">(data do lançamento)</span>
+                  <span data-i18n="dash.lanc.dayTotal">Total gasto no dia</span>
+                  <span class="font-normal text-bank-muted" data-i18n="dash.lanc.dayTotalHint">(data do lançamento)</span>
                 </div>
                 <p
                   id="total-gasto-dia"
@@ -2159,13 +2167,14 @@
             </div>
             <div class="sm:col-span-2">
               <label class="block text-sm font-medium text-zinc-300" for="gasto-desc"
-                >Descrição <span class="font-normal text-bank-muted">(opcional)</span></label
+                ><span data-i18n="dash.lanc.desc">Descrição</span> <span class="font-normal text-bank-muted" data-i18n="dash.lanc.optional">(opcional)</span></label
               >
               <input
                 id="gasto-desc"
                 name="descricao"
                 type="text"
                 placeholder="Ex.: Supermercado, assinatura…"
+                data-i18n-placeholder="dash.lanc.descPh"
                 class="mt-1.5 w-full rounded-xl border border-bank-border bg-bank-bg px-4 py-3 text-white placeholder-zinc-600 outline-none ring-violet-500/50 focus:border-violet-500/50 focus:ring-2"
               />
             </div>
@@ -2182,6 +2191,7 @@
                 type="button"
                 id="btn-cancelar-edicao-gasto"
                 class="hidden inline-flex items-center gap-2 rounded-xl border border-bank-border px-6 py-3 text-sm font-semibold text-zinc-300 transition hover:bg-white/5"
+                data-i18n="dash.lanc.cancelEdit"
               >
                 Cancelar edição
               </button>
@@ -2201,7 +2211,7 @@
             class="flex flex-col gap-3 border-b border-bank-border px-6 py-4 sm:flex-row sm:items-center sm:justify-between"
           >
             <div class="min-w-0">
-              <h2 class="text-lg font-semibold text-white">Lançamentos registrados</h2>
+              <h2 class="text-lg font-semibold text-white" data-i18n="dash.lanc.listTitle">Lançamentos registrados</h2>
               <p id="lancamentos-registrados-ref" class="mt-1 text-sm text-bank-muted"></p>
             </div>
             <button
@@ -2209,38 +2219,40 @@
               id="btn-lancamentos-mes"
               class="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-violet-500/40 bg-violet-600/15 px-4 py-2.5 text-sm font-semibold text-violet-200 ring-1 ring-violet-500/25 transition hover:bg-violet-600/25 focus:outline-none focus:ring-2 focus:ring-violet-500/50"
               title="Escolher mês da lista e dos totais por categoria"
+              data-i18n-title="dash.lanc.monthBtnTitle"
               aria-label="Abrir seleção de mês para lançamentos e totais por categoria"
+              data-i18n-aria="dash.lanc.monthBtnTitle"
               aria-expanded="false"
               aria-haspopup="dialog"
             >
               <i data-lucide="calendar-days" class="h-4 w-4"></i>
-              Mês exibido
+              <span data-i18n="dash.lanc.monthBtn">Mês exibido</span>
             </button>
           </div>
           <div class="grid gap-3 border-b border-bank-border px-6 py-4 sm:grid-cols-2 xl:grid-cols-4">
             <label class="flex flex-col gap-1">
-              <span class="text-xs font-medium text-bank-muted">Filtrar categoria</span>
+              <span class="text-xs font-medium text-bank-muted" data-i18n="dash.lanc.filterCat">Filtrar categoria</span>
               <select
                 id="filtro-lancamentos-categoria"
                 class="rounded-xl border border-bank-border bg-bank-bg px-4 py-2.5 text-sm text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
               ></select>
             </label>
             <label class="flex flex-col gap-1">
-              <span class="text-xs font-medium text-bank-muted">Filtrar meio</span>
+              <span class="text-xs font-medium text-bank-muted" data-i18n="dash.lanc.filterMethod">Filtrar meio</span>
               <select
                 id="filtro-lancamentos-meio"
                 class="rounded-xl border border-bank-border bg-bank-bg px-4 py-2.5 text-sm text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
               ></select>
             </label>
             <label class="flex flex-col gap-1">
-              <span class="text-xs font-medium text-bank-muted">Filtrar origem</span>
+              <span class="text-xs font-medium text-bank-muted" data-i18n="dash.lanc.filterOrigin">Filtrar origem</span>
               <select
                 id="filtro-lancamentos-origem"
                 class="rounded-xl border border-bank-border bg-bank-bg px-4 py-2.5 text-sm text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
               ></select>
             </label>
             <label class="flex flex-col gap-1">
-              <span class="text-xs font-medium text-bank-muted">Filtrar data</span>
+              <span class="text-xs font-medium text-bank-muted" data-i18n="dash.lanc.filterDate">Filtrar data</span>
               <input
                 id="filtro-lancamentos-data"
                 type="date"
@@ -2252,13 +2264,13 @@
             <table class="w-full min-w-[920px] text-left text-sm">
               <thead>
                 <tr class="border-b border-bank-border text-bank-muted">
-                  <th class="px-6 py-3 font-medium">Data</th>
-                  <th class="px-6 py-3 font-medium">Descrição</th>
-                  <th class="px-6 py-3 font-medium">Categoria</th>
-                  <th class="px-6 py-3 font-medium">Meio</th>
-                  <th class="px-6 py-3 font-medium">Origem</th>
-                  <th class="px-6 py-3 font-medium">Valor</th>
-                  <th class="px-6 py-3 font-medium">Total no dia</th>
+                  <th class="px-6 py-3 font-medium" data-i18n="dash.lanc.th.date">Data</th>
+                  <th class="px-6 py-3 font-medium" data-i18n="dash.lanc.th.desc">Descrição</th>
+                  <th class="px-6 py-3 font-medium" data-i18n="dash.lanc.th.cat">Categoria</th>
+                  <th class="px-6 py-3 font-medium" data-i18n="dash.lanc.th.method">Meio</th>
+                  <th class="px-6 py-3 font-medium" data-i18n="dash.lanc.th.origin">Origem</th>
+                  <th class="px-6 py-3 font-medium" data-i18n="dash.lanc.th.value">Valor</th>
+                  <th class="px-6 py-3 font-medium" data-i18n="dash.lanc.th.dayTotal">Total no dia</th>
                   <th class="px-6 py-3 font-medium"></th>
                 </tr>
               </thead>
@@ -2268,6 +2280,7 @@
                   <td
                     colspan="5"
                     class="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wide text-bank-muted"
+                    data-i18n="dash.lanc.total"
                   >
                     Total
                   </td>
@@ -2285,6 +2298,7 @@
           <p
             id="empty-gastos"
             class="hidden px-6 py-12 text-center text-sm text-bank-muted"
+            data-i18n="dash.lanc.empty"
           >
             Nenhum lançamento ainda. Adicione o primeiro acima.
           </p>
@@ -2295,7 +2309,7 @@
             class="rounded-2xl border border-bank-border bg-bank-card p-5 shadow-glow lg:sticky lg:top-6"
             aria-labelledby="titulo-totais-cat"
           >
-            <h2 id="titulo-totais-cat" class="text-base font-semibold text-white">
+            <h2 id="titulo-totais-cat" class="text-base font-semibold text-white" data-i18n="dash.lanc.totalsTitle">
               Totais do mês por categoria
             </h2>
             <p id="ref-totais-cat-mes" class="mt-1 text-xs text-bank-muted"></p>
@@ -2316,8 +2330,8 @@
       >
         <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <h2 id="titulo-contas-fixas" class="text-lg font-semibold text-white">Contas fixas</h2>
-            <p class="mt-1 max-w-3xl text-sm text-bank-muted">
+            <h2 id="titulo-contas-fixas" class="text-lg font-semibold text-white" data-i18n="dash.panel.fixas">Contas fixas</h2>
+            <p class="mt-1 max-w-3xl text-sm text-bank-muted" data-i18n="dash.panel.fixasHint">
               Despesas que repetem todo mês (aluguel, assinaturas, planos). Assinatura no cartão: meio
               <strong class="font-medium text-zinc-300">Crédito</strong> + origem do cartão — não precisa lançar de
               novo em Lançamentos. Compras avulsas no cartão continuam em Lançamentos. Fora do crédito, preencha
@@ -2327,7 +2341,7 @@
           </div>
           <div class="flex shrink-0 flex-wrap items-end gap-3">
             <div class="flex flex-col gap-1">
-              <label class="text-xs font-medium text-bank-muted" for="mes-contas-fixas">Mês</label>
+              <label class="text-xs font-medium text-bank-muted" for="mes-contas-fixas" data-i18n="dash.common.month">Mês</label>
               <select
                 id="mes-contas-fixas"
                 class="min-w-[10rem] rounded-xl border border-bank-border bg-bank-bg px-4 py-2.5 text-sm font-medium text-white outline-none ring-emerald-500/40 focus:border-emerald-500/50 focus:ring-2"
@@ -2368,7 +2382,7 @@
       >
         <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <h2 id="titulo-contas-pagar" class="text-lg font-semibold text-white">Cartões</h2>
+            <h2 id="titulo-contas-pagar" class="text-lg font-semibold text-white" data-i18n="dash.panel.cartoes">Cartões</h2>
             <p class="mt-1 max-w-3xl text-sm text-bank-muted">
               Um mês por vez (padrão: atual). Só contas com vínculo por origem (cartão). Lançamentos em Crédito
               somam em «gasto atual»; Fechamento de fatura define o ciclo. Valor pago é controle da fatura — não
@@ -2418,7 +2432,7 @@
         >
           <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <h2 class="text-lg font-semibold text-white">Juros/taxas</h2>
+              <h2 class="text-lg font-semibold text-white" data-i18n="dash.panel.juros">Juros/taxas</h2>
               <p class="mt-1 max-w-3xl text-sm text-bank-muted">
                 Juros/taxas, descrição, quando e origem — a lista de origens é a mesma de Lançamentos (alterações lá
                 refletem aqui). Área personalizada destinada a taxas, multas, anuidades de cartões e juros bancários.
@@ -2464,7 +2478,7 @@
         aria-labelledby="titulo-investimentos"
       >
         <div>
-          <h2 id="titulo-investimentos" class="text-lg font-semibold text-white">Simulador de Juros compostos</h2>
+          <h2 id="titulo-investimentos" class="text-lg font-semibold text-white" data-i18n="dash.panel.invest">Simulador de Juros compostos</h2>
           <p class="mt-1 max-w-3xl text-sm text-bank-muted">
             Simulação em reais: aplicação inicial e aportes em USD são convertidos pela cotação abaixo. As colunas
             acumulam mês a mês; «Rendimento» mostra o juro daquele mês: (saldo do mês anterior + aporte) × lucro mensal %.
@@ -2484,11 +2498,11 @@
                   <span class="text-xs text-bank-muted">USD</span>
                   <input
                     id="inv-inicial-usd"
-                    type="number"
+                    type="text"
                     inputmode="decimal"
-                    step="any"
-                    placeholder="0"
-                    class="w-36 rounded-xl border border-bank-border bg-bank-bg px-3 py-2 text-sm tabular-nums text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
+                    autocomplete="off"
+                    placeholder="0,00"
+                    class="input-moeda-br w-36 rounded-xl border border-bank-border bg-bank-bg px-3 py-2 text-sm tabular-nums text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
                   />
                 </label>
                 <label class="flex flex-col gap-1">
@@ -2514,11 +2528,11 @@
                   <span class="text-xs text-bank-muted">USD</span>
                   <input
                     id="inv-aporte-usd"
-                    type="number"
+                    type="text"
                     inputmode="decimal"
-                    step="any"
-                    placeholder="0"
-                    class="w-36 rounded-xl border border-bank-border bg-bank-bg px-3 py-2 text-sm tabular-nums text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
+                    autocomplete="off"
+                    placeholder="0,00"
+                    class="input-moeda-br w-36 rounded-xl border border-bank-border bg-bank-bg px-3 py-2 text-sm tabular-nums text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
                   />
                 </label>
                 <label class="flex flex-col gap-1">
@@ -2785,7 +2799,7 @@
           ></div>
           <div class="relative flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <h2 id="titulo-patrimonio" class="text-xl font-semibold tracking-tight text-white">
+              <h2 id="titulo-patrimonio" class="text-xl font-semibold tracking-tight text-white" data-i18n="dash.panel.patrimonio">
                 Patrimônio investido
               </h2>
               <p class="mt-2 max-w-2xl text-sm leading-relaxed text-bank-muted">
@@ -2997,7 +3011,7 @@
         aria-labelledby="titulo-bitcoin"
       >
         <div>
-          <h2 id="titulo-bitcoin" class="text-lg font-semibold text-white">Bitcoin</h2>
+          <h2 id="titulo-bitcoin" class="text-lg font-semibold text-white" data-i18n="dash.panel.bitcoin">Bitcoin</h2>
           <p class="mt-1 max-w-3xl text-sm text-bank-muted">
             Preços de BTC em <span class="text-zinc-400">dólar (US$/BTC)</span>, como no mercado. O valor que saiu do seu
             bolso é em <span class="text-zinc-400">reais (R$)</span>. Informe a cotação do dia da compra (quantos R$ por 1
@@ -3267,7 +3281,7 @@
       >
         <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h2 id="titulo-ativos" class="text-lg font-semibold text-white">Meus Ativos</h2>
+            <h2 id="titulo-ativos" class="text-lg font-semibold text-white" data-i18n="dash.panel.ativos">Meus Ativos</h2>
             <p class="mt-1 max-w-2xl text-sm text-bank-muted">
               Acompanhe ações, FIIs, ETFs e ativos no exterior. Cotações ao vivo na B3 (Brapi); exterior com preço manual.
             </p>
@@ -3748,7 +3762,7 @@
         /** Meios que não alteram “gasto atual” em Contas a pagar */
         const MEIOS_SEM_VINCULO_CONTAS_PAGAR = new Set(["Pix", "Dinheiro", "Débito"]);
 
-        const MESES_CONTAS_PAGAR = [
+        const MESES_PT = [
           "Janeiro",
           "Fevereiro",
           "Março",
@@ -3762,6 +3776,38 @@
           "Novembro",
           "Dezembro",
         ];
+        const MESES_EN = [
+          "January",
+          "February",
+          "March",
+          "April",
+          "May",
+          "June",
+          "July",
+          "August",
+          "September",
+          "October",
+          "November",
+          "December",
+        ];
+        let MESES_CONTAS_PAGAR = MESES_PT.slice();
+
+        function syncMesesLocale() {
+          MESES_CONTAS_PAGAR = (gfpIsEn() ? MESES_EN : MESES_PT).slice();
+        }
+
+        function labelMeioPagamento(nome) {
+          const map = {
+            Dinheiro: "dash.meio.cash",
+            Pix: "dash.meio.pix",
+            Crédito: "dash.meio.credit",
+            Débito: "dash.meio.debit",
+            "Vale alimentação": "dash.meio.meal",
+            outros: "dash.meio.other",
+          };
+          const key = map[nome];
+          return key ? gfpT(key) : nome;
+        }
 
         /** Linhas mínimas (em branco) na tabela Juros/taxas do calendário, por mês. */
         const MIN_LINHAS_JUROS_TAXAS = 5;
@@ -3894,7 +3940,9 @@
           data: "",
         };
 
-        const TEXTO_RENDA_OCULTA = "R$ ★★★★★★★★";
+        function textoRendaOculta() {
+          return gfpIsEn() ? "$ ★★★★★★★★" : "R$ ★★★★★★★★";
+        }
 
         const SALDO_PARTES_TEMPLATE = [
           { id: "renda-1", label: "", valor: 0 },
@@ -6253,66 +6301,112 @@
           return Math.min(24, n);
         }
 
-        /** Aceita "10,50", "10.50", "1.234,56" (pt-BR). */
+        /** Aceita "10,50", "10.50", "1.234,56" (pt-BR) e "1,234.56" (en-US). */
         function parseValorMonetarioLancamento(raw) {
-          const s = String(raw || "").trim().replace(/\s/g, "");
+          let s = String(raw || "").trim().replace(/\s/g, "");
           if (!s) return NaN;
-          if (s.includes(",")) {
-            return parseFloat(s.replace(/\./g, "").replace(",", "."));
+          s = s.replace(/[^\d,.\-]/g, "");
+          if (!s || s === "-" || s === "." || s === ",") return NaN;
+          const lastComma = s.lastIndexOf(",");
+          const lastDot = s.lastIndexOf(".");
+          if (lastComma >= 0 && lastDot >= 0) {
+            if (lastComma > lastDot) {
+              return parseFloat(s.replace(/\./g, "").replace(",", "."));
+            }
+            return parseFloat(s.replace(/,/g, ""));
           }
-          if (/^-?\d{1,3}(\.\d{3})+$/.test(s)) {
-            return parseFloat(s.replace(/\./g, ""));
+          if (lastComma >= 0) {
+            const decLen = s.length - lastComma - 1;
+            if (decLen <= 2) {
+              return parseFloat(s.replace(/\./g, "").replace(",", "."));
+            }
+            return parseFloat(s.replace(/,/g, ""));
+          }
+          if (lastDot >= 0) {
+            if (/^-?\d{1,3}(\.\d{3})+$/.test(s)) {
+              return parseFloat(s.replace(/\./g, ""));
+            }
+            return parseFloat(s);
           }
           return parseFloat(s);
         }
 
-        /** Número → "1.000,00" (sem prefixo R$). */
+        function gfpIsEn() {
+          return !!(window.GFP && GFP.i18n && GFP.i18n.isEn && GFP.i18n.isEn());
+        }
+
+        function gfpLocaleTag() {
+          return window.GFP && GFP.i18n && GFP.i18n.localeTag
+            ? GFP.i18n.localeTag()
+            : "pt-BR";
+        }
+
+        function gfpCurrencyCode() {
+          return window.GFP && GFP.i18n && GFP.i18n.currencyCode
+            ? GFP.i18n.currencyCode()
+            : "BRL";
+        }
+
+        function gfpT(key) {
+          return window.GFP && GFP.t ? GFP.t(key) : key;
+        }
+
+        function gfpDecimalSep() {
+          return gfpIsEn() ? "." : ",";
+        }
+
+        /** Número → "1.000,00" (pt) ou "1,000.00" (en), sem prefixo de moeda. */
         function formatValorMoedaCampo(n) {
           const x = Number(n);
           if (!Number.isFinite(x)) return "";
-          return x.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+          return x.toLocaleString(gfpLocaleTag(), {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          });
         }
 
-        /** Formata enquanto digita (sem forçar ,00 — permite 1 → 10 → 100 → 1.000). */
+        /** Formata enquanto digita (sem forçar ,00 / .00). */
         function formatValorMoedaDigitando(raw) {
           const s = String(raw || "");
-          const commaIdx = s.indexOf(",");
+          const sep = gfpDecimalSep();
+          const sepIdx = s.indexOf(sep);
           let intDigits = "";
           let decDigits = "";
-          if (commaIdx >= 0) {
-            intDigits = s.slice(0, commaIdx).replace(/\D/g, "");
-            decDigits = s.slice(commaIdx + 1).replace(/\D/g, "").slice(0, 2);
+          if (sepIdx >= 0) {
+            intDigits = s.slice(0, sepIdx).replace(/\D/g, "");
+            decDigits = s.slice(sepIdx + 1).replace(/\D/g, "").slice(0, 2);
           } else {
             intDigits = s.replace(/\D/g, "");
           }
           if (!intDigits && !decDigits) return "";
           const intNum = intDigits ? parseInt(intDigits, 10) : 0;
-          const intFmt = intNum.toLocaleString("pt-BR");
-          if (commaIdx >= 0) return intFmt + "," + decDigits;
+          const intFmt = intNum.toLocaleString(gfpLocaleTag());
+          if (sepIdx >= 0) return intFmt + sep + decDigits;
           return intFmt;
         }
 
-        /** Ao sair do campo: completa com ,00 se não houver centavos digitados. */
+        /** Ao sair do campo: completa com centavos se não houver. */
         function finalizarValorMoedaCampo(raw) {
           const s = String(raw || "").trim();
           if (!s) return "";
-          const commaIdx = s.indexOf(",");
-          if (commaIdx < 0) {
+          const sep = gfpDecimalSep();
+          const sepIdx = s.indexOf(sep);
+          if (sepIdx < 0) {
             const intDigits = s.replace(/\D/g, "");
             if (!intDigits) return "";
             const intNum = parseInt(intDigits, 10);
             if (!Number.isFinite(intNum)) return "";
-            return intNum.toLocaleString("pt-BR", {
+            return intNum.toLocaleString(gfpLocaleTag(), {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
             });
           }
-          const intDigits = s.slice(0, commaIdx).replace(/\D/g, "");
-          const decDigits = s.slice(commaIdx + 1).replace(/\D/g, "").slice(0, 2);
+          const intDigits = s.slice(0, sepIdx).replace(/\D/g, "");
+          const decDigits = s.slice(sepIdx + 1).replace(/\D/g, "").slice(0, 2);
           if (!intDigits && !decDigits) return "";
           const intNum = intDigits ? parseInt(intDigits, 10) : 0;
           const dec = (decDigits + "00").slice(0, 2);
-          return intNum.toLocaleString("pt-BR") + "," + dec;
+          return intNum.toLocaleString(gfpLocaleTag()) + sep + dec;
         }
 
         function definirValorMoedaCampo(el, n) {
@@ -6332,13 +6426,14 @@
           el.removeEventListener("focus", onFocusMoedaBR);
         }
 
-        /** Reposiciona o cursor após formatar (centavos ficam à direita da vírgula). */
+        /** Reposiciona o cursor após formatar. */
         function posicaoCursorMoedaBR(raw, cursorPos, formatted) {
           if (!formatted) return 0;
           const s = String(raw || "");
           const pos = Math.max(0, Math.min(cursorPos != null ? cursorPos : s.length, s.length));
-          const commaRaw = s.indexOf(",");
-          const commaFmt = formatted.indexOf(",");
+          const sep = gfpDecimalSep();
+          const commaRaw = s.indexOf(sep);
+          const commaFmt = formatted.indexOf(sep);
 
           if (commaRaw >= 0 && commaFmt >= 0 && pos >= commaRaw) {
             const decDigitsBefore = s.slice(commaRaw + 1, pos).replace(/\D/g, "").length;
@@ -6386,7 +6481,7 @@
           const n = parseValorMonetarioLancamento(el.value);
           if (!Number.isFinite(n)) return;
           if (n === Math.floor(n)) {
-            el.value = Math.floor(n).toLocaleString("pt-BR");
+            el.value = Math.floor(n).toLocaleString(gfpLocaleTag());
             try {
               el.setSelectionRange(el.value.length, el.value.length);
             } catch (_) {}
@@ -6830,7 +6925,17 @@
         }
 
         function formatMoney(n) {
-          return n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+          const x = Number(n);
+          if (!Number.isFinite(x)) {
+            return (0).toLocaleString(gfpLocaleTag(), {
+              style: "currency",
+              currency: gfpCurrencyCode(),
+            });
+          }
+          return x.toLocaleString(gfpLocaleTag(), {
+            style: "currency",
+            currency: gfpCurrencyCode(),
+          });
         }
 
         function formatMoneyInvest(n) {
@@ -7223,7 +7328,14 @@
         }
 
         function investSyncInputsFromState() {
-          const brlIds = new Set(["inv-inicial-brl", "inv-aporte-brl", "inv-cotacao-manual", "inv-retirada-renda"]);
+          const moedaIds = new Set([
+            "inv-inicial-usd",
+            "inv-inicial-brl",
+            "inv-aporte-usd",
+            "inv-aporte-brl",
+            "inv-cotacao-manual",
+            "inv-retirada-renda",
+          ]);
           const ids = [
             ["inv-inicial-usd", "inicialUSD"],
             ["inv-inicial-brl", "inicialBRL"],
@@ -7239,7 +7351,7 @@
             const el = document.getElementById(id);
             if (!el) return;
             const raw = investForm[key] || "";
-            if (brlIds.has(id)) {
+            if (moedaIds.has(id)) {
               if (!raw) el.value = "";
               else {
                 const n = parseValorMonetarioLancamento(raw);
@@ -7257,6 +7369,10 @@
         }
 
         function investWireInputs() {
+          ["inv-inicial-usd", "inv-aporte-usd"].forEach((id) => {
+            const el = document.getElementById(id);
+            if (el) prepararInputMoedaBR(el);
+          });
           const on = () => {
             investForm.inicialUSD = document.getElementById("inv-inicial-usd").value;
             investForm.inicialBRL = document.getElementById("inv-inicial-brl").value;
@@ -9665,19 +9781,20 @@
         function syncFiltrosLancamentosUI() {
           setSelectOptionsComTodos(
             document.getElementById("filtro-lancamentos-categoria"),
-            "Todas as categorias",
+            gfpT("dash.lanc.filterAllCat"),
             listaCategorias,
             filtrosLancamentos.categoria
           );
           setSelectOptionsComTodos(
             document.getElementById("filtro-lancamentos-meio"),
-            "Todos os meios",
+            gfpT("dash.lanc.filterAllMethod"),
             MEIOS_PAGAMENTO,
-            filtrosLancamentos.meio
+            filtrosLancamentos.meio,
+            labelMeioPagamento
           );
           setSelectOptionsComTodos(
             document.getElementById("filtro-lancamentos-origem"),
-            "Todas as origens",
+            gfpT("dash.lanc.filterAllOrigin"),
             listaOrigens,
             filtrosLancamentos.origem
           );
@@ -9728,10 +9845,13 @@
           const refEl = document.getElementById("ref-totais-cat-mes");
           if (!ul) return;
           const agg = agregadoPorCategoriaMes();
-          const mesNome = refMonthStartDashboard().toLocaleString("pt-BR", { month: "long", year: "numeric" });
+          const mesNome = refMonthStartDashboard().toLocaleString(gfpLocaleTag(), {
+            month: "long",
+            year: "numeric",
+          });
           if (refEl) {
             refEl.textContent =
-              "Mês: " + mesNome.charAt(0).toUpperCase() + mesNome.slice(1);
+              gfpT("dash.month.prefix") + mesNome.charAt(0).toUpperCase() + mesNome.slice(1);
           }
           ul.innerHTML = "";
           listaCategorias.forEach((cat) => {
@@ -10013,12 +10133,12 @@
           selectEl.innerHTML = "";
           const o0 = document.createElement("option");
           o0.value = "";
-          o0.textContent = "Selecione…";
+          o0.textContent = gfpT("dash.meio.select");
           selectEl.appendChild(o0);
           MEIOS_PAGAMENTO.forEach((nome) => {
             const o = document.createElement("option");
             o.value = nome;
-            o.textContent = nome;
+            o.textContent = labelMeioPagamento(nome);
             selectEl.appendChild(o);
           });
         }
@@ -10030,13 +10150,13 @@
           MEIOS_PAGAMENTO.forEach((nome) => {
             const o = document.createElement("option");
             o.value = nome;
-            o.textContent = nome;
+            o.textContent = labelMeioPagamento(nome);
             selectEl.appendChild(o);
           });
           selectEl.value = MEIOS_PAGAMENTO.includes(prev) ? prev : "Crédito";
         }
 
-        function setSelectOptionsComTodos(selectEl, labelTodos, values, selectedValue) {
+        function setSelectOptionsComTodos(selectEl, labelTodos, values, selectedValue, labelFn) {
           if (!selectEl) return;
           const unicos = Array.from(new Set((values || []).filter((v) => String(v || "").trim())));
           if (
@@ -10046,7 +10166,7 @@
           ) {
             unicos.push(selectedValue);
           }
-          unicos.sort((a, b) => a.localeCompare(b, "pt-BR", { sensitivity: "base" }));
+          unicos.sort((a, b) => a.localeCompare(b, gfpLocaleTag(), { sensitivity: "base" }));
           selectEl.innerHTML = "";
           const optTodos = document.createElement("option");
           optTodos.value = FILTRO_LANCAMENTOS_TODOS;
@@ -10055,7 +10175,7 @@
           unicos.forEach((value) => {
             const opt = document.createElement("option");
             opt.value = value;
-            opt.textContent = value;
+            opt.textContent = typeof labelFn === "function" ? labelFn(value) : value;
             selectEl.appendChild(opt);
           });
           selectEl.value =
@@ -10302,7 +10422,7 @@
           if (modalDesc) modalDesc.textContent = refTxt + " " + textoExplicacaoTotalGastosMes();
           if (el) {
             const total = totalGastosMes();
-            el.textContent = gastosDashboardValorVisivel ? formatMoney(total) : TEXTO_RENDA_OCULTA;
+            el.textContent = gastosDashboardValorVisivel ? formatMoney(total) : textoRendaOculta();
             el.classList.toggle("select-none", !gastosDashboardValorVisivel);
           }
           if (btnVis) {
@@ -10332,7 +10452,7 @@
             ref.textContent = mesNome + " de " + ano + (isMesAtual ? " (mês atual)" : "");
           if (el) {
             const v = valorRendaMesComSomaPartes(ano, rendaDashboardMesIdx);
-            el.textContent = rendaDashboardValorVisivel ? formatMoney(v) : TEXTO_RENDA_OCULTA;
+            el.textContent = rendaDashboardValorVisivel ? formatMoney(v) : textoRendaOculta();
             el.classList.toggle("select-none", !rendaDashboardValorVisivel);
           }
           if (btnVis) {
@@ -10681,11 +10801,11 @@
           const btn = document.getElementById("btn-salvar-gasto");
           const btnCancel = document.getElementById("btn-cancelar-edicao-gasto");
           const editando = !!gastoEditandoId;
-          if (titulo) titulo.textContent = editando ? "Editar lançamento" : "Novo lançamento";
+          if (titulo) titulo.textContent = editando ? gfpT("dash.lanc.edit") : gfpT("dash.lanc.new");
           if (btn) {
             btn.innerHTML = editando
-              ? '<i data-lucide="check" class="h-4 w-4"></i> Salvar alterações'
-              : '<i data-lucide="plus-circle" class="h-4 w-4"></i> Salvar lançamento';
+              ? '<i data-lucide="check" class="h-4 w-4"></i> ' + gfpT("dash.lanc.saveEdit")
+              : '<i data-lucide="plus-circle" class="h-4 w-4"></i> ' + gfpT("dash.lanc.save");
           }
           if (btnCancel) btnCancel.classList.toggle("hidden", !editando);
           try {
@@ -10760,13 +10880,11 @@
             atualizarTotalLancamentosTabela([]);
             empty.classList.remove("hidden");
             if (gastos.length === 0) {
-              empty.textContent = "Nenhum lançamento ainda. Adicione o primeiro acima.";
+              empty.textContent = gfpT("dash.lanc.empty");
             } else if (gastosMes.length === 0) {
-              empty.textContent =
-                "Nenhum lançamento neste mês de referência. Os demais meses continuam salvos; use o botão \"Mês exibido\" ou o ícone no cartão do dashboard para alternar.";
+              empty.textContent = gfpT("dash.lanc.emptyMonth");
             } else {
-              empty.textContent =
-                "Nenhum lançamento neste mês corresponde aos filtros selecionados. Ajuste categoria, meio ou origem para ver outros registros.";
+              empty.textContent = gfpT("dash.lanc.emptyFilter");
             }
             atualizarRefLancamentosRegistrados();
             return;
@@ -10802,7 +10920,7 @@
               escapeHtml(categoriaDoGasto(g)) +
               "</td>" +
               "<td class=\"px-6 py-3 text-violet-300\">" +
-              escapeHtml(meioPagamentoDoGasto(g)) +
+              escapeHtml(labelMeioPagamento(meioPagamentoDoGasto(g))) +
               parcelBadge +
               "</td>" +
               "<td class=\"px-6 py-3 text-cyan-300/90\">" +
@@ -10851,7 +10969,7 @@
 
         function formatDateBR(iso) {
           const d = parseISODateLocal(iso);
-          return d ? d.toLocaleDateString("pt-BR") : iso;
+          return d ? d.toLocaleDateString(gfpLocaleTag()) : iso;
         }
 
         function formatContasPagarSomenteDia(iso) {
@@ -10862,22 +10980,27 @@
         function isoParaDiaMesBR(iso) {
           const d = parseISODateLocal(iso);
           if (!d) return "";
-          return (
-            String(d.getDate()).padStart(2, "0") +
-            "/" +
-            String(d.getMonth() + 1).padStart(2, "0")
-          );
+          const dd = String(d.getDate()).padStart(2, "0");
+          const mm = String(d.getMonth() + 1).padStart(2, "0");
+          return gfpIsEn() ? mm + "/" + dd : dd + "/" + mm;
         }
 
-        /** Aceita dd/mm ou yyyy-mm-dd; ano da linha de Contas a pagar */
+        /** Aceita dd/mm (pt), mm/dd (en) ou yyyy-mm-dd; ano da linha de Contas a pagar */
         function parseDiaMesOuIsoParaISO(str, anoContexto) {
           const s = String(str).trim();
           if (!s) return "";
           if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
           const parts = s.split(/[\\/.\-]/).map((p) => p.trim());
           if (parts.length !== 2) return null;
-          const day = parseInt(parts[0], 10);
-          const month = parseInt(parts[1], 10);
+          let day;
+          let month;
+          if (gfpIsEn()) {
+            month = parseInt(parts[0], 10);
+            day = parseInt(parts[1], 10);
+          } else {
+            day = parseInt(parts[0], 10);
+            month = parseInt(parts[1], 10);
+          }
           if (!day || !month || month < 1 || month > 12) return null;
           const dim = daysInMonth(anoContexto, month - 1);
           if (day < 1 || day > dim) return null;
@@ -13773,11 +13896,38 @@
                 document.getElementById("gfp-lang-slot"),
                 "inline-flex h-9 min-w-[2.75rem] shrink-0 items-center justify-center rounded-xl border border-bank-border bg-bank-card/80 px-2.5 text-xs font-bold tracking-wide text-zinc-200 transition hover:bg-white/10"
               );
+              syncMesesLocale();
               GFP.i18n.applyI18n();
             }
           } catch (eLang) {
             console.warn("i18n:", eLang);
           }
+          document.addEventListener("gfp:langchange", function () {
+            try {
+              syncMesesLocale();
+              if (window.GFP && GFP.i18n) GFP.i18n.applyI18n();
+              const meioEl = document.getElementById("gasto-meio");
+              const meioPrev = meioEl ? meioEl.value : "";
+              if (meioEl) fillSelectMeios(meioEl);
+              if (meioEl && meioPrev) meioEl.value = meioPrev;
+              fillDashboardPizzaMeios(document.getElementById("dashboard-pizza-meio"));
+              atualizarUiFormGasto();
+              atualizarTotalGastoDia();
+              renderTabelaGastos();
+              renderTotaisCategoriaMes();
+              renderContasFixas();
+              renderContasPagar();
+              updateDashboard();
+              if (typeof investSyncInputsFromState === "function") investSyncInputsFromState();
+              if (typeof renderInvestimentosTabela === "function") renderInvestimentosTabela();
+              initMascarasMoedaBR(document);
+              try {
+                if (typeof lucide !== "undefined" && lucide.createIcons) lucide.createIcons();
+              } catch (_) {}
+            } catch (eRefresh) {
+              console.warn("i18n refresh:", eRefresh);
+            }
+          });
           try {
             if (typeof lucide !== "undefined" && lucide.createIcons) lucide.createIcons();
           } catch (e) {
