@@ -2,10 +2,10 @@
 window.GFP_SUPABASE_URL = "https://rghwbjysexlhroidtelx.supabase.co";
 window.GFP_SUPABASE_ANON_KEY = "sb_publishable_vVMZInEBwUmvMwZW7w240Q_CxhutxEy";
 
-// Stripe (produção) — link BRL R$ 29,90/mês
+// Stripe (produção) — link BRL R$ 29,90/mês (Capital Novo PT)
 window.GFP_STRIPE_PAYMENT_LINK = "https://buy.stripe.com/7sY7sL1qSborep6axq1Nu03";
 window.GFP_STRIPE_PRICE_ID = "price_1TfP4hEYrZTD5Sl51ggP3EiW";
-// Stripe USD US$ 9,90/mês — cole o link copiado do Payment Link em dólar:
+// Stripe USD US$ 9,90/mês (Capital novo EN)
 window.GFP_STRIPE_PAYMENT_LINK_USD = "https://buy.stripe.com/fZueVdc5w50380I34Y1Nu02";
 window.GFP_STRIPE_PRICE_ID_USD = "";
 
