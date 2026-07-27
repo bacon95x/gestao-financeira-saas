@@ -1369,7 +1369,7 @@
           >
             <div class="flex items-start justify-between gap-3">
               <div class="min-w-0 flex-1">
-                <p class="text-sm font-medium text-bank-muted">Total de gastos no mês</p>
+                <p class="text-sm font-medium text-bank-muted" data-i18n="dash.home.totalGastos">Total de gastos no mês</p>
                 <p id="card-total-mes-ref" class="mt-1 text-xs text-zinc-500"></p>
                 <div class="mt-3 flex flex-wrap items-center gap-2">
                   <p
@@ -1384,7 +1384,9 @@
                     id="btn-gastos-visualizar"
                     class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-violet-500/35 text-violet-300 transition hover:bg-violet-500/15"
                     title="Visualizar valor"
+                    data-i18n-title="dash.home.showValue"
                     aria-label="Visualizar valor dos gastos"
+                    data-i18n-aria="dash.home.showExpenses"
                     aria-pressed="false"
                   >
                     <i data-lucide="eye" class="h-5 w-5 icon-gastos-quando-oculto"></i>
@@ -1396,12 +1398,13 @@
                   id="btn-dashboard-anotacao"
                   class="mt-3 inline-flex items-center gap-2 rounded-lg border border-bank-border bg-bank-bg px-3 py-2 text-xs font-medium text-zinc-200 transition hover:border-violet-500/40 hover:bg-violet-500/10"
                   title="Bloco de notas deste mês de referência"
+                  data-i18n-title="dash.home.noteTitle"
                   aria-label="Abrir anotação do mês de referência dos gastos"
                   aria-expanded="false"
                   aria-haspopup="dialog"
                 >
                   <i data-lucide="sticky-note" class="h-3.5 w-3.5"></i>
-                  Anotação
+                  <span data-i18n="dash.home.note">Anotação</span>
                 </button>
               </div>
               <button
@@ -1422,14 +1425,14 @@
           >
             <div class="flex items-start justify-between">
               <div>
-                <p class="text-sm font-medium text-bank-muted">Próximo vencimento</p>
+                <p class="text-sm font-medium text-bank-muted" data-i18n="dash.home.nextDue">Próximo vencimento</p>
                 <p
                   id="card-proximos"
                   class="mt-2 text-xl font-bold tracking-tight text-white tabular-nums sm:text-2xl"
                 >
                   —
                 </p>
-                <p class="mt-1 text-xs text-zinc-500">
+                <p class="mt-1 text-xs text-zinc-500" data-i18n="dash.home.nextDueHint">
                   Data do vencimento mais próximo (sem pagamento naquele mês). Ícone: lista completa.
                 </p>
               </div>
@@ -1438,7 +1441,9 @@
                 id="btn-dashboard-proximos"
                 class="shrink-0 rounded-xl bg-amber-500/15 p-2.5 text-amber-400 ring-1 ring-amber-500/20 transition hover:bg-amber-500/25 hover:ring-amber-400/40"
                 aria-label="Ver lista de próximos vencimentos"
+                data-i18n-aria="dash.home.nextDueList"
                 title="Próximos vencimentos"
+                data-i18n-title="dash.home.nextDueList"
               >
                 <i data-lucide="alarm-clock" class="h-5 w-5"></i>
               </button>
@@ -1449,7 +1454,7 @@
           >
             <div class="flex items-start justify-between gap-3">
               <div class="min-w-0 flex-1">
-                <p class="text-sm font-medium text-bank-muted">Renda mensal</p>
+                <p class="text-sm font-medium text-bank-muted" data-i18n="dash.home.income">Renda mensal</p>
                 <p id="card-renda-mes-ref" class="mt-1 text-xs text-zinc-500"></p>
                 <div class="mt-3 flex flex-wrap items-center gap-2">
                   <p
@@ -1464,7 +1469,9 @@
                     id="btn-renda-visualizar"
                     class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-emerald-500/35 text-emerald-300 transition hover:bg-emerald-500/15"
                     title="Visualizar valor"
+                    data-i18n-title="dash.home.showValue"
                     aria-label="Visualizar valor da renda"
+                    data-i18n-aria="dash.home.showIncome"
                     aria-pressed="false"
                   >
                     <i data-lucide="eye" class="h-5 w-5 icon-renda-quando-oculto"></i>
@@ -1477,7 +1484,7 @@
                   class="mt-3 inline-flex items-center gap-2 rounded-lg border border-bank-border bg-bank-bg px-3 py-2 text-xs font-medium text-zinc-200 transition hover:border-violet-500/40 hover:bg-violet-500/10"
                 >
                   <i data-lucide="calendar-days" class="h-3.5 w-3.5"></i>
-                  Mudar mês
+                  <span data-i18n="dash.home.changeMonth">Mudar mês</span>
                 </button>
               </div>
               <button
@@ -1503,10 +1510,10 @@
           <div
             class="w-full max-w-md rounded-2xl border border-bank-border bg-bank-card p-6 shadow-glow"
           >
-            <h2 id="modal-proximos-title" class="text-lg font-semibold text-white">
+            <h2 id="modal-proximos-title" class="text-lg font-semibold text-white" data-i18n="dash.home.nextDueList">
               Próximos vencimentos
             </h2>
-            <p class="mt-1 text-sm text-bank-muted">
+            <p class="mt-1 text-sm text-bank-muted" data-i18n="dash.home.nextDueListHint">
               Ordenados do mais próximo ao mais distante (contas sem data de pagamento naquele mês).
             </p>
             <ul
@@ -1516,6 +1523,7 @@
             <p
               id="empty-modal-proximos"
               class="mt-4 hidden text-center text-sm text-bank-muted"
+              data-i18n="dash.home.nextDueEmpty"
             >
               Nenhum vencimento futuro encontrado.
             </p>
@@ -1524,6 +1532,7 @@
                 type="button"
                 id="btn-fechar-modal-proximos"
                 class="rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-violet-500"
+                data-i18n="dash.home.close"
               >
                 Fechar
               </button>
@@ -1710,8 +1719,8 @@
         >
           <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <h2 class="text-lg font-semibold text-white">Histórico</h2>
-              <p id="historico-12-desc" class="mt-1 text-sm text-bank-muted">
+              <h2 class="text-lg font-semibold text-white" data-i18n="dash.home.history">Histórico</h2>
+              <p id="historico-12-desc" class="mt-1 text-sm text-bank-muted" data-i18n="dash.home.historyDesc">
                 Últimos 12 meses — renda e gastos por mês.
               </p>
             </div>
@@ -1726,6 +1735,7 @@
                   data-historico-modo="comparar"
                   class="historico-modo-btn rounded-md px-3 py-1.5 text-xs font-semibold transition bg-violet-600 text-white shadow-sm"
                   aria-pressed="true"
+                  data-i18n="dash.home.compare"
                 >
                   Comparar
                 </button>
@@ -1734,6 +1744,7 @@
                   data-historico-modo="gastos"
                   class="historico-modo-btn rounded-md px-3 py-1.5 text-xs font-semibold text-zinc-400 transition hover:text-zinc-200"
                   aria-pressed="false"
+                  data-i18n="dash.home.expenses"
                 >
                   Gastos
                 </button>
@@ -1742,6 +1753,7 @@
                   data-historico-modo="renda"
                   class="historico-modo-btn rounded-md px-3 py-1.5 text-xs font-semibold text-zinc-400 transition hover:text-zinc-200"
                   aria-pressed="false"
+                  data-i18n="dash.home.incomeShort"
                 >
                   Renda
                 </button>
@@ -1764,6 +1776,7 @@
             <p
               id="chart-historico-12-empty"
               class="hidden flex h-full min-h-[14rem] items-center justify-center text-center text-sm text-bank-muted"
+              data-i18n="dash.home.historyEmpty"
             >
               Sem dados de renda ou gastos nos últimos 12 meses.
             </p>
@@ -1964,14 +1977,30 @@
           </p>
           <form id="form-gasto" class="mt-6 grid gap-5 sm:grid-cols-2">
             <div>
-              <label class="block text-sm font-medium text-zinc-300" for="gasto-data" data-i18n="dash.lanc.date">Data</label>
-              <input
-                id="gasto-data"
-                name="data"
-                type="date"
-                required
-                class="mt-1.5 w-full rounded-xl border border-bank-border bg-bank-bg px-4 py-3 text-white outline-none ring-violet-500/50 focus:border-violet-500/50 focus:ring-2"
-              />
+              <label class="block text-sm font-medium text-zinc-300" for="gasto-data-view" data-i18n="dash.lanc.date">Data</label>
+              <div class="relative mt-1.5">
+                <input
+                  id="gasto-data-view"
+                  type="text"
+                  inputmode="numeric"
+                  autocomplete="off"
+                  placeholder="dd/mm/aaaa"
+                  data-i18n-placeholder="dash.lanc.datePh"
+                  class="w-full rounded-xl border border-bank-border bg-bank-bg py-3 pl-4 pr-12 text-white outline-none ring-violet-500/50 focus:border-violet-500/50 focus:ring-2"
+                />
+                <input
+                  id="gasto-data"
+                  name="data"
+                  type="date"
+                  required
+                  tabindex="-1"
+                  class="absolute inset-y-0 right-0 z-10 w-12 cursor-pointer opacity-0"
+                  aria-hidden="true"
+                />
+                <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500" aria-hidden="true">
+                  <i data-lucide="calendar" class="h-4 w-4"></i>
+                </span>
+              </div>
             </div>
             <div>
               <label class="block text-sm font-medium text-zinc-300" for="gasto-valor" data-i18n="dash.lanc.value">Valor (R$)</label>
@@ -2253,11 +2282,27 @@
             </label>
             <label class="flex flex-col gap-1">
               <span class="text-xs font-medium text-bank-muted" data-i18n="dash.lanc.filterDate">Filtrar data</span>
-              <input
-                id="filtro-lancamentos-data"
-                type="date"
-                class="rounded-xl border border-bank-border bg-bank-bg px-4 py-2.5 text-sm text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
-              />
+              <div class="relative">
+                <input
+                  id="filtro-lancamentos-data-view"
+                  type="text"
+                  inputmode="numeric"
+                  autocomplete="off"
+                  placeholder="dd/mm/aaaa"
+                  data-i18n-placeholder="dash.lanc.datePh"
+                  class="w-full rounded-xl border border-bank-border bg-bank-bg py-2.5 pl-4 pr-11 text-sm text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
+                />
+                <input
+                  id="filtro-lancamentos-data"
+                  type="date"
+                  tabindex="-1"
+                  class="absolute inset-y-0 right-0 z-10 w-11 cursor-pointer opacity-0"
+                  aria-hidden="true"
+                />
+                <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500" aria-hidden="true">
+                  <i data-lucide="calendar" class="h-4 w-4"></i>
+                </span>
+              </div>
             </label>
           </div>
           <div class="overflow-x-auto">
@@ -9508,13 +9553,12 @@
             gastos.some((v) => v > 0) || rendas.some((v) => v > 0);
 
           const refD = refMonthStartDashboard();
-          const mesNomeRef = refD.toLocaleString("pt-BR", { month: "long", year: "numeric" });
+          const mesNomeRef = refD.toLocaleString(gfpLocaleTag(), { month: "long", year: "numeric" });
           if (descEl) {
-            descEl.textContent =
-              "Últimos 12 meses até " +
-              mesNomeRef.charAt(0).toUpperCase() +
-              mesNomeRef.slice(1) +
-              ". Barras mais claras = mês de referência dos gastos.";
+            descEl.textContent = gfpT("dash.home.historyDescUntil").replace(
+              "{month}",
+              mesNomeRef.charAt(0).toUpperCase() + mesNomeRef.slice(1)
+            );
           }
 
           if (!temDados) {
@@ -9546,7 +9590,7 @@
           const datasets = [];
           if (historico12Modo === "comparar" || historico12Modo === "renda") {
             datasets.push({
-              label: "Renda",
+              label: gfpT("dash.home.incomeShort"),
               data: rendas,
               backgroundColor: coresBarrasHistorico(corRendaBase, corRendaDestaque, qtd, refIdx),
               borderRadius: { topLeft: 8, topRight: 8, bottomLeft: 2, bottomRight: 2 },
@@ -9556,7 +9600,7 @@
           }
           if (historico12Modo === "comparar" || historico12Modo === "gastos") {
             datasets.push({
-              label: "Gastos",
+              label: gfpT("dash.home.expenses"),
               data: gastos,
               backgroundColor: coresBarrasHistorico(corGastoBase, corGastoDestaque, qtd, refIdx),
               borderRadius: { topLeft: 8, topRight: 8, bottomLeft: 2, bottomRight: 2 },
@@ -9802,6 +9846,7 @@
           if (inpData && inpData.value !== (filtrosLancamentos.data || "")) {
             inpData.value = filtrosLancamentos.data || "";
           }
+          syncLocaleDateView(inpData, document.getElementById("filtro-lancamentos-data-view"));
         }
 
         function initFiltrosLancamentos() {
@@ -10392,15 +10437,15 @@
 
         function textoReferenciaMesDashboard() {
           const refD = refMonthStartDashboard();
-          const mesNome = refD.toLocaleString("pt-BR", { month: "long", year: "numeric" });
+          const mesNome = refD.toLocaleString(gfpLocaleTag(), { month: "long", year: "numeric" });
           const now = new Date();
           const isMesAtual =
             dashboardGastosAno === now.getFullYear() && dashboardGastosMesIdx === now.getMonth();
           return (
-            "Referência: " +
+            gfpT("dash.home.refPrefix") +
             mesNome.charAt(0).toUpperCase() +
             mesNome.slice(1) +
-            (isMesAtual ? " (mês atual)" : "") +
+            (isMesAtual ? gfpT("dash.home.currentMonth") : "") +
             "."
           );
         }
@@ -10429,9 +10474,11 @@
             btnVis.setAttribute("aria-pressed", gastosDashboardValorVisivel ? "true" : "false");
             btnVis.setAttribute(
               "aria-label",
-              gastosDashboardValorVisivel ? "Ocultar valor dos gastos" : "Visualizar valor dos gastos"
+              gastosDashboardValorVisivel ? gfpT("dash.home.hideExpenses") : gfpT("dash.home.showExpenses")
             );
-            btnVis.title = gastosDashboardValorVisivel ? "Ocultar valor" : "Visualizar valor";
+            btnVis.title = gastosDashboardValorVisivel
+              ? gfpT("dash.home.hideValue")
+              : gfpT("dash.home.showValue");
             const iEye = btnVis.querySelector(".icon-gastos-quando-oculto");
             const iEyeOff = btnVis.querySelector(".icon-gastos-quando-visivel");
             if (iEye) iEye.classList.toggle("hidden", gastosDashboardValorVisivel);
@@ -10449,7 +10496,10 @@
           const isMesAtual =
             rendaDashboardAno === now.getFullYear() && rendaDashboardMesIdx === now.getMonth();
           if (ref)
-            ref.textContent = mesNome + " de " + ano + (isMesAtual ? " (mês atual)" : "");
+            ref.textContent =
+              gfpT("dash.home.monthOfYear")
+                .replace("{month}", mesNome)
+                .replace("{year}", String(ano)) + (isMesAtual ? gfpT("dash.home.currentMonth") : "");
           if (el) {
             const v = valorRendaMesComSomaPartes(ano, rendaDashboardMesIdx);
             el.textContent = rendaDashboardValorVisivel ? formatMoney(v) : textoRendaOculta();
@@ -10459,9 +10509,11 @@
             btnVis.setAttribute("aria-pressed", rendaDashboardValorVisivel ? "true" : "false");
             btnVis.setAttribute(
               "aria-label",
-              rendaDashboardValorVisivel ? "Ocultar valor da renda" : "Visualizar valor da renda"
+              rendaDashboardValorVisivel ? gfpT("dash.home.hideIncome") : gfpT("dash.home.showIncome")
             );
-            btnVis.title = rendaDashboardValorVisivel ? "Ocultar valor" : "Visualizar valor";
+            btnVis.title = rendaDashboardValorVisivel
+              ? gfpT("dash.home.hideValue")
+              : gfpT("dash.home.showValue");
             const iEye = btnVis.querySelector(".icon-renda-quando-oculto");
             const iEyeOff = btnVis.querySelector(".icon-renda-quando-visivel");
             if (iEye) iEye.classList.toggle("hidden", rendaDashboardValorVisivel);
@@ -10672,21 +10724,19 @@
 
         function updateDashboard() {
           const refD = refMonthStartDashboard();
-          const mesNome = refD.toLocaleString("pt-BR", { month: "long", year: "numeric" });
+          const mesNome = refD.toLocaleString(gfpLocaleTag(), { month: "long", year: "numeric" });
           const now = new Date();
           const isMesAtual =
             dashboardGastosAno === now.getFullYear() && dashboardGastosMesIdx === now.getMonth();
           atualizarCardGastosDashboard();
           const descCat = document.getElementById("dashboard-gastos-categoria-desc");
           if (descCat) {
-            const sufixoFixas =
-              " · Lançamentos do mês + fixas pagas fora do crédito + fixas em crédito";
             descCat.textContent = isMesAtual
-              ? "Percentual por categoria no mês atual" + sufixoFixas
-              : "Percentual por categoria em " +
-                mesNome.charAt(0).toUpperCase() +
-                mesNome.slice(1) +
-                sufixoFixas;
+              ? gfpT("dash.home.catPctCurrent")
+              : gfpT("dash.home.catPctMonth").replace(
+                  "{month}",
+                  mesNome.charAt(0).toUpperCase() + mesNome.slice(1)
+                );
           }
           document.getElementById("card-proximos").textContent = textoDataMaisProximoVencimento();
           atualizarCardRendaDashboard();
@@ -10753,29 +10803,32 @@
           const el = document.getElementById("lancamentos-registrados-ref");
           if (!el) return;
           if (!gastos.length) {
-            el.textContent = "Nenhum gasto salvo ainda neste navegador.";
+            el.textContent = gfpT("dash.lanc.refEmpty");
             return;
           }
           const refD = refMonthStartDashboard();
-          const mesNome = refD.toLocaleString("pt-BR", { month: "long", year: "numeric" });
+          const mesNome = refD.toLocaleString(gfpLocaleTag(), { month: "long", year: "numeric" });
           const now = new Date();
           const isAtual =
             dashboardGastosAno === now.getFullYear() && dashboardGastosMesIdx === now.getMonth();
           const filtrosAtivos = [];
-          if (filtrosLancamentos.data) filtrosAtivos.push("data: " + formatDateBR(filtrosLancamentos.data));
+          if (filtrosLancamentos.data)
+            filtrosAtivos.push(gfpT("dash.lanc.refFilterDate") + ": " + formatDateBR(filtrosLancamentos.data));
           if (filtrosLancamentos.categoria !== FILTRO_LANCAMENTOS_TODOS)
-            filtrosAtivos.push("categoria: " + filtrosLancamentos.categoria);
+            filtrosAtivos.push(gfpT("dash.lanc.refFilterCat") + ": " + filtrosLancamentos.categoria);
           if (filtrosLancamentos.meio !== FILTRO_LANCAMENTOS_TODOS)
-            filtrosAtivos.push("meio: " + filtrosLancamentos.meio);
+            filtrosAtivos.push(
+              gfpT("dash.lanc.refFilterMethod") + ": " + labelMeioPagamento(filtrosLancamentos.meio)
+            );
           if (filtrosLancamentos.origem !== FILTRO_LANCAMENTOS_TODOS)
-            filtrosAtivos.push("origem: " + filtrosLancamentos.origem);
-          el.textContent =
-            "Lista filtrada por " +
-            mesNome.charAt(0).toUpperCase() +
-            mesNome.slice(1) +
-            (isAtual ? " (mês atual). " : ". ") +
-            (filtrosAtivos.length ? "Filtros ativos: " + filtrosAtivos.join(" · ") + ". " : "") +
-            "Sem parcelas: só aparecem lançamentos cuja data está neste mês. Com parcelas — indicador (parcela/total), número da parcela em vermelho — o mesmo item aparece em cada mês com o valor daquela parcela; a data da compra continua na primeira coluna.";
+            filtrosAtivos.push(gfpT("dash.lanc.refFilterOrigin") + ": " + filtrosLancamentos.origem);
+          const filtersTxt = filtrosAtivos.length
+            ? gfpT("dash.lanc.refFilters").replace("{list}", filtrosAtivos.join(" · "))
+            : "";
+          el.textContent = gfpT("dash.lanc.refList")
+            .replace("{month}", mesNome.charAt(0).toUpperCase() + mesNome.slice(1))
+            .replace("{current}", isAtual ? gfpT("dash.lanc.refCurrent") : "")
+            .replace("{filters}", filtersTxt);
         }
 
         function atualizarTotalLancamentosTabela(sorted) {
@@ -10820,7 +10873,10 @@
           const valEl = document.getElementById("gasto-valor");
           if (valEl) valEl.value = "";
           const dataEl = document.getElementById("gasto-data");
-          if (dataEl) dataEl.value = new Date().toISOString().slice(0, 10);
+          if (dataEl) {
+            dataEl.value = new Date().toISOString().slice(0, 10);
+            syncLocaleDateView(dataEl, document.getElementById("gasto-data-view"));
+          }
           setCategoriaSelecionada("");
           setOrigemSelecionada("");
           const painelCat = document.getElementById("painel-categorias");
@@ -10848,6 +10904,10 @@
           if (!g) return;
           gastoEditandoId = id;
           document.getElementById("gasto-data").value = g.data || "";
+          syncLocaleDateView(
+            document.getElementById("gasto-data"),
+            document.getElementById("gasto-data-view")
+          );
           definirValorMoedaCampo(document.getElementById("gasto-valor"), g.valor);
           const meioEl = document.getElementById("gasto-meio");
           if (meioEl) meioEl.value = meioPagamentoEfetivo(g);
@@ -10969,7 +11029,104 @@
 
         function formatDateBR(iso) {
           const d = parseISODateLocal(iso);
-          return d ? d.toLocaleDateString(gfpLocaleTag()) : iso;
+          if (!d) return iso || "";
+          const dd = String(d.getDate()).padStart(2, "0");
+          const mm = String(d.getMonth() + 1).padStart(2, "0");
+          const yyyy = d.getFullYear();
+          return gfpIsEn() ? mm + "/" + dd + "/" + yyyy : dd + "/" + mm + "/" + yyyy;
+        }
+
+        /** Texto digitável ↔ ISO yyyy-mm-dd, conforme idioma do app (EN = mm/dd). */
+        function formatDateInputMask(iso) {
+          return formatDateBR(iso);
+        }
+
+        function parseDateInputMask(str) {
+          const s = String(str || "").trim();
+          if (!s) return "";
+          if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+          const parts = s.split(/[\\/.\-]/).map((p) => p.trim()).filter(Boolean);
+          if (parts.length !== 3) return null;
+          let day;
+          let month;
+          let year;
+          if (parts[0].length === 4) {
+            year = parseInt(parts[0], 10);
+            month = parseInt(parts[1], 10);
+            day = parseInt(parts[2], 10);
+          } else if (gfpIsEn()) {
+            month = parseInt(parts[0], 10);
+            day = parseInt(parts[1], 10);
+            year = parseInt(parts[2], 10);
+          } else {
+            day = parseInt(parts[0], 10);
+            month = parseInt(parts[1], 10);
+            year = parseInt(parts[2], 10);
+          }
+          if (year < 100) year += 2000;
+          if (!day || !month || !year || month < 1 || month > 12) return null;
+          const dim = daysInMonth(year, month - 1);
+          if (day < 1 || day > dim) return null;
+          return (
+            year +
+            "-" +
+            String(month).padStart(2, "0") +
+            "-" +
+            String(day).padStart(2, "0")
+          );
+        }
+
+        function syncLocaleDateView(isoEl, viewEl) {
+          if (!viewEl) return;
+          const iso = isoEl && isoEl.value ? isoEl.value : "";
+          viewEl.value = iso ? formatDateInputMask(iso) : "";
+          viewEl.placeholder = gfpT("dash.lanc.datePh");
+        }
+
+        function wireLocaleDateField(isoId, viewId, onChange) {
+          const isoEl = document.getElementById(isoId);
+          const viewEl = document.getElementById(viewId);
+          if (!isoEl || !viewEl || viewEl.dataset.localeDateBound === "1") return;
+          viewEl.dataset.localeDateBound = "1";
+          syncLocaleDateView(isoEl, viewEl);
+          isoEl.addEventListener("change", () => {
+            syncLocaleDateView(isoEl, viewEl);
+            if (typeof onChange === "function") onChange();
+          });
+          isoEl.addEventListener("input", () => {
+            syncLocaleDateView(isoEl, viewEl);
+            if (typeof onChange === "function") onChange();
+          });
+          viewEl.addEventListener("blur", () => {
+            const parsed = parseDateInputMask(viewEl.value);
+            if (parsed) {
+              isoEl.value = parsed;
+              syncLocaleDateView(isoEl, viewEl);
+              if (typeof onChange === "function") onChange();
+            } else if (!String(viewEl.value || "").trim()) {
+              isoEl.value = "";
+              if (typeof onChange === "function") onChange();
+            } else {
+              syncLocaleDateView(isoEl, viewEl);
+            }
+          });
+          viewEl.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              viewEl.blur();
+            }
+          });
+        }
+
+        function refreshAllLocaleDateViews() {
+          syncLocaleDateView(
+            document.getElementById("gasto-data"),
+            document.getElementById("gasto-data-view")
+          );
+          syncLocaleDateView(
+            document.getElementById("filtro-lancamentos-data"),
+            document.getElementById("filtro-lancamentos-data-view")
+          );
         }
 
         function formatContasPagarSomenteDia(iso) {
@@ -12736,6 +12893,15 @@
 
         document.getElementById("form-gasto").addEventListener("submit", (e) => {
           e.preventDefault();
+          const viewData = document.getElementById("gasto-data-view");
+          const isoDataEl = document.getElementById("gasto-data");
+          if (viewData && isoDataEl) {
+            const parsed = parseDateInputMask(viewData.value);
+            if (parsed) {
+              isoDataEl.value = parsed;
+              syncLocaleDateView(isoDataEl, viewData);
+            }
+          }
           const elErro = document.getElementById("gasto-erro-validacao");
           if (elErro) {
             elErro.textContent = "";
@@ -13880,6 +14046,16 @@
           preencherSelectMesCalendarioJuros();
           syncCalendarioJurosMesAnoComContasPagar();
           document.getElementById("gasto-data").value = new Date().toISOString().slice(0, 10);
+          wireLocaleDateField("gasto-data", "gasto-data-view", () => {
+            atualizarTotalGastoDia();
+            atualizarHintDestinoFatura();
+          });
+          wireLocaleDateField("filtro-lancamentos-data", "filtro-lancamentos-data-view", () => {
+            const inp = document.getElementById("filtro-lancamentos-data");
+            filtrosLancamentos.data = inp ? inp.value || "" : "";
+            renderTabelaGastos();
+          });
+          refreshAllLocaleDateViews();
           atualizarTotalGastoDia();
           renderTotaisCategoriaMes();
           setTab("dashboard");
@@ -13913,7 +14089,9 @@
               fillDashboardPizzaMeios(document.getElementById("dashboard-pizza-meio"));
               atualizarUiFormGasto();
               atualizarTotalGastoDia();
+              refreshAllLocaleDateViews();
               renderTabelaGastos();
+              atualizarRefLancamentosRegistrados();
               renderTotaisCategoriaMes();
               renderContasFixas();
               renderContasPagar();
