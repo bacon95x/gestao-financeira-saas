@@ -1568,7 +1568,7 @@
                 class="inline-flex items-center gap-2 rounded-xl border border-emerald-500/40 bg-emerald-600/10 px-3 py-2 text-xs font-medium text-emerald-200 transition hover:bg-emerald-600/20"
               >
                 <i data-lucide="plus-circle" class="h-4 w-4"></i>
-                Adicionar subcategoria
+                <span data-i18n="dash.home.addSubcat">Adicionar subcategoria</span>
               </button>
             </div>
             <p
@@ -1583,6 +1583,7 @@
                 type="button"
                 id="btn-cancelar-saldo"
                 class="rounded-xl border border-bank-border px-4 py-2.5 text-sm font-medium text-zinc-300 hover:bg-white/5"
+                data-i18n="dash.home.cancel"
               >
                 Cancelar
               </button>
@@ -1590,6 +1591,7 @@
                 type="button"
                 id="btn-salvar-saldo-apenas-mes"
                 class="rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-violet-500"
+                data-i18n="dash.home.saveThisMonth"
               >
                 Salvar só neste mês
               </button>
@@ -1597,6 +1599,7 @@
                 type="button"
                 id="btn-salvar-saldo-replicar"
                 class="rounded-xl border border-violet-500/50 bg-violet-500/15 px-4 py-2.5 text-sm font-semibold text-violet-100 hover:bg-violet-500/25"
+                data-i18n="dash.home.saveFollowing"
               >
                 Salvar neste e nos meses seguintes
               </button>
@@ -1788,8 +1791,8 @@
             class="rounded-2xl border border-bank-border bg-bank-card p-6 shadow-glow sm:p-8"
           >
             <div class="mb-6 flex flex-col gap-1">
-              <h2 class="text-lg font-semibold text-white">Gastos fora do crédito</h2>
-              <p class="text-sm text-bank-muted">
+              <h2 class="text-lg font-semibold text-white" data-i18n="dash.home.pieNoCredit">Gastos fora do crédito</h2>
+              <p class="text-sm text-bank-muted" data-i18n="dash.home.pieNoCreditHint">
                 Lançamentos (sem Crédito) e contas fixas fora do crédito com valor pago preenchido, por
                 meio: Débito, Pix, Dinheiro, Vale alimentação e outros.
               </p>
@@ -1809,6 +1812,7 @@
             <p
               id="chart-sem-credito-empty"
               class="hidden py-10 text-center text-sm text-bank-muted"
+              data-i18n="dash.home.pieNoCreditEmpty"
             >
               Nenhum gasto fora do crédito neste mês (lançamentos ou contas fixas não-crédito pagas).
             </p>
@@ -1817,8 +1821,8 @@
             class="rounded-2xl border border-bank-border bg-bank-card p-6 shadow-glow sm:p-8"
           >
             <div class="mb-6 flex flex-col gap-1">
-              <h2 class="text-lg font-semibold text-white">Gastos no cartão</h2>
-              <p class="text-sm text-bank-muted">
+              <h2 class="text-lg font-semibold text-white" data-i18n="dash.home.pieCard">Gastos no cartão</h2>
+              <p class="text-sm text-bank-muted" data-i18n="dash.home.pieCardHint">
                 Lançamentos com meio Crédito e contas fixas em Crédito, por origem (cartão). Pagar a
                 fatura não entra aqui.
               </p>
@@ -1838,6 +1842,7 @@
             <p
               id="chart-origem-meio-empty"
               class="hidden py-10 text-center text-sm text-bank-muted"
+              data-i18n="dash.home.pieCardEmpty"
             >
               Nenhum gasto no crédito neste mês.
             </p>
@@ -1847,7 +1852,7 @@
           >
             <div class="mb-6 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h2 class="text-lg font-semibold text-white">Gastos por categoria</h2>
+                <h2 class="text-lg font-semibold text-white" data-i18n="dash.home.pieCat">Gastos por categoria</h2>
                 <p id="dashboard-gastos-categoria-desc" class="text-sm text-bank-muted">
                   Lançamentos do mês + contas fixas pagas fora do crédito + contas fixas em crédito
                 </p>
@@ -1868,6 +1873,7 @@
             <p
               id="chart-categoria-empty"
               class="hidden py-10 text-center text-sm text-bank-muted"
+              data-i18n="dash.home.pieCatEmpty"
             >
               Nenhum gasto neste mês para este gráfico.
             </p>
@@ -1885,12 +1891,12 @@
         <div
           class="w-full max-w-md rounded-2xl border border-bank-border bg-bank-card p-6 shadow-glow"
         >
-          <h2 id="modal-dashboard-mes-gastos-title" class="text-lg font-semibold text-white">
+          <h2 id="modal-dashboard-mes-gastos-title" class="text-lg font-semibold text-white" data-i18n="dash.home.refMonthTitle">
             Mês de referência dos gastos
           </h2>
           <p id="modal-dashboard-mes-gastos-desc" class="mt-1 text-sm text-bank-muted"></p>
           <div class="mt-5">
-            <label class="block text-xs font-medium text-zinc-400" for="modal-dashboard-gastos-select-ano"
+            <label class="block text-xs font-medium text-zinc-400" for="modal-dashboard-gastos-select-ano" data-i18n="dash.common.year"
               >Ano</label
             >
             <select
@@ -1898,13 +1904,14 @@
               class="mt-1.5 w-full rounded-xl border border-bank-border bg-bank-bg px-4 py-2.5 text-sm text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
             ></select>
           </div>
-          <p class="mt-4 text-xs font-medium text-zinc-400">Mês</p>
+          <p class="mt-4 text-xs font-medium text-zinc-400" data-i18n="dash.common.month">Mês</p>
           <div id="modal-dashboard-gastos-meses-grid" class="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-4"></div>
           <div class="mt-6 flex flex-wrap justify-between gap-2">
             <button
               type="button"
               id="btn-dashboard-gastos-mes-atual"
               class="rounded-xl border border-emerald-500/40 bg-emerald-600/10 px-4 py-2.5 text-sm font-medium text-emerald-200 transition hover:bg-emerald-600/20"
+              data-i18n="dash.home.goCurrentMonth"
             >
               Ir para mês atual
             </button>
@@ -1912,6 +1919,7 @@
               type="button"
               id="btn-fechar-modal-dashboard-gastos"
               class="rounded-xl border border-bank-border px-4 py-2.5 text-sm font-medium text-zinc-300 hover:bg-white/5"
+              data-i18n="dash.home.close"
             >
               Fechar
             </button>
@@ -10004,7 +10012,9 @@
           const sum = cents / 100;
           const el = document.getElementById("saldo-partes-total-preview");
           const mesNome = MESES_CONTAS_PAGAR[rendaDashboardMesIdx] || "mês";
-          if (el) el.textContent = "Total (" + mesNome + "): " + formatMoney(sum);
+          if (el) el.textContent = gfpT("dash.home.incomeTotal")
+            .replace("{month}", mesNome)
+            .replace("{amount}", formatMoney(sum));
         }
 
         function syncSaldoPartesFromModalInputs() {
@@ -10063,31 +10073,34 @@
 
         function atualizarOpcoesSalvarPorquinho() {
           const btnRep = document.getElementById("btn-salvar-saldo-replicar");
+          const btnMes = document.getElementById("btn-salvar-saldo-apenas-mes");
           const dica = document.getElementById("saldo-porquinho-dica-salvar");
           const mesNome = MESES_CONTAS_PAGAR[rendaDashboardMesIdx] || "";
           const ano = anoRendaDashboard();
+          const saveThis = gfpT("dash.home.saveThisMonth");
+          const saveFollowing = gfpT("dash.home.saveFollowing");
+          const december = gfpT("dash.home.december");
+          const monthYear = gfpT("dash.home.monthOfYear")
+            .replace("{month}", mesNome)
+            .replace("{year}", String(ano));
+          if (btnMes) btnMes.textContent = saveThis;
           if (btnRep) {
+            btnRep.textContent = saveFollowing;
             const desativar = rendaDashboardMesIdx >= 11;
             btnRep.disabled = desativar;
             btnRep.classList.toggle("opacity-40", desativar);
             btnRep.classList.toggle("cursor-not-allowed", desativar);
             btnRep.title = desativar
-              ? "Não há meses seguintes após dezembro no mesmo ano."
-              : "Grava o mesmo detalhamento e o mesmo total em " +
-                mesNome +
-                " e em todos os meses seguintes até dezembro de " +
-                ano +
-                ".";
+              ? gfpT("dash.home.saveFollowingDisabled")
+              : saveFollowing;
           }
           if (dica) {
-            dica.textContent =
-              "«Salvar só neste mês» grava apenas em " +
-              mesNome +
-              " de " +
-              ano +
-              ", com todas as subcategorias e valores. «Salvar neste e nos meses seguintes» copia o mesmo detalhamento (incluindo linhas extras) para " +
-              mesNome +
-              " até dezembro (desativado se o mês exibido for dezembro).";
+            dica.textContent = gfpT("dash.home.saveHint")
+              .replace(/\{saveThis\}/g, saveThis)
+              .replace(/\{saveFollowing\}/g, saveFollowing)
+              .replace(/\{monthYear\}/g, monthYear)
+              .replace(/\{month\}/g, mesNome)
+              .replace(/\{december\}/g, december);
           }
         }
 
@@ -10417,20 +10430,28 @@
         function atualizarCabecalhoModalSaldoPorquinho() {
           const mesNome = MESES_CONTAS_PAGAR[rendaDashboardMesIdx] || "";
           const ano = anoRendaDashboard();
+          const monthYear = gfpT("dash.home.monthOfYear")
+            .replace("{month}", mesNome)
+            .replace("{year}", String(ano));
           const tit = document.getElementById("modal-saldo-title");
-          if (tit) tit.textContent = "Renda mensal — detalhe (" + mesNome + " de " + ano + ")";
+          if (tit) tit.textContent = gfpT("dash.home.incomeDetailTitle").replace("{month}", monthYear);
           const desc = document.getElementById("modal-saldo-desc");
           if (desc) {
-            desc.innerHTML =
-              'Some as subcategorias abaixo; use <strong class="text-zinc-300">Adicionar subcategoria</strong> para mais linhas. O total atualiza a renda de <strong class="text-zinc-300">' +
-              escapeHtml(mesNome) +
-              "</strong> no cartão do dashboard e no valor do botão «Mudar mês».";
+            desc.innerHTML = gfpT("dash.home.incomeDetailDesc")
+              .replace("{add}", gfpT("dash.home.addSubcat"))
+              .replace("{month}", escapeHtml(mesNome))
+              .replace("{changeMonth}", gfpT("dash.home.changeMonth"));
+          }
+          const btnAdd = document.getElementById("btn-adicionar-saldo-parte");
+          if (btnAdd) {
+            const span = btnAdd.querySelector("span[data-i18n], span");
+            if (span) span.textContent = gfpT("dash.home.addSubcat");
           }
           const btnP = document.getElementById("btn-dashboard-saldo-porquinho");
           if (btnP) {
-            const t = "Detalhar renda de " + mesNome + " por subcategorias";
-            btnP.setAttribute("title", t);
-            btnP.setAttribute("aria-label", t);
+            const tLab = gfpT("dash.home.detailIncomeOf").replace("{month}", mesNome);
+            btnP.setAttribute("title", tLab);
+            btnP.setAttribute("aria-label", tLab);
           }
           atualizarOpcoesSalvarPorquinho();
         }
@@ -10451,10 +10472,7 @@
         }
 
         function textoExplicacaoTotalGastosMes() {
-          return (
-            "Lançamentos (todos os meios) + fixas pagas fora do crédito + fixas em crédito pela cobrança do mês + juros/taxas. " +
-            "Pagar fatura de cartões não entra aqui, porque o gasto já foi adicionado no lançamento ou na conta fixa em crédito."
-          );
+          return gfpT("dash.home.gastosExplain");
         }
 
         function atualizarCardGastosDashboard() {
@@ -14093,6 +14111,15 @@
               renderTabelaGastos();
               atualizarRefLancamentosRegistrados();
               renderTotaisCategoriaMes();
+              if (typeof atualizarCabecalhoModalSaldoPorquinho === "function") {
+                atualizarCabecalhoModalSaldoPorquinho();
+              }
+              if (typeof atualizarPreviewSaldoPartesModal === "function") {
+                atualizarPreviewSaldoPartesModal();
+              }
+              if (typeof refreshHighlightModalDashboardMes === "function") {
+                refreshHighlightModalDashboardMes();
+              }
               renderContasFixas();
               renderContasPagar();
               updateDashboard();
