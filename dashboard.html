@@ -2439,9 +2439,10 @@
             <h2 id="titulo-contas-pagar" class="text-lg font-semibold text-white" data-i18n="dash.panel.cartoes">Cartões</h2>
             <p class="mt-1 max-w-3xl text-sm text-bank-muted">
               Um mês por vez (padrão: atual). Só contas com vínculo por origem (cartão). «Gasto atual» da fatura =
-              lançamentos em Crédito + contas fixas em Crédito da mesma origem (para bater com o banco).
-              Fechamento de fatura define o ciclo. Valor pago é controle da fatura — não entra de novo no gasto do
-              mês. Vencimentos alimentam «Próximos vencimentos» no dashboard.
+              lançamentos em Crédito + contas fixas em Crédito da mesma origem no <strong class="font-medium text-zinc-300">mesmo mês</strong>
+              (junho com junho, julho com julho). Fechamento de fatura define o ciclo dos lançamentos.
+              Valor pago é controle da fatura — não entra de novo no gasto do mês. Vencimentos alimentam «Próximos
+              vencimentos» no dashboard.
             </p>
           </div>
           <div class="flex shrink-0 flex-wrap items-end gap-3">
@@ -5212,24 +5213,15 @@
           if (!origem) return null;
           const cartao = contasPagarItemPorNomeOrigem(origem);
           if (!cartao) return null;
-          const cell = cellFixa || peekCellContaFixa(year, monthIdx, item.id) || defaultCellContaFixa();
-          const dataCobranca = vencimentoCampoValor(year, monthIdx, item, cell);
-          if (!dataCobranca) return null;
-          const gastoRef = {
-            data: dataCobranca,
-            meioPagamento: "Crédito",
-            origem,
-          };
-          const alvo = mesAnoColunaContasPagarParaLancamento(cartao, gastoRef);
-          if (!alvo) return null;
-          const cellCartao = peekCellContaPagar(alvo.y, alvo.mo, cartao.id);
+          // Mesmo mês da grade de Contas fixas ↔ coluna de Cartões (sem deslocar pelo ciclo de fechamento).
+          const cellCartao = peekCellContaPagar(year, monthIdx, cartao.id);
           const vencimentoFatura = cellCartao
-            ? vencimentoCampoValor(alvo.y, alvo.mo, cartao, cellCartao)
-            : vencimentoPadraoISO(alvo.y, alvo.mo, cartao);
+            ? vencimentoCampoValor(year, monthIdx, cartao, cellCartao)
+            : vencimentoPadraoISO(year, monthIdx, cartao);
           return {
             cartao,
-            year: alvo.y,
-            monthIdx: alvo.mo,
+            year,
+            monthIdx,
             cell: cellCartao,
             vencimento: String(vencimentoFatura || "").trim(),
           };
@@ -5295,12 +5287,9 @@
         }
 
         /**
-         * Contas fixas em Crédito da mesma origem que caem nesta coluna de fatura
-         * (ciclo pelo vencimento/cobrança da fixa). Só composição da fatura — não
-         * altera o total do mês (esse já conta a fixa em Contas fixas).
-         *
-         * Performance: um único passe por janela de meses (±3), com cache por mês
-         * de fatura — evita varrer o histórico inteiro a cada linha de Cartões.
+         * Contas fixas em Crédito da mesma origem no **mesmo mês** da fatura em Cartões.
+         * Não usa ciclo de fechamento: fixa de junho → só fatura de junho (não “pula” para julho).
+         * Só composição da fatura — o gasto do mês já conta a fixa em Contas fixas.
          */
         let _cacheSomasFixasFaturaKey = "";
         let _cacheSomasFixasFaturaMap = null;
@@ -5310,57 +5299,26 @@
           _cacheSomasFixasFaturaMap = null;
         }
 
-        function avancarMesAnoSimples(y, m, delta) {
-          let yy = y;
-          let mm = m + delta;
-          while (mm < 0) {
-            mm += 12;
-            yy--;
-          }
-          while (mm > 11) {
-            mm -= 12;
-            yy++;
-          }
-          return { y: yy, m: mm };
-        }
-
-        /** Mapa cartaoId → soma das fixas Crédito que caem na fatura (year, monthIdx). */
+        /** Mapa cartaoId → soma das fixas Crédito do mesmo mês/ano da fatura. */
         function mapaSomasFixasCreditoNaFatura(year, monthIdx) {
           const key = String(year) + ":" + String(monthIdx);
           if (_cacheSomasFixasFaturaMap && _cacheSomasFixasFaturaKey === key) {
             return _cacheSomasFixasFaturaMap;
           }
           const map = Object.create(null);
-          // Ciclo de fatura quase sempre cruza mês anterior; ±3 cobre fechamento sem varrer anos.
-          const inicio = avancarMesAnoSimples(year, monthIdx, -3);
-          let y = inicio.y;
-          let m = inicio.m;
-          for (let step = 0; step < 7; step++) {
-            for (let fi = 0; fi < contasFixasItems.length; fi++) {
-              const fixa = contasFixasItems[fi];
-              if (!fixa) continue;
-              const cellFixa = peekCellContaFixa(y, m, fixa.id);
-              if (!cellFixa) continue;
-              const v = Number(cellFixa.gastoAtual);
-              if (!Number.isFinite(v) || v <= 0) continue;
-              if (!contaFixaEhCredito(fixa, y, m)) continue;
-              const origem = origemContaFixaMes(fixa, y, m);
-              if (!origem) continue;
-              const cartao = contasPagarItemPorNomeOrigem(origem);
-              if (!cartao) continue;
-              const dataCobranca = vencimentoCampoValor(y, m, fixa, cellFixa);
-              if (!dataCobranca) continue;
-              const alvo = mesAnoColunaContasPagarParaLancamento(cartao, {
-                data: dataCobranca,
-                meioPagamento: "Crédito",
-                origem,
-              });
-              if (!alvo || alvo.y !== year || alvo.mo !== monthIdx) continue;
-              map[cartao.id] = (map[cartao.id] || 0) + v;
-            }
-            const next = avancarMesAnoSimples(y, m, 1);
-            y = next.y;
-            m = next.m;
+          for (let fi = 0; fi < contasFixasItems.length; fi++) {
+            const fixa = contasFixasItems[fi];
+            if (!fixa) continue;
+            if (!contaFixaEhCredito(fixa, year, monthIdx)) continue;
+            const cellFixa = peekCellContaFixa(year, monthIdx, fixa.id);
+            if (!cellFixa) continue;
+            const v = Number(cellFixa.gastoAtual);
+            if (!Number.isFinite(v) || v <= 0) continue;
+            const origem = origemContaFixaMes(fixa, year, monthIdx);
+            if (!origem) continue;
+            const cartao = contasPagarItemPorNomeOrigem(origem);
+            if (!cartao) continue;
+            map[cartao.id] = (map[cartao.id] || 0) + v;
           }
           const ids = Object.keys(map);
           for (let i = 0; i < ids.length; i++) {
@@ -5378,14 +5336,25 @@
           return Number.isFinite(v) && v > 0 ? v : 0;
         }
 
-        /** Base gravada na fatura (lançamentos / edição manual), sem as fixas. */
+        /** Base gravada na fatura (lançamentos / sync), sem as fixas. */
         function gastoAtualBaseFaturaCartao(cell) {
           const v = Number(cell && cell.gastoAtual);
           return Number.isFinite(v) && v > 0 ? v : 0;
         }
 
-        /** Gasto atual exibido na fatura = lançamentos + fixas Crédito do cartão. */
+        function temGastoFaturaManual(cell) {
+          return (
+            cell != null &&
+            cell.gastoFaturaManual != null &&
+            Number.isFinite(Number(cell.gastoFaturaManual))
+          );
+        }
+
+        /** Auto = lançamentos + fixas; se houver total manual (incl. 0), esse valor prevalece. */
         function gastoAtualFaturaExibicao(cartaoItem, year, monthIdx, cell) {
+          if (temGastoFaturaManual(cell)) {
+            return Math.max(0, Math.round(Number(cell.gastoFaturaManual) * 100) / 100);
+          }
           return (
             Math.round(
               (gastoAtualBaseFaturaCartao(cell) +
@@ -5395,12 +5364,16 @@
           );
         }
 
-        /** Ao editar o campo composto, grava só a parte de lançamentos/manual. */
-        function gastoAtualBaseApartirDaExibicao(cartaoItem, year, monthIdx, valorExibido) {
-          const fixas = somaFixasCreditoParaFaturaCartao(cartaoItem, year, monthIdx);
-          const v = Number(valorExibido);
-          if (!Number.isFinite(v) || v < 0) return 0;
-          return Math.max(0, Math.round((v - fixas) * 100) / 100);
+        function limparGastoFaturaManual(cell) {
+          if (!cell) return;
+          cell.gastoFaturaManual = null;
+        }
+
+        /** Define o total exibido da fatura (0 permitido). Não apaga a base de lançamentos. */
+        function definirGastoFaturaManual(cell, valor) {
+          if (!cell) return;
+          const v = Number(valor);
+          cell.gastoFaturaManual = Number.isFinite(v) && v >= 0 ? Math.round(v * 100) / 100 : 0;
         }
 
         /** Re-render de Cartões só se a aba estiver visível (evita travar ao editar Fixas). */
@@ -6070,6 +6043,7 @@
             dataPago: "",
             diaFechamentoFatura: null,
             gastoCongelado: false,
+            gastoFaturaManual: null,
           };
         }
 
@@ -6407,7 +6381,7 @@
          * Copia gasto congelado e o dia de vencimento (mesmo dia civil em cada mês seguinte) a partir do mês seguinte.
          * `isoVenRef`: ISO yyyy-mm-dd do vencimento efetivo no mês de origem (de `vencimentoCampoValor`); vazio = não altera vencimento nas células futuras.
          */
-        function propagarGastoCongelado(itemId, fromYear, fromMonthIdx, valor, isoVenRef) {
+        function propagarGastoCongelado(itemId, fromYear, fromMonthIdx, valor, isoVenRef, gastoManual) {
           let y = fromYear;
           let m = fromMonthIdx + 1;
           if (m > 11) {
@@ -6418,10 +6392,14 @@
           const venRef = String(isoVenRef || "").trim();
           const dtVen = /^\d{4}-\d{2}-\d{2}$/.test(venRef) ? parseISODateLocal(venRef) : null;
           const diaVen = dtVen && !Number.isNaN(dtVen.getTime()) ? dtVen.getDate() : null;
+          const temManual =
+            gastoManual != null && Number.isFinite(Number(gastoManual));
           for (let step = 0; step < maxMeses; step++) {
             const cell = getCellContaPagar(y, m, itemId);
             cell.gastoAtual = valor;
             cell.gastoCongelado = true;
+            if (temManual) cell.gastoFaturaManual = Math.round(Number(gastoManual) * 100) / 100;
+            else cell.gastoFaturaManual = null;
             if (diaVen != null) {
               const dim = daysInMonth(y, m);
               const d = Math.min(diaVen, dim);
@@ -12328,8 +12306,8 @@
             if (cell.gastoCongelado == null) cell.gastoCongelado = false;
             const frozen = !!cell.gastoCongelado;
             const fixasNaFatura = somasFixasPorCartao[item.id] || 0;
-            const gVal =
-              Math.round((gastoAtualBaseFaturaCartao(cell) + fixasNaFatura) * 100) / 100;
+            const gVal = gastoAtualFaturaExibicao(item, year, monthIdx, cell);
+            const manualAtivo = temGastoFaturaManual(cell);
             const pVal =
               cell.valorPago != null && Number.isFinite(Number(cell.valorPago))
                 ? Number(cell.valorPago)
@@ -12352,13 +12330,20 @@
               inputClsGastoComBotao +
               " input-moeda-br cp-gasto-input tabular-nums" +
               (frozen ? " cursor-not-allowed opacity-80" : "");
-            inG.title = frozen
-              ? "Congelado — clique no ❄️ para descongelar só este mês"
-              : fixasNaFatura > 0
-              ? "Lançamentos + fixas em Crédito deste cartão (" +
+            if (frozen) {
+              inG.title = "Congelado — clique no ❄️ para descongelar só este mês";
+            } else if (manualAtivo) {
+              inG.title =
+                "Total manual da fatura (fixas automáticas pausadas). Apague o campo e saia para voltar a lançamentos + fixas.";
+            } else if (fixasNaFatura > 0) {
+              inG.title =
+                "Automático: lançamentos + fixas em Crédito (" +
                 formatMoney(fixasNaFatura) +
-                " das fixas). Editar ajusta a parte dos lançamentos; as fixas continuam somando automaticamente."
-              : "Editável; lançamentos vinculados também atualizam. Contas fixas em Crédito desta origem somam automaticamente. Use ❄️ para congelar e copiar gasto e vencimento aos meses seguintes";
+                " das fixas). Digite um total (ex.: 0) para travar manualmente; apague o campo para voltar ao automático.";
+            } else {
+              inG.title =
+                "Editável; lançamentos vinculados atualizam. Digite o total desejado (0 permitido) ou deixe no automático.";
+            }
             inG.readOnly = frozen;
             definirValorMoedaCampo(inG, gVal);
             if (!frozen) prepararInputMoedaBR(inG);
@@ -12367,22 +12352,33 @@
                 definirValorMoedaCampo(inG, gastoAtualFaturaExibicao(item, year, monthIdx, cell));
                 return;
               }
-              const v = parseValorMonetarioLancamento(inG.value);
+              const raw = inG.value.trim();
+              if (raw === "") {
+                limparGastoFaturaManual(cell);
+                cell.ultimaAtualizacao = hojeISO();
+                saveContasPagarAnual();
+                renderContasPagar();
+                return;
+              }
+              const v = parseValorMonetarioLancamento(raw);
               if (!Number.isFinite(v) || v < 0) {
                 definirValorMoedaCampo(inG, gastoAtualFaturaExibicao(item, year, monthIdx, cell));
                 return;
               }
-              const baseNova = gastoAtualBaseApartirDaExibicao(item, year, monthIdx, v);
-              if (baseNova !== gastoAtualBaseFaturaCartao(cell)) {
-                cell.gastoAtual = baseNova;
-                cell.ultimaAtualizacao = hojeISO();
-                saveContasPagarAnual();
-                const u = tr.querySelector(".cp-ultima-cell");
-                if (u) u.textContent = formatContasPagarSomenteDia(cell.ultimaAtualizacao);
-                renderContasPagar();
+              const autoVal =
+                Math.round(
+                  (gastoAtualBaseFaturaCartao(cell) + (somasFixasPorCartao[item.id] || 0)) * 100
+                ) / 100;
+              if (Math.abs(v - autoVal) < 0.005) {
+                limparGastoFaturaManual(cell);
               } else {
-                definirValorMoedaCampo(inG, gastoAtualFaturaExibicao(item, year, monthIdx, cell));
+                definirGastoFaturaManual(cell, v);
               }
+              cell.ultimaAtualizacao = hojeISO();
+              saveContasPagarAnual();
+              const u = tr.querySelector(".cp-ultima-cell");
+              if (u) u.textContent = formatContasPagarSomenteDia(cell.ultimaAtualizacao);
+              renderContasPagar();
             });
             const btnNeve = document.createElement("button");
             btnNeve.type = "button";
@@ -12411,14 +12407,17 @@
                   return;
                 }
                 const v = parseValorMonetarioLancamento(inG.value);
-                const valor = Number.isFinite(v) && v >= 0
-                  ? gastoAtualBaseApartirDaExibicao(item, year, monthIdx, v)
-                  : gastoAtualBaseFaturaCartao(cell);
-                cell.gastoAtual = valor;
+                const totalExib =
+                  Number.isFinite(v) && v >= 0
+                    ? Math.round(v * 100) / 100
+                    : gastoAtualFaturaExibicao(item, year, monthIdx, cell);
+                definirGastoFaturaManual(cell, totalExib);
+                const base = gastoAtualBaseFaturaCartao(cell);
+                cell.gastoAtual = base;
                 cell.gastoCongelado = true;
                 cell.ultimaAtualizacao = hojeISO();
                 const isoVenRef = vencimentoCampoValor(year, monthIdx, item, cell);
-                propagarGastoCongelado(item.id, year, monthIdx, valor, isoVenRef);
+                propagarGastoCongelado(item.id, year, monthIdx, base, isoVenRef, totalExib);
                 saveContasPagarAnual();
                 renderContasPagar();
               } catch (err) {
@@ -12696,7 +12695,7 @@
             formatMoney(totalGastoMes) +
             "</td>" +
             '<td colspan="4" class="px-3 py-2 text-right text-[10px] font-medium leading-snug normal-case tracking-normal text-bank-muted sm:px-4 sm:text-[11px]">' +
-            "Totais da fatura · gasto atual = lançamentos em Crédito + fixas em Crédito deste cartão (para bater com o banco)<br>" +
+            "Totais da fatura · automático = lançamentos + fixas em Crédito do mesmo mês · digite um total (0 ok) para travar; apague o campo para voltar ao automático<br>" +
             "Valor pago é só quitação — não soma de novo no gasto do mês" +
             "</td>" +
             '<td class="px-3 py-2 tabular-nums text-sm font-bold text-emerald-300/90 sm:px-4">' +
