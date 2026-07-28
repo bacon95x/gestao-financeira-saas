@@ -5298,43 +5298,84 @@
          * Contas fixas em Crédito da mesma origem que caem nesta coluna de fatura
          * (ciclo pelo vencimento/cobrança da fixa). Só composição da fatura — não
          * altera o total do mês (esse já conta a fixa em Contas fixas).
+         *
+         * Performance: um único passe por janela de meses (±3), com cache por mês
+         * de fatura — evita varrer o histórico inteiro a cada linha de Cartões.
          */
+        let _cacheSomasFixasFaturaKey = "";
+        let _cacheSomasFixasFaturaMap = null;
+
+        function invalidarCacheSomasFixasFatura() {
+          _cacheSomasFixasFaturaKey = "";
+          _cacheSomasFixasFaturaMap = null;
+        }
+
+        function avancarMesAnoSimples(y, m, delta) {
+          let yy = y;
+          let mm = m + delta;
+          while (mm < 0) {
+            mm += 12;
+            yy--;
+          }
+          while (mm > 11) {
+            mm -= 12;
+            yy++;
+          }
+          return { y: yy, m: mm };
+        }
+
+        /** Mapa cartaoId → soma das fixas Crédito que caem na fatura (year, monthIdx). */
+        function mapaSomasFixasCreditoNaFatura(year, monthIdx) {
+          const key = String(year) + ":" + String(monthIdx);
+          if (_cacheSomasFixasFaturaMap && _cacheSomasFixasFaturaKey === key) {
+            return _cacheSomasFixasFaturaMap;
+          }
+          const map = Object.create(null);
+          // Ciclo de fatura quase sempre cruza mês anterior; ±3 cobre fechamento sem varrer anos.
+          const inicio = avancarMesAnoSimples(year, monthIdx, -3);
+          let y = inicio.y;
+          let m = inicio.m;
+          for (let step = 0; step < 7; step++) {
+            for (let fi = 0; fi < contasFixasItems.length; fi++) {
+              const fixa = contasFixasItems[fi];
+              if (!fixa) continue;
+              const cellFixa = peekCellContaFixa(y, m, fixa.id);
+              if (!cellFixa) continue;
+              const v = Number(cellFixa.gastoAtual);
+              if (!Number.isFinite(v) || v <= 0) continue;
+              if (!contaFixaEhCredito(fixa, y, m)) continue;
+              const origem = origemContaFixaMes(fixa, y, m);
+              if (!origem) continue;
+              const cartao = contasPagarItemPorNomeOrigem(origem);
+              if (!cartao) continue;
+              const dataCobranca = vencimentoCampoValor(y, m, fixa, cellFixa);
+              if (!dataCobranca) continue;
+              const alvo = mesAnoColunaContasPagarParaLancamento(cartao, {
+                data: dataCobranca,
+                meioPagamento: "Crédito",
+                origem,
+              });
+              if (!alvo || alvo.y !== year || alvo.mo !== monthIdx) continue;
+              map[cartao.id] = (map[cartao.id] || 0) + v;
+            }
+            const next = avancarMesAnoSimples(y, m, 1);
+            y = next.y;
+            m = next.m;
+          }
+          const ids = Object.keys(map);
+          for (let i = 0; i < ids.length; i++) {
+            map[ids[i]] = Math.round(map[ids[i]] * 100) / 100;
+          }
+          _cacheSomasFixasFaturaKey = key;
+          _cacheSomasFixasFaturaMap = map;
+          return map;
+        }
+
         function somaFixasCreditoParaFaturaCartao(cartaoItem, year, monthIdx) {
           if (!cartaoItem || !cartaoItem.id) return 0;
-          let soma = 0;
-          const anos = Object.keys(contasFixasAnual || {});
-          for (let ai = 0; ai < anos.length; ai++) {
-            const yKey = anos[ai];
-            const y = parseInt(yKey, 10);
-            if (!Number.isFinite(y)) continue;
-            const meses = contasFixasAnual[yKey] || {};
-            const mesKeys = Object.keys(meses);
-            for (let mi = 0; mi < mesKeys.length; mi++) {
-              const mKey = mesKeys[mi];
-              const m = parseInt(mKey, 10);
-              if (!Number.isFinite(m)) continue;
-              const cells = meses[mKey] || {};
-              for (let fi = 0; fi < contasFixasItems.length; fi++) {
-                const fixa = contasFixasItems[fi];
-                if (!fixa || !cells[fixa.id]) continue;
-                if (!contaFixaEhCredito(fixa, y, m)) continue;
-                const cellFixa = cells[fixa.id];
-                const fatura = faturaAlvoContaFixa(fixa, y, m, cellFixa);
-                if (
-                  !fatura ||
-                  !fatura.cartao ||
-                  fatura.cartao.id !== cartaoItem.id ||
-                  fatura.year !== year ||
-                  fatura.monthIdx !== monthIdx
-                ) {
-                  continue;
-                }
-                const v = Number(cellFixa.gastoAtual);
-                if (Number.isFinite(v) && v > 0) soma += v;
-              }
-            }
-          }
-          return Math.round(soma * 100) / 100;
+          const map = mapaSomasFixasCreditoNaFatura(year, monthIdx);
+          const v = map[cartaoItem.id];
+          return Number.isFinite(v) && v > 0 ? v : 0;
         }
 
         /** Base gravada na fatura (lançamentos / edição manual), sem as fixas. */
@@ -5360,6 +5401,27 @@
           const v = Number(valorExibido);
           if (!Number.isFinite(v) || v < 0) return 0;
           return Math.max(0, Math.round((v - fixas) * 100) / 100);
+        }
+
+        /** Re-render de Cartões só se a aba estiver visível (evita travar ao editar Fixas). */
+        let contasPagarPrecisaRender = false;
+        function solicitarRenderContasPagar() {
+          invalidarCacheSomasFixasFatura();
+          const panel = document.getElementById("panel-contas-pagar");
+          if (panel && !panel.classList.contains("hidden")) {
+            contasPagarPrecisaRender = false;
+            if (typeof renderContasPagar === "function") renderContasPagar();
+          } else {
+            contasPagarPrecisaRender = true;
+          }
+        }
+
+        /** Dashboard pesado: só atualiza se a aba Home estiver aberta (ao trocar de aba já recalcula). */
+        function solicitarUpdateDashboard() {
+          const panel = document.getElementById("panel-dashboard");
+          if (panel && !panel.classList.contains("hidden")) {
+            updateDashboard();
+          }
         }
 
         function valoresProximosDuplicata(v1, v2) {
@@ -5616,7 +5678,12 @@
           }
           saveContasFixasAnual();
           saveContasFixasCatalog();
-          if (typeof renderContasPagar === "function") renderContasPagar();
+          if (campo === "meioPagamento" || campo === "origem") {
+            solicitarRenderContasPagar();
+          } else {
+            invalidarCacheSomasFixasFatura();
+            contasPagarPrecisaRender = true;
+          }
         }
 
         function propagarGastoCongeladoFixa(itemId, fromYear, fromMonthIdx, valor, isoVenRef) {
@@ -11775,8 +11842,8 @@
                 const u = tr.querySelector(".cf-ultima-cell");
                 if (u) u.textContent = formatContasPagarSomenteDia(cell.ultimaAtualizacao);
                 renderContasFixas();
-                renderContasPagar();
-                updateDashboard();
+                solicitarRenderContasPagar();
+                solicitarUpdateDashboard();
               }
             });
             const slotG = document.createElement("div");
@@ -11797,7 +11864,7 @@
                 cell.gastoCongelado = false;
                 saveContasFixasAnual();
                 renderContasFixas();
-                renderContasPagar();
+                solicitarRenderContasPagar();
                 return;
               }
               const v = parseValorMonetarioLancamento(inG.value);
@@ -11809,8 +11876,8 @@
               propagarGastoCongeladoFixa(item.id, year, monthIdx, valor, isoVenRef);
               saveContasFixasAnual();
               renderContasFixas();
-              renderContasPagar();
-              updateDashboard();
+              solicitarRenderContasPagar();
+              solicitarUpdateDashboard();
             });
             wrapG.appendChild(slotG);
             wrapG.appendChild(btnNeve);
@@ -11845,7 +11912,7 @@
             });
             selCat.addEventListener("change", () => {
               aplicarCampoFixaDesdeMes(item, year, monthIdx, "categoria", selCat.value);
-              updateDashboard();
+              solicitarUpdateDashboard();
             });
             tdCat.appendChild(selCat);
 
@@ -11864,8 +11931,7 @@
             selMeio.addEventListener("change", () => {
               aplicarCampoFixaDesdeMes(item, year, monthIdx, "meioPagamento", selMeio.value);
               renderContasFixas();
-              renderContasPagar();
-              updateDashboard();
+              solicitarUpdateDashboard();
             });
             tdMeio.appendChild(selMeio);
 
@@ -11889,8 +11955,7 @@
               selOrig.addEventListener("change", () => {
                 aplicarCampoFixaDesdeMes(item, year, monthIdx, "origem", selOrig.value);
                 renderContasFixas();
-                renderContasPagar();
-                updateDashboard();
+                solicitarUpdateDashboard();
               });
               tdOrig.appendChild(selOrig);
             } else {
@@ -11926,8 +11991,8 @@
                 cell.vencimento = "";
                 saveContasFixasAnual();
                 renderContasFixas();
-                renderContasPagar();
-                updateDashboard();
+                solicitarRenderContasPagar();
+                solicitarUpdateDashboard();
                 return;
               }
               const parsed = parseDiaMesOuIsoParaISO(raw, year);
@@ -11939,8 +12004,8 @@
               cell.vencimento = parsed;
               saveContasFixasAnual();
               inV.value = isoParaDiaMesBR(parsed);
-              renderContasPagar();
-              updateDashboard();
+              solicitarRenderContasPagar();
+              solicitarUpdateDashboard();
             });
             const btnVenNeve = document.createElement("button");
             btnVenNeve.type = "button";
@@ -11967,6 +12032,7 @@
                 cell.vencimentoCongelado = false;
                 saveContasFixasAnual();
                 renderContasFixas();
+                solicitarRenderContasPagar();
                 return;
               }
               const raw = inV.value.trim();
@@ -11988,7 +12054,8 @@
               }
               saveContasFixasAnual();
               renderContasFixas();
-              updateDashboard();
+              solicitarRenderContasPagar();
+              solicitarUpdateDashboard();
             });
             wrapV.appendChild(inV);
             wrapV.appendChild(btnVenNeve);
@@ -12051,7 +12118,7 @@
                 saveContasFixasAnual();
                 renderContasFixas();
                 renderTotaisCategoriaMes();
-                updateDashboard();
+                solicitarUpdateDashboard();
               });
             }
             tdVP.appendChild(inVP);
@@ -12083,7 +12150,7 @@
                 if (raw === "") {
                   cell.dataPago = "";
                   saveContasFixasAnual();
-                  updateDashboard();
+                  solicitarUpdateDashboard();
                   renderContasFixas();
                   return;
                 }
@@ -12095,7 +12162,7 @@
                 cell.dataPago = parsed;
                 saveContasFixasAnual();
                 inDP.value = isoParaDiaMesBR(parsed);
-                updateDashboard();
+                solicitarUpdateDashboard();
               });
             }
             tdDP.appendChild(inDP);
@@ -12249,6 +12316,9 @@
 
           let totalGastoMes = 0;
           let totalValorPagoMes = 0;
+          contasPagarPrecisaRender = false;
+          invalidarCacheSomasFixasFatura();
+          const somasFixasPorCartao = mapaSomasFixasCreditoNaFatura(year, monthIdx);
 
           contasPagarItems
             .filter((item) => item.matches && item.matches.length)
@@ -12257,8 +12327,9 @@
             const cell = getCellContaPagar(year, monthIdx, item.id);
             if (cell.gastoCongelado == null) cell.gastoCongelado = false;
             const frozen = !!cell.gastoCongelado;
-            const gVal = gastoAtualFaturaExibicao(item, year, monthIdx, cell);
-            const fixasNaFatura = somaFixasCreditoParaFaturaCartao(item, year, monthIdx);
+            const fixasNaFatura = somasFixasPorCartao[item.id] || 0;
+            const gVal =
+              Math.round((gastoAtualBaseFaturaCartao(cell) + fixasNaFatura) * 100) / 100;
             const pVal =
               cell.valorPago != null && Number.isFinite(Number(cell.valorPago))
                 ? Number(cell.valorPago)
@@ -12714,6 +12785,7 @@
           }
           if (name === "contas-pagar") {
             renderContasPagar();
+            contasPagarPrecisaRender = false;
             setTimeout(() => lucide.createIcons(), 0);
           }
           if (name === "calendario") {
