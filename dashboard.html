@@ -7108,16 +7108,51 @@
         }
 
         function formatMoneyInvest(n) {
-          if (investForm.simulacaoEmUSD) {
-            return n.toLocaleString("en-US", { style: "currency", currency: "USD" });
+          const x = Number(n);
+          const usd = investSimulacaoEmUSD();
+          if (!Number.isFinite(x)) {
+            return usd
+              ? (0).toLocaleString("en-US", { style: "currency", currency: "USD" })
+              : (0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
           }
-          return formatMoney(n);
+          if (usd) {
+            return x.toLocaleString("en-US", { style: "currency", currency: "USD" });
+          }
+          return x.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
         }
 
         function formatMoneyUsd(n) {
           const x = Number(n);
           if (!Number.isFinite(x)) return "—";
           return x.toLocaleString("en-US", { style: "currency", currency: "USD" });
+        }
+
+        function investTemEntradaUSD() {
+          return (
+            investParseNum(investForm.inicialUSD) > 0 || investParseNum(investForm.aporteUSD) > 0
+          );
+        }
+
+        function investTemEntradaBRL() {
+          return (
+            investParseNum(investForm.inicialBRL) > 0 || investParseNum(investForm.aporteBRL) > 0
+          );
+        }
+
+        /**
+         * Moeda da tabela/cards: só USD se preencheu área em dólar; só BRL se preencheu em reais.
+         * Se os dois lados tiverem valor, respeita o botão de simulação.
+         */
+        function investSyncMoedaPelosCampos() {
+          const u = investTemEntradaUSD();
+          const b = investTemEntradaBRL();
+          if (u && !b) investForm.simulacaoEmUSD = true;
+          else if (b && !u) investForm.simulacaoEmUSD = false;
+        }
+
+        function investSimulacaoEmUSD() {
+          investSyncMoedaPelosCampos();
+          return !!investForm.simulacaoEmUSD;
         }
 
         function investUpdateMoedaUI() {
@@ -7127,23 +7162,55 @@
           const th2 = document.getElementById("inv-th-c2");
           const th3 = document.getElementById("inv-th-c3");
           const th4 = document.getElementById("inv-th-c4");
-          const usd = investForm.simulacaoEmUSD;
+          const usd = investSimulacaoEmUSD();
+          const soUsd = investTemEntradaUSD() && !investTemEntradaBRL();
+          const soBrl = investTemEntradaBRL() && !investTemEntradaUSD();
+          const ambos = investTemEntradaUSD() && investTemEntradaBRL();
           if (btn) {
             btn.setAttribute("aria-pressed", usd ? "true" : "false");
-            btn.textContent = usd ? "Simulação em BRL" : "Simulação em USD";
-            btn.title = usd
-              ? "Mostrar valores da tabela em reais (BRL)"
-              : "Mostrar valores da tabela em dólares (USD)";
+            btn.disabled = soUsd || soBrl;
+            btn.classList.toggle("opacity-50", soUsd || soBrl);
+            btn.classList.toggle("cursor-not-allowed", soUsd || soBrl);
+            if (soUsd) {
+              btn.textContent = "Tabela em USD";
+              btn.title = "Você preencheu só valores em dólar — a simulação fica em USD.";
+            } else if (soBrl) {
+              btn.textContent = "Tabela em BRL";
+              btn.title = "Você preencheu só valores em reais — a simulação fica em R$.";
+            } else {
+              btn.textContent = usd ? "Ver em BRL" : "Ver em USD";
+              btn.title = ambos
+                ? usd
+                  ? "Há valores em USD e BRL. Clique para ver a projeção em reais."
+                  : "Há valores em USD e BRL. Clique para ver a projeção em dólares."
+                : usd
+                ? "Mostrar a tabela em reais (BRL)"
+                : "Mostrar a tabela em dólares (USD)";
+            }
           }
           if (leg) {
-            leg.textContent = usd
-              ? "Tabela em dólares (USD). A cotação acima continua usada para converter BRL ↔ USD nos totais."
-              : "Tabela em reais (BRL). Clique em «Simulação em USD» para ver a mesma projeção em dólares.";
+            if (soUsd) {
+              leg.textContent =
+                "Tabela em dólares (USD): você preencheu aplicação/aporte só em USD.";
+            } else if (soBrl) {
+              leg.textContent =
+                "Tabela em reais (R$): você preencheu aplicação/aporte só em BRL.";
+            } else if (ambos) {
+              leg.textContent = usd
+                ? "Tabela em dólares (USD). Cotação converte os valores em BRL. Use o botão para ver em R$."
+                : "Tabela em reais (R$). Cotação converte os valores em USD. Use o botão para ver em US$.";
+            } else {
+              leg.textContent = usd
+                ? "Tabela em dólares (USD). Preencha aplicação ou aporte em BRL para simular em reais."
+                : "Tabela em reais (R$). Preencha aplicação ou aporte em USD para simular em dólares.";
+            }
           }
-          const s1 = usd ? "Rendimento no mês (USD)" : "Rendimento no mês";
-          const s2 = usd ? "Aplicação + aportes (USD)" : "Aplicação + aportes";
-          const s3 = usd ? "Aplicação + aportes + rendimento (USD)" : "Aplicação + aportes + rendimento";
-          const s4 = usd ? "Valor real (USD)" : "Valor real";
+          const s1 = usd ? "Rendimento no mês (USD)" : "Rendimento no mês (R$)";
+          const s2 = usd ? "Aplicação + aportes (USD)" : "Aplicação + aportes (R$)";
+          const s3 = usd
+            ? "Aplicação + aportes + rendimento (USD)"
+            : "Aplicação + aportes + rendimento (R$)";
+          const s4 = usd ? "Valor real (USD)" : "Valor real (R$)";
           if (th1) th1.textContent = s1;
           if (th2) th2.textContent = s2;
           if (th3) th3.textContent = s3;
@@ -7282,6 +7349,9 @@
         function renderInvestimentosTabela() {
           const tbody = document.getElementById("invest-tbody");
           if (!tbody) return;
+          const moedaAntes = investForm.simulacaoEmUSD;
+          investSyncMoedaPelosCampos();
+          if (investForm.simulacaoEmUSD !== moedaAntes) investSave();
           const cotacao = investGetCotacao();
           const pu = investParseNum(investForm.inicialUSD);
           const pr = investParseNum(investForm.inicialBRL);
@@ -7289,7 +7359,7 @@
           const ar = investParseNum(investForm.aporteBRL);
           let P;
           let C;
-          if (investForm.simulacaoEmUSD) {
+          if (investSimulacaoEmUSD()) {
             P = Math.max(0, pu + pr / cotacao);
             C = Math.max(0, au + ar / cotacao);
           } else {
@@ -7609,9 +7679,13 @@
           if (btnMoeda && !btnMoeda._invBound) {
             btnMoeda._invBound = true;
             btnMoeda.addEventListener("click", () => {
-              investForm.simulacaoEmUSD = !investForm.simulacaoEmUSD;
-              investSave();
-              renderInvestimentosTabela();
+              if (btnMoeda.disabled) return;
+              // Só alterna à mão quando há valor nos dois lados (USD e BRL).
+              if (investTemEntradaUSD() && investTemEntradaBRL()) {
+                investForm.simulacaoEmUSD = !investForm.simulacaoEmUSD;
+                investSave();
+                renderInvestimentosTabela();
+              }
             });
           }
 
