@@ -2002,12 +2002,18 @@
                   type="date"
                   required
                   tabindex="-1"
-                  class="absolute inset-y-0 right-0 z-10 w-12 cursor-pointer opacity-0"
+                  class="absolute left-0 top-0 h-px w-px overflow-hidden opacity-0"
                   aria-hidden="true"
                 />
-                <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500" aria-hidden="true">
-                  <i data-lucide="calendar" class="h-4 w-4"></i>
-                </span>
+                <button
+                  type="button"
+                  id="gasto-data-cal-btn"
+                  class="absolute right-1.5 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 cursor-pointer items-center justify-center rounded-lg text-zinc-400 transition hover:bg-white/10 hover:text-zinc-200"
+                  aria-label="Abrir calendário"
+                  title="Abrir calendário"
+                >
+                  <i data-lucide="calendar" class="h-4 w-4 pointer-events-none"></i>
+                </button>
               </div>
             </div>
             <div>
@@ -2304,12 +2310,18 @@
                   id="filtro-lancamentos-data"
                   type="date"
                   tabindex="-1"
-                  class="absolute inset-y-0 right-0 z-10 w-11 cursor-pointer opacity-0"
+                  class="absolute left-0 top-0 h-px w-px overflow-hidden opacity-0"
                   aria-hidden="true"
                 />
-                <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500" aria-hidden="true">
-                  <i data-lucide="calendar" class="h-4 w-4"></i>
-                </span>
+                <button
+                  type="button"
+                  id="filtro-lancamentos-data-cal-btn"
+                  class="absolute right-1 top-1/2 z-20 flex h-8 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-lg text-zinc-400 transition hover:bg-white/10 hover:text-zinc-200"
+                  aria-label="Abrir calendário"
+                  title="Abrir calendário"
+                >
+                  <i data-lucide="calendar" class="h-4 w-4 pointer-events-none"></i>
+                </button>
               </div>
             </label>
           </div>
@@ -11291,37 +11303,324 @@
           viewEl.placeholder = gfpT("dash.lanc.datePh");
         }
 
-        function wireLocaleDateField(isoId, viewId, onChange) {
+        function localeDateSegmentRanges() {
+          // PT: dd/mm/yyyy · EN: mm/dd/yyyy
+          return [
+            { start: 0, end: 2, maxLen: 2 },
+            { start: 3, end: 5, maxLen: 2 },
+            { start: 6, end: 10, maxLen: 4 },
+          ];
+        }
+
+        function localeDateSplitParts(str) {
+          const digits = String(str || "").replace(/\D/g, "");
+          return [digits.slice(0, 2), digits.slice(2, 4), digits.slice(4, 8)];
+        }
+
+        function localeDateJoinParts(parts) {
+          const a = String(parts[0] || "").slice(0, 2);
+          const b = String(parts[1] || "").slice(0, 2);
+          const c = String(parts[2] || "").slice(0, 4);
+          if (!a && !b && !c) return "";
+          let out = a;
+          if (a.length >= 2 || b || c) out += "/" + b;
+          if (b.length >= 2 || c) out += "/" + c;
+          return out;
+        }
+
+        function localeDateSegmentIndexAt(pos) {
+          const segs = localeDateSegmentRanges();
+          for (let i = 0; i < segs.length; i++) {
+            if (pos <= segs[i].end) return i;
+          }
+          return segs.length - 1;
+        }
+
+        function localeDateSelectSegment(viewEl, segIdx) {
+          const i = Math.max(0, Math.min(segIdx, 2));
+          const val = String(viewEl.value || "");
+          const parts = val.split("/");
+          let start = 0;
+          for (let j = 0; j < i; j++) {
+            start += (parts[j] != null ? String(parts[j]).length : 0) + 1;
+          }
+          const partLen = parts[i] != null ? String(parts[i]).length : 0;
+          const end = start + partLen;
+          try {
+            if (partLen > 0) viewEl.setSelectionRange(start, end);
+            else viewEl.setSelectionRange(start, start);
+          } catch (_) {}
+          viewEl.dataset.dateSeg = String(i);
+          viewEl.dataset.dateSegFresh = "1";
+        }
+
+        function openNativeDatePicker(isoEl) {
+          if (!isoEl) return;
+          try {
+            if (typeof isoEl.showPicker === "function") {
+              isoEl.showPicker();
+              return;
+            }
+          } catch (_) {}
+          try {
+            // Fallback: input nativo visível só no clique
+            const prev = isoEl.getAttribute("class") || "";
+            isoEl.setAttribute(
+              "class",
+              "absolute right-1.5 top-1/2 z-30 h-9 w-9 -translate-y-1/2 cursor-pointer opacity-0"
+            );
+            isoEl.focus();
+            isoEl.click();
+            setTimeout(() => {
+              try {
+                isoEl.setAttribute("class", prev);
+              } catch (_) {}
+            }, 500);
+          } catch (_) {}
+        }
+
+        /** Digitação rápida em campos dd/mm (ou mm/dd): clique seleciona o trecho; 2 dígitos pulam ao próximo. */
+        function prepararInputDiaMesRapido(viewEl) {
+          if (!viewEl || viewEl.dataset.diaMesRapidoBound === "1") return;
+          viewEl.dataset.diaMesRapidoBound = "1";
+
+          const selectSeg = (segIdx) => {
+            const i = segIdx <= 0 ? 0 : 1;
+            const val = String(viewEl.value || "");
+            const slash = val.indexOf("/");
+            if (slash < 0) {
+              try {
+                viewEl.setSelectionRange(0, val.length);
+              } catch (_) {}
+              viewEl.dataset.dmSeg = "0";
+              viewEl.dataset.dmFresh = "1";
+              return;
+            }
+            if (i === 0) {
+              try {
+                viewEl.setSelectionRange(0, slash);
+              } catch (_) {}
+            } else {
+              try {
+                viewEl.setSelectionRange(slash + 1, val.length);
+              } catch (_) {}
+            }
+            viewEl.dataset.dmSeg = String(i);
+            viewEl.dataset.dmFresh = "1";
+          };
+
+          const segFromPos = () => {
+            const val = String(viewEl.value || "");
+            const slash = val.indexOf("/");
+            const pos = viewEl.selectionStart || 0;
+            if (slash < 0) return 0;
+            return pos > slash ? 1 : 0;
+          };
+
+          viewEl.addEventListener("click", () => {
+            requestAnimationFrame(() => selectSeg(segFromPos()));
+          });
+          viewEl.addEventListener("focus", () => {
+            requestAnimationFrame(() => selectSeg(segFromPos()));
+          });
+          viewEl.addEventListener("mouseup", (e) => {
+            e.preventDefault();
+            requestAnimationFrame(() => selectSeg(segFromPos()));
+          });
+
+          viewEl.addEventListener("keydown", (e) => {
+            if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+              e.preventDefault();
+              selectSeg(e.key === "ArrowLeft" ? 0 : 1);
+              return;
+            }
+            if (e.key === "Backspace" || e.key === "Delete") {
+              e.preventDefault();
+              const parts = String(viewEl.value || "").split("/");
+              let a = (parts[0] || "").replace(/\D/g, "").slice(0, 2);
+              let b = (parts[1] || "").replace(/\D/g, "").slice(0, 2);
+              let seg = Number(viewEl.dataset.dmSeg || "0");
+              if (viewEl.dataset.dmFresh === "1" || !(seg === 0 ? a : b)) {
+                if (seg === 0) a = "";
+                else b = "";
+                viewEl.dataset.dmFresh = "0";
+                if (e.key === "Backspace" && seg === 1 && !b) {
+                  seg = 0;
+                  a = "";
+                }
+              } else if (seg === 0) a = a.slice(0, -1);
+              else b = b.slice(0, -1);
+              viewEl.value = a + (a.length || b.length ? "/" + b : b ? "/" + b : "");
+              if (a && !viewEl.value.includes("/")) viewEl.value = a + (b || b === "" ? "/" + b : "");
+              // Normaliza
+              if (a || b) viewEl.value = a + "/" + b;
+              else viewEl.value = "";
+              selectSeg(seg);
+              return;
+            }
+            if (!/^\d$/.test(e.key)) return;
+            e.preventDefault();
+            const parts = String(viewEl.value || "").split("/");
+            let a = (parts[0] || "").replace(/\D/g, "").slice(0, 2);
+            let b = (parts[1] || "").replace(/\D/g, "").slice(0, 2);
+            let seg = Number(viewEl.dataset.dmSeg || "0");
+            if (viewEl.dataset.dmFresh === "1") {
+              if (seg === 0) a = "";
+              else b = "";
+              viewEl.dataset.dmFresh = "0";
+            }
+            if (seg === 0) {
+              a = (a + e.key).slice(0, 2);
+              viewEl.value = a + "/" + b;
+              if (a.length >= 2) selectSeg(1);
+              else {
+                viewEl.dataset.dmSeg = "0";
+                try {
+                  viewEl.setSelectionRange(0, a.length);
+                } catch (_) {}
+              }
+            } else {
+              b = (b + e.key).slice(0, 2);
+              viewEl.value = a + "/" + b;
+              viewEl.dataset.dmSeg = "1";
+              viewEl.dataset.dmFresh = "0";
+              const start = a.length + 1;
+              try {
+                viewEl.setSelectionRange(start, start + b.length);
+              } catch (_) {}
+            }
+          });
+        }
+
+        function wireLocaleDateField(isoId, viewId, onChange, calBtnId) {
           const isoEl = document.getElementById(isoId);
           const viewEl = document.getElementById(viewId);
           if (!isoEl || !viewEl || viewEl.dataset.localeDateBound === "1") return;
           viewEl.dataset.localeDateBound = "1";
           syncLocaleDateView(isoEl, viewEl);
+
+          const notify = () => {
+            if (typeof onChange === "function") onChange();
+          };
+
           isoEl.addEventListener("change", () => {
             syncLocaleDateView(isoEl, viewEl);
-            if (typeof onChange === "function") onChange();
+            notify();
           });
           isoEl.addEventListener("input", () => {
             syncLocaleDateView(isoEl, viewEl);
-            if (typeof onChange === "function") onChange();
+            notify();
           });
+
+          const calBtn =
+            (calBtnId && document.getElementById(calBtnId)) ||
+            viewEl.parentElement?.querySelector("[data-date-cal-btn]");
+          if (calBtn && calBtn.dataset.dateCalBound !== "1") {
+            calBtn.dataset.dateCalBound = "1";
+            calBtn.addEventListener("click", (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              openNativeDatePicker(isoEl);
+            });
+          }
+
+          const selectSegFromPointer = () => {
+            requestAnimationFrame(() => {
+              const pos = viewEl.selectionStart || 0;
+              localeDateSelectSegment(viewEl, localeDateSegmentIndexAt(pos));
+            });
+          };
+
+          viewEl.addEventListener("focus", () => {
+            if (!String(viewEl.value || "").trim() && isoEl.value) {
+              syncLocaleDateView(isoEl, viewEl);
+            }
+            selectSegFromPointer();
+          });
+          viewEl.addEventListener("click", selectSegFromPointer);
+          viewEl.addEventListener("mouseup", (e) => {
+            e.preventDefault();
+            selectSegFromPointer();
+          });
+
           viewEl.addEventListener("blur", () => {
             const parsed = parseDateInputMask(viewEl.value);
             if (parsed) {
               isoEl.value = parsed;
               syncLocaleDateView(isoEl, viewEl);
-              if (typeof onChange === "function") onChange();
+              notify();
             } else if (!String(viewEl.value || "").trim()) {
               isoEl.value = "";
-              if (typeof onChange === "function") onChange();
+              notify();
             } else {
               syncLocaleDateView(isoEl, viewEl);
             }
           });
+
           viewEl.addEventListener("keydown", (e) => {
             if (e.key === "Enter") {
               e.preventDefault();
               viewEl.blur();
+              return;
+            }
+            if (e.key === "ArrowLeft" || e.key === "ArrowRight" || e.key === "Tab") {
+              if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+                e.preventDefault();
+                let seg = Number(viewEl.dataset.dateSeg || "0");
+                if (e.key === "ArrowLeft") seg = Math.max(0, seg - 1);
+                else seg = Math.min(2, seg + 1);
+                localeDateSelectSegment(viewEl, seg);
+              }
+              return;
+            }
+            if (e.key === "Backspace" || e.key === "Delete") {
+              e.preventDefault();
+              const parts = localeDateSplitParts(viewEl.value);
+              while (parts.length < 3) parts.push("");
+              let seg = Number(viewEl.dataset.dateSeg || "0");
+              if (viewEl.dataset.dateSegFresh === "1" || !parts[seg]) {
+                parts[seg] = "";
+                viewEl.dataset.dateSegFresh = "0";
+                if (seg > 0 && e.key === "Backspace") {
+                  seg -= 1;
+                  parts[seg] = "";
+                }
+              } else {
+                parts[seg] = String(parts[seg]).slice(0, -1);
+              }
+              viewEl.value = localeDateJoinParts(parts);
+              localeDateSelectSegment(viewEl, seg);
+              return;
+            }
+            if (!/^\d$/.test(e.key)) return;
+            e.preventDefault();
+            const segs = localeDateSegmentRanges();
+            const parts = localeDateSplitParts(viewEl.value);
+            while (parts.length < 3) parts.push("");
+            let seg = Number(viewEl.dataset.dateSeg || "0");
+            if (!Number.isFinite(seg) || seg < 0 || seg > 2) seg = 0;
+            let cur = String(parts[seg] || "").replace(/\D/g, "");
+            if (viewEl.dataset.dateSegFresh === "1") {
+              cur = "";
+              viewEl.dataset.dateSegFresh = "0";
+            }
+            cur = (cur + e.key).slice(0, segs[seg].maxLen);
+            parts[seg] = cur;
+            viewEl.value = localeDateJoinParts(parts);
+            if (cur.length >= segs[seg].maxLen && seg < 2) {
+              localeDateSelectSegment(viewEl, seg + 1);
+            } else {
+              viewEl.dataset.dateSeg = String(seg);
+              viewEl.dataset.dateSegFresh = "0";
+              const partsNow = String(viewEl.value || "").split("/");
+              let start = 0;
+              for (let j = 0; j < seg; j++) {
+                start += (partsNow[j] != null ? String(partsNow[j]).length : 0) + 1;
+              }
+              const end = start + cur.length;
+              try {
+                viewEl.setSelectionRange(start, end);
+              } catch (_) {}
             }
           });
         }
@@ -12112,6 +12411,7 @@
             wrapV.appendChild(inV);
             wrapV.appendChild(btnVenNeve);
             tdV.appendChild(wrapV);
+            if (!venFrozen) prepararInputDiaMesRapido(inV);
 
             const tdVP = document.createElement("td");
             tdVP.className = "cf-col-valor-pago align-middle px-2 py-1.5";
@@ -12217,6 +12517,7 @@
                 solicitarUpdateDashboard();
               });
             }
+            if (!isCredito) prepararInputDiaMesRapido(inDP);
             tdDP.appendChild(inDP);
 
             const tdU = document.createElement("td");
@@ -12581,6 +12882,7 @@
               inV.value = isoParaDiaMesBR(parsed);
               updateDashboard();
             });
+            prepararInputDiaMesRapido(inV);
             tdV.appendChild(inV);
 
             const tdVP = document.createElement("td");
@@ -12637,6 +12939,7 @@
               inDP.value = isoParaDiaMesBR(parsed);
               updateDashboard();
             });
+            prepararInputDiaMesRapido(inDP);
             tdDP.appendChild(inDP);
 
             const tdFech = document.createElement("td");
@@ -14305,12 +14608,12 @@
           wireLocaleDateField("gasto-data", "gasto-data-view", () => {
             atualizarTotalGastoDia();
             atualizarHintDestinoFatura();
-          });
+          }, "gasto-data-cal-btn");
           wireLocaleDateField("filtro-lancamentos-data", "filtro-lancamentos-data-view", () => {
             const inp = document.getElementById("filtro-lancamentos-data");
             filtrosLancamentos.data = inp ? inp.value || "" : "";
             renderTabelaGastos();
-          });
+          }, "filtro-lancamentos-data-cal-btn");
           refreshAllLocaleDateViews();
           atualizarTotalGastoDia();
           renderTotaisCategoriaMes();
