@@ -2451,10 +2451,10 @@
             <h2 id="titulo-contas-pagar" class="text-lg font-semibold text-white" data-i18n="dash.panel.cartoes">Cartões</h2>
             <p class="mt-1 max-w-3xl text-sm text-bank-muted">
               Um mês por vez (padrão: atual). Só contas com vínculo por origem (cartão). «Gasto atual» da fatura =
-              lançamentos em Crédito + contas fixas em Crédito da mesma origem no <strong class="font-medium text-zinc-300">mesmo mês</strong>
-              (junho com junho, julho com julho). Fechamento de fatura define o ciclo dos lançamentos.
-              Valor pago é controle da fatura — não entra de novo no gasto do mês. Vencimentos alimentam «Próximos
-              vencimentos» no dashboard.
+              lançamentos em Crédito + contas fixas em Crédito da mesma origem, pelo
+              <strong class="font-medium text-zinc-300">ciclo de fechamento</strong>
+              (ex.: cobrança em 15/08 com fatura dia 10 → fatura de 10/09). Valor pago é controle da fatura — não
+              entra de novo no gasto do mês. Vencimentos alimentam «Próximos vencimentos» no dashboard.
             </p>
           </div>
           <div class="flex shrink-0 flex-wrap items-end gap-3">
@@ -5225,15 +5225,25 @@
           if (!origem) return null;
           const cartao = contasPagarItemPorNomeOrigem(origem);
           if (!cartao) return null;
-          // Mesmo mês da grade de Contas fixas ↔ coluna de Cartões (sem deslocar pelo ciclo de fechamento).
-          const cellCartao = peekCellContaPagar(year, monthIdx, cartao.id);
+          const cell = cellFixa || peekCellContaFixa(year, monthIdx, item.id) || defaultCellContaFixa();
+          // Data da cobrança na fixa → coluna de Cartões pelo fechamento/vencimento do cartão
+          // Ex.: cobrança 15/08 + fatura que vence dia 10 → fatura de 10/09
+          const dataCobranca = vencimentoCampoValor(year, monthIdx, item, cell);
+          if (!dataCobranca) return null;
+          const alvo = mesAnoColunaContasPagarParaLancamento(cartao, {
+            data: dataCobranca,
+            meioPagamento: "Crédito",
+            origem,
+          });
+          if (!alvo) return null;
+          const cellCartao = peekCellContaPagar(alvo.y, alvo.mo, cartao.id);
           const vencimentoFatura = cellCartao
-            ? vencimentoCampoValor(year, monthIdx, cartao, cellCartao)
-            : vencimentoPadraoISO(year, monthIdx, cartao);
+            ? vencimentoCampoValor(alvo.y, alvo.mo, cartao, cellCartao)
+            : vencimentoPadraoISO(alvo.y, alvo.mo, cartao);
           return {
             cartao,
-            year,
-            monthIdx,
+            year: alvo.y,
+            monthIdx: alvo.mo,
             cell: cellCartao,
             vencimento: String(vencimentoFatura || "").trim(),
           };
@@ -5299,9 +5309,8 @@
         }
 
         /**
-         * Contas fixas em Crédito da mesma origem no **mesmo mês** da fatura em Cartões.
-         * Não usa ciclo de fechamento: fixa de junho → só fatura de junho (não “pula” para julho).
-         * Só composição da fatura — o gasto do mês já conta a fixa em Contas fixas.
+         * Contas fixas em Crédito → fatura em Cartões pelo ciclo (fechamento/vencimento).
+         * Ex.: cobrança 15/08 com fatura dia 10 → entra/quita na fatura de 10/09.
          */
         let _cacheSomasFixasFaturaKey = "";
         let _cacheSomasFixasFaturaMap = null;
@@ -5311,26 +5320,54 @@
           _cacheSomasFixasFaturaMap = null;
         }
 
-        /** Mapa cartaoId → soma das fixas Crédito do mesmo mês/ano da fatura. */
+        function avancarMesAnoSimplesFatura(y, m, delta) {
+          let yy = y;
+          let mm = m + delta;
+          while (mm < 0) {
+            mm += 12;
+            yy--;
+          }
+          while (mm > 11) {
+            mm -= 12;
+            yy++;
+          }
+          return { y: yy, m: mm };
+        }
+
+        /** Mapa cartaoId → soma das fixas Crédito cujo ciclo cai nesta coluna de fatura. */
         function mapaSomasFixasCreditoNaFatura(year, monthIdx) {
           const key = String(year) + ":" + String(monthIdx);
           if (_cacheSomasFixasFaturaMap && _cacheSomasFixasFaturaKey === key) {
             return _cacheSomasFixasFaturaMap;
           }
           const map = Object.create(null);
-          for (let fi = 0; fi < contasFixasItems.length; fi++) {
-            const fixa = contasFixasItems[fi];
-            if (!fixa) continue;
-            if (!contaFixaEhCredito(fixa, year, monthIdx)) continue;
-            const cellFixa = peekCellContaFixa(year, monthIdx, fixa.id);
-            if (!cellFixa) continue;
-            const v = Number(cellFixa.gastoAtual);
-            if (!Number.isFinite(v) || v <= 0) continue;
-            const origem = origemContaFixaMes(fixa, year, monthIdx);
-            if (!origem) continue;
-            const cartao = contasPagarItemPorNomeOrigem(origem);
-            if (!cartao) continue;
-            map[cartao.id] = (map[cartao.id] || 0) + v;
+          // Cobranças de meses vizinhos podem cair nesta fatura pelo fechamento
+          const inicio = avancarMesAnoSimplesFatura(year, monthIdx, -2);
+          let y = inicio.y;
+          let m = inicio.m;
+          for (let step = 0; step < 5; step++) {
+            for (let fi = 0; fi < contasFixasItems.length; fi++) {
+              const fixa = contasFixasItems[fi];
+              if (!fixa) continue;
+              if (!contaFixaEhCredito(fixa, y, m)) continue;
+              const cellFixa = peekCellContaFixa(y, m, fixa.id);
+              if (!cellFixa) continue;
+              const v = Number(cellFixa.gastoAtual);
+              if (!Number.isFinite(v) || v <= 0) continue;
+              const fatura = faturaAlvoContaFixa(fixa, y, m, cellFixa);
+              if (
+                !fatura ||
+                !fatura.cartao ||
+                fatura.year !== year ||
+                fatura.monthIdx !== monthIdx
+              ) {
+                continue;
+              }
+              map[fatura.cartao.id] = (map[fatura.cartao.id] || 0) + v;
+            }
+            const next = avancarMesAnoSimplesFatura(y, m, 1);
+            y = next.y;
+            m = next.m;
           }
           const ids = Object.keys(map);
           for (let i = 0; i < ids.length; i++) {
@@ -13121,7 +13158,7 @@
             formatMoney(totalGastoMes) +
             "</td>" +
             '<td colspan="4" class="px-3 py-2 text-right text-[10px] font-medium leading-snug normal-case tracking-normal text-bank-muted sm:px-4 sm:text-[11px]">' +
-            "Totais da fatura · automático = lançamentos + fixas em Crédito do mesmo mês · digite um total (0 ok) para travar; apague o campo para voltar ao automático<br>" +
+            "Totais da fatura · automático = lançamentos + fixas em Crédito pelo ciclo (fechamento/vencimento) · digite um total (0 ok) para travar; apague o campo para voltar ao automático<br>" +
             "Valor pago é só quitação — não soma de novo no gasto do mês" +
             "</td>" +
             '<td class="px-3 py-2 tabular-nums text-sm font-bold text-emerald-300/90 sm:px-4">' +
