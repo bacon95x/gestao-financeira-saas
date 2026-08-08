@@ -894,6 +894,38 @@
         }
       }
 
+      /* Metas: barra de uso (enche; verde → amarelo ≥80% → vermelho ≥100%) */
+      .meta-bar {
+        height: 0.7rem;
+        border-radius: 0.35rem;
+        border: 1px solid #3f3f4a;
+        background: #16161e;
+        overflow: hidden;
+      }
+      .meta-bar > i {
+        display: block;
+        height: 100%;
+        width: 0;
+        background: transparent;
+        transition: width 0.35s ease, background 0.3s ease;
+      }
+      .meta-bar.empty > i {
+        width: 0 !important;
+        background: transparent;
+      }
+      .meta-bar.ok > i {
+        background: linear-gradient(180deg, #86efac, #22c55e 50%, #15803d);
+      }
+      .meta-bar.warn > i {
+        background: linear-gradient(180deg, #fde68a, #f59e0b 50%, #b45309);
+      }
+      .meta-bar.danger > i {
+        background: linear-gradient(180deg, #fca5a5, #ef4444 50%, #991b1b);
+      }
+      .meta-bar-lg {
+        height: 1.15rem;
+      }
+
       /* Juros/taxas: valor + botão ❄ em linha */
       #calendario-juros-mount table tbody td:first-child .cj-juros-celula-wrap {
         display: flex;
@@ -1305,6 +1337,15 @@
             >
               <i data-lucide="credit-card" class="h-4 w-4"></i>
               <span data-i18n="dash.tab.cartoes">Cartões</span>
+            </button>
+            <button
+              type="button"
+              role="tab"
+              data-tab="metas"
+              class="tab-btn inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl border border-transparent px-4 py-2.5 text-sm font-medium text-zinc-400 transition hover:text-zinc-200"
+            >
+              <i data-lucide="target" class="h-4 w-4"></i>
+              <span data-i18n="dash.tab.metas">Metas</span>
             </button>
             <button
               type="button"
@@ -2476,6 +2517,168 @@
         </div>
 
         <div id="contas-pagar-meses-wrapper" class="space-y-6"></div>
+      </section>
+
+      <!-- Metas por categoria (tetos de gasto do mês) -->
+      <section
+        id="panel-metas"
+        class="tab-panel hidden space-y-5"
+        role="tabpanel"
+        aria-labelledby="titulo-metas"
+      >
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <h2 id="titulo-metas" class="text-lg font-semibold text-white" data-i18n="dash.panel.metas">Metas</h2>
+            <p class="mt-1 max-w-3xl text-sm text-bank-muted" data-i18n="dash.panel.metasHint">
+              Defina um teto de gasto por categoria (as mesmas de Lançamentos). A barra enche com o uso do mês
+              (verde → amarelo em 80% → vermelho em 100%). Gastos = lançamentos + contas fixas do mês de referência.
+            </p>
+          </div>
+          <div class="flex shrink-0 flex-wrap items-end gap-3">
+            <div class="flex flex-col gap-1">
+              <label class="text-xs font-medium text-bank-muted" for="mes-metas" data-i18n="dash.common.month">Mês</label>
+              <select
+                id="mes-metas"
+                class="min-w-[10rem] rounded-xl border border-bank-border bg-bank-bg px-4 py-2.5 text-sm font-medium text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
+              ></select>
+            </div>
+            <div class="flex flex-col gap-1">
+              <label class="text-xs font-medium text-bank-muted" for="ano-metas" data-i18n="dash.common.year">Ano</label>
+              <select
+                id="ano-metas"
+                class="min-w-[6rem] rounded-xl border border-bank-border bg-bank-bg px-4 py-2.5 text-sm font-medium text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
+              ></select>
+            </div>
+          </div>
+        </div>
+
+        <section class="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <div class="rounded-xl border border-bank-border bg-bank-card px-3 py-2.5">
+            <p class="text-[10px] uppercase tracking-wide text-bank-muted" data-i18n="dash.common.month">Mês</p>
+            <p class="mt-0.5 text-sm font-semibold text-white" id="metas-kpi-mes">—</p>
+          </div>
+          <div class="rounded-xl border border-bank-border bg-bank-card px-3 py-2.5">
+            <p class="text-[10px] uppercase tracking-wide text-bank-muted" data-i18n="dash.metas.renda">Renda</p>
+            <p class="mt-0.5 tabular-nums text-sm font-semibold text-emerald-300" id="metas-kpi-renda">—</p>
+          </div>
+          <div class="rounded-xl border border-bank-border bg-bank-card px-3 py-2.5">
+            <p class="text-[10px] uppercase tracking-wide text-bank-muted" data-i18n="dash.metas.gasto">Gasto</p>
+            <p class="mt-0.5 tabular-nums text-sm font-semibold text-white" id="metas-kpi-gasto">—</p>
+          </div>
+          <div class="rounded-xl border border-bank-border bg-bank-card px-3 py-2.5">
+            <p class="text-[10px] uppercase tracking-wide text-bank-muted" data-i18n="dash.metas.alertas">Alertas</p>
+            <p class="mt-0.5 tabular-nums text-sm font-semibold text-amber-200" id="metas-kpi-alerts">0</p>
+          </div>
+        </section>
+
+        <div id="metas-alerts" class="space-y-2" aria-live="polite"></div>
+
+        <div class="grid gap-4 lg:grid-cols-12">
+          <section class="lg:col-span-7 rounded-2xl border border-violet-400/25 bg-bank-card p-5 shadow-glow sm:p-6">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <p class="text-[11px] font-semibold uppercase tracking-wider text-violet-300/90" data-i18n="dash.metas.focus">
+                Categoria em foco
+              </p>
+              <div class="flex gap-2">
+                <button
+                  type="button"
+                  id="metas-btn-prev"
+                  class="rounded-lg border border-bank-border bg-bank-bg/50 px-2.5 py-1 text-xs text-zinc-300 transition hover:bg-white/5"
+                  aria-label="Categoria anterior"
+                >
+                  ←
+                </button>
+                <button
+                  type="button"
+                  id="metas-btn-next"
+                  class="rounded-lg border border-bank-border bg-bank-bg/50 px-2.5 py-1 text-xs text-zinc-300 transition hover:bg-white/5"
+                  aria-label="Próxima categoria"
+                >
+                  →
+                </button>
+              </div>
+            </div>
+            <h3 class="mt-2 text-2xl font-semibold tracking-tight text-white" id="metas-focus-name">—</h3>
+            <p class="mt-1 text-sm text-bank-muted" id="metas-focus-sub">—</p>
+            <div class="mt-5">
+              <div class="mb-1.5 flex justify-between text-[11px] text-bank-muted">
+                <span data-i18n="dash.metas.uso">Uso da meta</span>
+                <span class="tabular-nums" id="metas-focus-bar-label">—</span>
+              </div>
+              <div class="meta-bar meta-bar-lg empty" id="metas-focus-bar"><i style="width:0%"></i></div>
+            </div>
+            <div class="mt-4 grid grid-cols-3 gap-2 text-center">
+              <div class="rounded-xl border border-bank-border bg-bank-bg/50 px-2 py-2.5">
+                <p class="text-[10px] uppercase tracking-wide text-bank-muted" data-i18n="dash.metas.gasto">Gasto</p>
+                <p class="mt-0.5 tabular-nums text-sm font-semibold text-white" id="metas-focus-gasto">—</p>
+              </div>
+              <div class="rounded-xl border border-bank-border bg-bank-bg/50 px-2 py-2.5">
+                <p class="text-[10px] uppercase tracking-wide text-bank-muted" data-i18n="dash.metas.meta">Meta</p>
+                <p class="mt-0.5 tabular-nums text-sm font-semibold text-white" id="metas-focus-meta">—</p>
+              </div>
+              <div class="rounded-xl border border-bank-border bg-bank-bg/50 px-2 py-2.5">
+                <p class="text-[10px] uppercase tracking-wide text-bank-muted" data-i18n="dash.metas.resta">Resta</p>
+                <p class="mt-0.5 tabular-nums text-sm font-semibold text-emerald-300" id="metas-focus-resta">—</p>
+              </div>
+            </div>
+            <p class="mt-4 text-center text-xs font-medium" id="metas-focus-status">—</p>
+            <div class="mt-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-center">
+              <div class="min-w-0 flex-1 sm:max-w-xs">
+                <label class="text-[11px] font-medium text-bank-muted" for="metas-input-teto" data-i18n="dash.metas.definir">
+                  Definir teto da meta (R$)
+                </label>
+                <input
+                  id="metas-input-teto"
+                  type="text"
+                  inputmode="decimal"
+                  autocomplete="off"
+                  placeholder="0,00"
+                  class="input-moeda-br mt-1 w-full rounded-xl border border-bank-border bg-bank-bg px-3 py-2.5 text-sm tabular-nums text-white outline-none ring-violet-500/40 focus:border-violet-500/50 focus:ring-2"
+                />
+              </div>
+              <button
+                type="button"
+                id="metas-btn-salvar-teto"
+                class="rounded-xl border border-violet-400/40 bg-violet-500/15 px-4 py-2.5 text-xs font-semibold text-violet-100 transition hover:bg-violet-500/25"
+                data-i18n="dash.metas.salvar"
+              >
+                Salvar meta
+              </button>
+            </div>
+
+            <div class="mt-5 border-t border-bank-border pt-4">
+              <p class="text-[11px] font-semibold uppercase tracking-wider text-bank-muted" data-i18n="dash.metas.composicao">
+                Composição do gasto
+              </p>
+              <div class="mt-3 grid gap-4 sm:grid-cols-[auto_1fr] sm:items-center">
+                <div class="relative mx-auto h-40 w-40 shrink-0">
+                  <canvas id="metas-breakdown-pie" width="160" height="160" aria-label="Composição do gasto por categoria"></canvas>
+                  <div class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
+                    <span class="text-[10px] uppercase tracking-wide text-bank-muted" data-i18n="dash.metas.total">Total</span>
+                    <span class="tabular-nums text-sm font-semibold text-white" id="metas-breakdown-gasto">—</span>
+                  </div>
+                </div>
+                <div class="min-w-0">
+                  <div class="mb-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-bank-muted">
+                    <span
+                      ><span data-i18n="dash.metas.somaMetas">Soma das metas</span>:
+                      <strong class="tabular-nums text-zinc-200" id="metas-breakdown-metas">—</strong></span
+                    >
+                    <span id="metas-breakdown-share">—</span>
+                  </div>
+                  <ul class="max-h-44 space-y-1 overflow-y-auto pr-1" id="metas-breakdown-list"></ul>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <aside class="lg:col-span-5 rounded-2xl border border-bank-border bg-bank-card p-3 sm:p-4">
+            <p class="mb-2 text-[11px] font-semibold uppercase tracking-wider text-bank-muted" data-i18n="dash.metas.porRisco">
+              Por risco
+            </p>
+            <div id="metas-side-list" class="max-h-[32rem] space-y-1 overflow-y-auto pr-1"></div>
+          </aside>
+        </div>
       </section>
 
       <!-- Calendário de contas -->
@@ -3793,6 +3996,7 @@
         const STORAGE_TOUR_DASHBOARD = "gfp_tour_dashboard_v1";
         const STORAGE_LISTA_ORIGENS = "gfp_lista_origens_v1";
         const STORAGE_LISTA_CATEGORIAS = "gfp_lista_categorias_v1";
+        const STORAGE_METAS = "gfp_metas_v1";
         const STORAGE_CALENDARIO_JUROS = "gfp_calendario_juros_v1";
         const STORAGE_CALENDARIO_ORIGENS_ORDEM = "gfp_calendario_origens_ordem_v1";
         const STORAGE_THEME_FUNDO = "gfp_theme_fundo";
@@ -3973,6 +4177,25 @@
         ];
 
         let listaCategorias = [];
+        /** Teto mensal de gasto por nome de categoria (R$). */
+        /** @type {Record<string, number>} */
+        let metasPorCategoria = {};
+        /** Índice em listaCategorias da categoria em foco na aba Metas. */
+        let metasFocusIdx = 0;
+        const METAS_PIE_COLORS = [
+          "#8b5cf6",
+          "#22c55e",
+          "#f59e0b",
+          "#38bdf8",
+          "#f472b6",
+          "#a78bfa",
+          "#34d399",
+          "#fb923c",
+          "#60a5fa",
+          "#e879f9",
+          "#4ade80",
+          "#94a3b8",
+        ];
 
         /** @type {{ id: string, data: string, valor: number, descricao: string, categoria?: string, meioPagamento?: string, origem?: string, cartao?: string, parcelas?: number }[]} */
         let gastos = [];
@@ -4355,6 +4578,7 @@
             sincronizarRendaMensalDasPartesPorMesNoAno(new Date().getFullYear());
             executarMigracaoContasFixasSeNecessario();
             normalizarCategoriasOrigensGastosSalvos();
+            loadMetasPorCategoria();
           } catch {
             gastos = [];
             contas = [];
@@ -4370,7 +4594,29 @@
             dashboardGastosMesIdx = new Date().getMonth();
             dashboardAnotacoesPorMes = {};
             saldoPartesPorMes = {};
+            metasPorCategoria = {};
           }
+        }
+
+        function loadMetasPorCategoria() {
+          try {
+            const raw = localStorage.getItem(STORAGE_METAS);
+            const parsed = raw ? JSON.parse(raw) : {};
+            const out = {};
+            if (parsed && typeof parsed === "object") {
+              Object.keys(parsed).forEach((k) => {
+                const n = Number(parsed[k]);
+                if (k && Number.isFinite(n) && n >= 0) out[k] = normalizarValorCentavosBR(n);
+              });
+            }
+            metasPorCategoria = out;
+          } catch {
+            metasPorCategoria = {};
+          }
+        }
+
+        function saveMetasPorCategoria() {
+          localStorage.setItem(STORAGE_METAS, JSON.stringify(metasPorCategoria));
         }
 
         function saveDashboardGastosRef() {
@@ -10161,6 +10407,348 @@
           });
         }
 
+        function metaTetoCategoria(cat) {
+          const n = Number(metasPorCategoria[cat]);
+          return Number.isFinite(n) && n > 0 ? n : 0;
+        }
+
+        function statusMetaCategoria(gasto, meta) {
+          const pct = meta > 0 ? (gasto / meta) * 100 : gasto > 0 ? 100 : 0;
+          const resto = Math.max(0, meta - gasto);
+          const fill = Math.max(0, Math.min(100, pct));
+          let level = "ok";
+          if (meta <= 0) level = gasto > 0 ? "warn" : "empty";
+          else if (pct >= 100) level = "danger";
+          else if (pct >= 80) level = "warn";
+          else if (pct <= 0) level = "empty";
+          return { pct, resto, fill, level };
+        }
+
+        function metaBarClass(level, extra) {
+          const tone =
+            level === "danger" ? "danger" : level === "warn" ? "warn" : level === "empty" ? "empty" : "ok";
+          return (extra || "meta-bar") + " " + tone;
+        }
+
+        function syncMetasMesAnoSelects() {
+          const mSel = document.getElementById("mes-metas");
+          const aSel = document.getElementById("ano-metas");
+          if (mSel) mSel.value = String(dashboardGastosMesIdx);
+          if (aSel) aSel.value = String(dashboardGastosAno);
+        }
+
+        function preencherSelectMesMetas() {
+          const sel = document.getElementById("mes-metas");
+          if (!sel) return;
+          sel.innerHTML = "";
+          MESES_CONTAS_PAGAR.forEach((nome, idx) => {
+            const o = document.createElement("option");
+            o.value = String(idx);
+            o.textContent = nome;
+            sel.appendChild(o);
+          });
+          sel.value = String(dashboardGastosMesIdx);
+        }
+
+        function preencherSelectAnoMetas() {
+          const sel = document.getElementById("ano-metas");
+          if (!sel) return;
+          const yAtual = new Date().getFullYear();
+          sel.innerHTML = "";
+          for (let y = yAtual - 2; y <= yAtual + 2; y++) {
+            const o = document.createElement("option");
+            o.value = String(y);
+            o.textContent = String(y);
+            sel.appendChild(o);
+          }
+          sel.value = String(dashboardGastosAno);
+        }
+
+        function renderMetas() {
+          const panel = document.getElementById("panel-metas");
+          if (!panel || panel.classList.contains("hidden")) return;
+
+          if (!listaCategorias.length) metasFocusIdx = 0;
+          else if (metasFocusIdx < 0 || metasFocusIdx >= listaCategorias.length) metasFocusIdx = 0;
+
+          const agg = agregadoPorCategoriaMes();
+          const rows = listaCategorias.map((nome, i) => {
+            const gasto = agg[nome] || 0;
+            const meta = metaTetoCategoria(nome);
+            return { nome, i, gasto, meta, s: statusMetaCategoria(gasto, meta) };
+          });
+          const byRisk = rows.slice().sort((a, b) => b.s.pct - a.s.pct);
+          const gastoTotal = rows.reduce((a, r) => a + r.gasto, 0);
+          const metaTotal = rows.reduce((a, r) => a + r.meta, 0);
+          const alerts = rows.filter((r) => r.meta > 0 && (r.s.level === "warn" || r.s.level === "danger")).length;
+          const renda = valorRendaMesComSomaPartes(dashboardGastosAno, dashboardGastosMesIdx);
+          const mesNome = (MESES_CONTAS_PAGAR[dashboardGastosMesIdx] || "") + " " + dashboardGastosAno;
+
+          const setTxt = (id, t) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = t;
+          };
+          setTxt("metas-kpi-mes", mesNome);
+          setTxt("metas-kpi-renda", formatMoney(renda));
+          setTxt("metas-kpi-gasto", formatMoney(gastoTotal));
+          setTxt("metas-kpi-alerts", String(alerts));
+
+          const alertsBox = document.getElementById("metas-alerts");
+          if (alertsBox) {
+            const msgs = [];
+            byRisk.forEach((r) => {
+              if (r.meta <= 0) return;
+              if (r.s.level === "danger") {
+                msgs.push(
+                  '<div class="rounded-xl border border-rose-400/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-100"><strong>' +
+                    escapeHtml(r.nome) +
+                    "</strong> " +
+                    gfpT("dash.metas.alertEstourou") +
+                    " (" +
+                    formatMoney(r.gasto) +
+                    " / " +
+                    formatMoney(r.meta) +
+                    ")</div>"
+                );
+              } else if (r.s.level === "warn") {
+                msgs.push(
+                  '<div class="rounded-xl border border-amber-400/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-100"><strong>' +
+                    escapeHtml(r.nome) +
+                    "</strong> " +
+                    gfpT("dash.metas.alertAtencao").replace("{pct}", r.s.pct.toFixed(0)) +
+                    "</div>"
+                );
+              }
+            });
+            alertsBox.innerHTML = msgs.slice(0, 3).join("");
+          }
+
+          const focus = rows[metasFocusIdx] || rows[0];
+          if (focus) {
+            setTxt("metas-focus-name", focus.nome);
+            setTxt(
+              "metas-focus-sub",
+              focus.meta > 0
+                ? gfpT("dash.metas.tetoMes") + " " + formatMoney(focus.meta)
+                : gfpT("dash.metas.semTeto")
+            );
+            const bar = document.getElementById("metas-focus-bar");
+            if (bar) {
+              bar.className = metaBarClass(focus.s.level, "meta-bar meta-bar-lg");
+              const fill = bar.querySelector("i");
+              if (fill) fill.style.width = (focus.meta > 0 ? focus.s.fill : 0) + "%";
+            }
+            if (focus.meta <= 0) {
+              setTxt("metas-focus-bar-label", gfpT("dash.metas.definaTeto"));
+            } else if (focus.s.pct <= 0) {
+              setTxt("metas-focus-bar-label", gfpT("dash.metas.semGasto"));
+            } else {
+              setTxt(
+                "metas-focus-bar-label",
+                gfpT("dash.metas.pctUsado").replace("{pct}", focus.s.pct.toFixed(0))
+              );
+            }
+            setTxt("metas-focus-gasto", formatMoney(focus.gasto));
+            setTxt("metas-focus-meta", focus.meta > 0 ? formatMoney(focus.meta) : "—");
+            setTxt("metas-focus-resta", focus.meta > 0 ? formatMoney(focus.s.resto) : "—");
+            const statusEl = document.getElementById("metas-focus-status");
+            if (statusEl) {
+              if (focus.meta <= 0) {
+                statusEl.textContent = gfpT("dash.metas.statusSemMeta");
+                statusEl.className = "mt-4 text-center text-xs font-medium text-bank-muted";
+              } else if (focus.s.level === "danger") {
+                statusEl.textContent = gfpT("dash.metas.statusEstourou");
+                statusEl.className = "mt-4 text-center text-xs font-medium text-rose-300";
+              } else if (focus.s.level === "warn") {
+                statusEl.textContent = gfpT("dash.metas.statusPerto");
+                statusEl.className = "mt-4 text-center text-xs font-medium text-amber-200";
+              } else if (focus.s.pct <= 0) {
+                statusEl.textContent = gfpT("dash.metas.statusLivre");
+                statusEl.className = "mt-4 text-center text-xs font-medium text-bank-muted";
+              } else {
+                statusEl.textContent = gfpT("dash.metas.statusOk");
+                statusEl.className = "mt-4 text-center text-xs font-medium text-emerald-300/90";
+              }
+            }
+            const inp = document.getElementById("metas-input-teto");
+            if (inp && document.activeElement !== inp) {
+              inp.value = focus.meta > 0 ? formatValorMoedaCampo(focus.meta) : "";
+            }
+          }
+
+          const side = document.getElementById("metas-side-list");
+          if (side) {
+            side.innerHTML = byRisk
+              .map((r) => {
+                const on = r.i === metasFocusIdx;
+                return (
+                  '<button type="button" data-metas-i="' +
+                  r.i +
+                  '" class="flex w-full items-center gap-2 rounded-xl border px-2.5 py-2 text-left transition ' +
+                  (on
+                    ? "border-violet-400/50 bg-violet-500/15"
+                    : "border-bank-border/80 bg-bank-bg/40 hover:bg-white/[0.03]") +
+                  '"><div class="min-w-0 flex-1"><div class="flex justify-between gap-2"><span class="truncate text-xs font-medium text-white">' +
+                  escapeHtml(r.nome) +
+                  '</span><span class="tabular-nums text-[11px] ' +
+                  (r.s.level === "danger"
+                    ? "text-rose-300"
+                    : r.s.level === "warn"
+                    ? "text-amber-200"
+                    : "text-bank-muted") +
+                  '">' +
+                  (r.meta > 0 ? r.s.pct.toFixed(0) + "%" : "—") +
+                  "</span></div>" +
+                  '<div class="' +
+                  metaBarClass(r.meta > 0 ? r.s.level : "empty", "meta-bar mt-1.5") +
+                  '"><i style="width:' +
+                  (r.meta > 0 ? r.s.fill : 0) +
+                  '%"></i></div></div></button>'
+                );
+              })
+              .join("");
+            side.querySelectorAll("[data-metas-i]").forEach((btn) => {
+              btn.addEventListener("click", () => {
+                metasFocusIdx = parseInt(btn.getAttribute("data-metas-i"), 10) || 0;
+                renderMetas();
+              });
+            });
+          }
+
+          setTxt("metas-breakdown-gasto", formatMoney(gastoTotal));
+          setTxt("metas-breakdown-metas", formatMoney(metaTotal));
+          setTxt(
+            "metas-breakdown-share",
+            metaTotal > 0
+              ? gfpT("dash.metas.pctMetasUsadas").replace(
+                  "{pct}",
+                  ((gastoTotal / metaTotal) * 100).toFixed(0)
+                )
+              : "—"
+          );
+
+          const canvas = document.getElementById("metas-breakdown-pie");
+          if (canvas) {
+            const ctx = canvas.getContext("2d");
+            const size = canvas.width;
+            const cx = size / 2;
+            const cy = size / 2;
+            const r = size * 0.46;
+            const inner = size * 0.28;
+            ctx.clearRect(0, 0, size, size);
+            const withSpend = rows.filter((x) => x.gasto > 0).sort((a, b) => b.gasto - a.gasto);
+            if (gastoTotal <= 0) {
+              ctx.beginPath();
+              ctx.arc(cx, cy, r, 0, Math.PI * 2);
+              ctx.fillStyle = "#252532";
+              ctx.fill();
+            } else {
+              let ang = -Math.PI / 2;
+              withSpend.forEach((x) => {
+                const slice = (x.gasto / gastoTotal) * Math.PI * 2;
+                ctx.beginPath();
+                ctx.moveTo(cx, cy);
+                ctx.arc(cx, cy, r, ang, ang + slice);
+                ctx.closePath();
+                ctx.fillStyle = METAS_PIE_COLORS[x.i % METAS_PIE_COLORS.length];
+                ctx.fill();
+                ang += slice;
+              });
+            }
+            ctx.beginPath();
+            ctx.arc(cx, cy, inner, 0, Math.PI * 2);
+            ctx.fillStyle = "#12121a";
+            ctx.fill();
+          }
+
+          const listEl = document.getElementById("metas-breakdown-list");
+          if (listEl) {
+            const byMeta = rows.slice().sort((a, b) => b.meta - a.meta);
+            listEl.innerHTML = byMeta
+              .map((r) => {
+                const shareMeta = metaTotal > 0 ? (r.meta / metaTotal) * 100 : 0;
+                const color = METAS_PIE_COLORS[r.i % METAS_PIE_COLORS.length];
+                const on = r.i === metasFocusIdx;
+                return (
+                  '<li class="flex items-center gap-2.5 rounded-lg border px-2.5 py-1.5 ' +
+                  (on
+                    ? "border-violet-400/40 bg-violet-500/10"
+                    : "border-bank-border/60 bg-bank-bg/30") +
+                  '"><span class="h-2.5 w-2.5 shrink-0 rounded-full" style="background:' +
+                  color +
+                  '"></span><span class="min-w-0 flex-1 truncate text-xs font-medium text-zinc-100">' +
+                  escapeHtml(r.nome) +
+                  '</span><span class="tabular-nums text-xs font-semibold text-white" title="' +
+                  escapeHtml(gfpT("dash.metas.pesoMetaTitle")) +
+                  '">' +
+                  (r.meta > 0 ? shareMeta.toFixed(0) + "%" : "—") +
+                  "</span></li>"
+                );
+              })
+              .join("");
+          }
+        }
+
+        function salvarMetaFocoAtual() {
+          if (!listaCategorias.length) return;
+          const cat = listaCategorias[metasFocusIdx];
+          if (!cat) return;
+          const inp = document.getElementById("metas-input-teto");
+          const raw = inp ? String(inp.value || "").trim() : "";
+          if (!raw) {
+            delete metasPorCategoria[cat];
+          } else {
+            const n = parseValorMonetarioLancamento(raw);
+            if (!Number.isFinite(n) || n < 0) return;
+            if (n === 0) delete metasPorCategoria[cat];
+            else metasPorCategoria[cat] = normalizarValorCentavosBR(n);
+          }
+          saveMetasPorCategoria();
+          renderMetas();
+        }
+
+        function initMetasUi() {
+          preencherSelectMesMetas();
+          preencherSelectAnoMetas();
+          const mSel = document.getElementById("mes-metas");
+          const aSel = document.getElementById("ano-metas");
+          const onMesAno = () => {
+            const y = aSel ? parseInt(aSel.value, 10) : dashboardGastosAno;
+            const m = mSel ? parseInt(mSel.value, 10) : dashboardGastosMesIdx;
+            aplicarDashboardMesGastos(y, m);
+          };
+          if (mSel) mSel.addEventListener("change", onMesAno);
+          if (aSel) aSel.addEventListener("change", onMesAno);
+          const prev = document.getElementById("metas-btn-prev");
+          const next = document.getElementById("metas-btn-next");
+          if (prev) {
+            prev.addEventListener("click", () => {
+              if (!listaCategorias.length) return;
+              metasFocusIdx = (metasFocusIdx - 1 + listaCategorias.length) % listaCategorias.length;
+              renderMetas();
+            });
+          }
+          if (next) {
+            next.addEventListener("click", () => {
+              if (!listaCategorias.length) return;
+              metasFocusIdx = (metasFocusIdx + 1) % listaCategorias.length;
+              renderMetas();
+            });
+          }
+          const btnSave = document.getElementById("metas-btn-salvar-teto");
+          if (btnSave) btnSave.addEventListener("click", salvarMetaFocoAtual);
+          const inp = document.getElementById("metas-input-teto");
+          if (inp) {
+            prepararInputMoedaBR(inp);
+            inp.addEventListener("keydown", (ev) => {
+              if (ev.key === "Enter") {
+                ev.preventDefault();
+                salvarMetaFocoAtual();
+              }
+            });
+          }
+        }
+
         /** Data formatada (pt-BR) do vencimento mais próximo, igual ao 1º item da lista do modal. */
         function textoDataMaisProximoVencimento() {
           const lista = listaProximosVencimentosOrdenada();
@@ -10936,6 +11524,8 @@
           renderTotaisCategoriaMes();
           renderTabelaGastos();
           updateDashboard();
+          syncMetasMesAnoSelects();
+          renderMetas();
           try {
             if (typeof lucide !== "undefined" && lucide.createIcons) lucide.createIcons();
           } catch (_) {}
@@ -11054,6 +11644,7 @@
           );
           renderLegendaPizzaGrid("chart-categoria-legenda", labelsCat, coresCat);
           renderHistorico12Chart();
+          renderMetas();
         }
 
         function atualizarRefLancamentosRegistrados() {
@@ -11996,6 +12587,7 @@
           renderContasFixas();
           renderTotaisCategoriaMes();
           updateDashboard();
+          renderMetas();
           atualizarHintDestinoFatura();
           setOrigemSelecionada(prevO);
           setCategoriaSelecionada(prevC);
@@ -12103,12 +12695,18 @@
           contasFixasItems.forEach((item) => {
             if (categoriaContaFixa(item) === was) item.categoria = now;
           });
+          if (Object.prototype.hasOwnProperty.call(metasPorCategoria, was)) {
+            metasPorCategoria[now] = metasPorCategoria[was];
+            delete metasPorCategoria[was];
+            saveMetasPorCategoria();
+          }
           saveGastos();
           saveListaCategorias();
           saveContasFixasCatalog();
           const hidC = document.getElementById("gasto-categoria");
           if (hidC && (hidC.value || "").trim() === was) hidC.value = now;
           refreshUiListasEContas();
+          renderMetas();
           return true;
         }
 
@@ -12125,12 +12723,18 @@
           contasFixasItems.forEach((item) => {
             if (categoriaContaFixa(item) === cat) item.categoria = fallback;
           });
+          if (Object.prototype.hasOwnProperty.call(metasPorCategoria, cat)) {
+            delete metasPorCategoria[cat];
+            saveMetasPorCategoria();
+          }
+          if (metasFocusIdx >= listaCategorias.length) metasFocusIdx = 0;
           saveGastos();
           saveListaCategorias();
           saveContasFixasCatalog();
           const hidC = document.getElementById("gasto-categoria");
           if (hidC && (hidC.value || "").trim() === cat) hidC.value = "";
           refreshUiListasEContas();
+          renderMetas();
         }
 
         function adicionarCategoriaLista(texto) {
@@ -13248,6 +13852,11 @@
           if (name === "contas-pagar") {
             renderContasPagar();
             contasPagarPrecisaRender = false;
+            setTimeout(() => lucide.createIcons(), 0);
+          }
+          if (name === "metas") {
+            syncMetasMesAnoSelects();
+            renderMetas();
             setTimeout(() => lucide.createIcons(), 0);
           }
           if (name === "calendario") {
@@ -14690,6 +15299,7 @@
           preencherSelectAnoCalendarioJuros();
           preencherSelectMesCalendarioJuros();
           syncCalendarioJurosMesAnoComContasPagar();
+          initMetasUi();
           document.getElementById("gasto-data").value = new Date().toISOString().slice(0, 10);
           wireLocaleDateField("gasto-data", "gasto-data-view", () => {
             atualizarTotalGastoDia();
@@ -14749,6 +15359,8 @@
               }
               renderContasFixas();
               renderContasPagar();
+              preencherSelectMesMetas();
+              syncMetasMesAnoSelects();
               updateDashboard();
               if (typeof investSyncInputsFromState === "function") investSyncInputsFromState();
               if (typeof renderInvestimentosTabela === "function") renderInvestimentosTabela();
