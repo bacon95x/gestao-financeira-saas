@@ -2652,7 +2652,13 @@
               </p>
               <div class="mt-3 grid gap-4 sm:grid-cols-[auto_1fr] sm:items-center">
                 <div class="relative mx-auto h-40 w-40 shrink-0">
-                  <canvas id="metas-breakdown-pie" width="160" height="160" aria-label="Composição do gasto por categoria"></canvas>
+                  <canvas id="metas-breakdown-pie" aria-label="Composição do gasto por categoria"></canvas>
+                  <div
+                    id="metas-breakdown-pie-empty"
+                    class="absolute inset-0 hidden items-center justify-center rounded-full border border-bank-border bg-bank-bg text-[10px] text-bank-muted"
+                  >
+                    —
+                  </div>
                   <div class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
                     <span class="text-[10px] uppercase tracking-wide text-bank-muted" data-i18n="dash.metas.total">Total</span>
                     <span class="tabular-nums text-sm font-semibold text-white" id="metas-breakdown-gasto">—</span>
@@ -4253,6 +4259,7 @@
         let chartPizzaOrigemMeio = null;
         /** @type {Chart | null} */
         let chartPizzaCategoria = null;
+        let chartMetasBreakdown = null;
         /** @type {Chart | null} */
         let chartPatrimonio = null;
         /** @type {Chart | null} */
@@ -10627,39 +10634,23 @@
               : "—"
           );
 
-          const canvas = document.getElementById("metas-breakdown-pie");
-          if (canvas) {
-            const ctx = canvas.getContext("2d");
-            const size = canvas.width;
-            const cx = size / 2;
-            const cy = size / 2;
-            const r = size * 0.46;
-            const inner = size * 0.28;
-            ctx.clearRect(0, 0, size, size);
-            const withSpend = rows.filter((x) => x.gasto > 0).sort((a, b) => b.gasto - a.gasto);
-            if (gastoTotal <= 0) {
-              ctx.beginPath();
-              ctx.arc(cx, cy, r, 0, Math.PI * 2);
-              ctx.fillStyle = "#252532";
-              ctx.fill();
-            } else {
-              let ang = -Math.PI / 2;
-              withSpend.forEach((x) => {
-                const slice = (x.gasto / gastoTotal) * Math.PI * 2;
-                ctx.beginPath();
-                ctx.moveTo(cx, cy);
-                ctx.arc(cx, cy, r, ang, ang + slice);
-                ctx.closePath();
-                ctx.fillStyle = METAS_PIE_COLORS[x.i % METAS_PIE_COLORS.length];
-                ctx.fill();
-                ang += slice;
-              });
-            }
-            ctx.beginPath();
-            ctx.arc(cx, cy, inner, 0, Math.PI * 2);
-            ctx.fillStyle = "#12121a";
-            ctx.fill();
-          }
+          const withSpend = rows.filter((x) => x.gasto > 0).sort((a, b) => b.gasto - a.gasto);
+          criarOuAtualizarPizza(
+            document.getElementById("metas-breakdown-pie"),
+            document.getElementById("metas-breakdown-pie-empty"),
+            {
+              get current() {
+                return chartMetasBreakdown;
+              },
+              set current(c) {
+                chartMetasBreakdown = c;
+              },
+            },
+            withSpend.map((x) => x.nome),
+            withSpend.map((x) => x.gasto),
+            withSpend.map((x) => METAS_PIE_COLORS[x.i % METAS_PIE_COLORS.length]),
+            { hideLegend: true, doughnut: true, cutout: "58%", fillContainer: true }
+          );
 
           const listEl = document.getElementById("metas-breakdown-list");
           if (listEl) {
@@ -11196,9 +11187,13 @@
 
         function criarOuAtualizarPizza(canvas, emptyEl, chartRef, labels, data, cores, pieOpts) {
           pieOpts = pieOpts || {};
+          if (!canvas) return;
           if (labels.length === 0) {
             canvas.classList.add("hidden");
-            emptyEl.classList.remove("hidden");
+            if (emptyEl) {
+              emptyEl.classList.remove("hidden");
+              emptyEl.classList.add("flex");
+            }
             if (chartRef.current) {
               chartRef.current.destroy();
               chartRef.current = null;
@@ -11206,15 +11201,19 @@
             return;
           }
           canvas.classList.remove("hidden");
-          emptyEl.classList.add("hidden");
+          if (emptyEl) {
+            emptyEl.classList.add("hidden");
+            emptyEl.classList.remove("flex");
+          }
           const bg = labels.map((_, i) => cores[i % cores.length]);
           const light =
             document.documentElement.getAttribute("data-appearance") === "light";
           const pieBorder = light ? "#e4e4e7" : "#12121a";
           const legendColor = light ? "#52525b" : "#a1a1aa";
           if (chartRef.current) chartRef.current.destroy();
+          const isDoughnut = !!pieOpts.doughnut;
           chartRef.current = new Chart(canvas, {
-            type: "pie",
+            type: isDoughnut ? "doughnut" : "pie",
             data: {
               labels,
               datasets: [
@@ -11229,6 +11228,7 @@
             options: {
               responsive: true,
               maintainAspectRatio: !pieOpts.fillContainer,
+              cutout: isDoughnut ? pieOpts.cutout || "58%" : undefined,
               plugins: {
                 legend: {
                   display: !pieOpts.hideLegend,
