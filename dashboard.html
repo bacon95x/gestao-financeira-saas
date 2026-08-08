@@ -10502,12 +10502,31 @@
 
           const alertsBox = document.getElementById("metas-alerts");
           if (alertsBox) {
+            const rankBadge = (pos) => {
+              const styles = [
+                "border-amber-300/50 bg-amber-400/20 text-amber-100",
+                "border-zinc-300/40 bg-zinc-300/15 text-zinc-100",
+                "border-orange-400/45 bg-orange-500/15 text-orange-100",
+              ];
+              const labels = ["1º", "2º", "3º"];
+              return (
+                '<span class="inline-flex h-6 min-w-[1.5rem] shrink-0 items-center justify-center rounded-full border px-1.5 text-[10px] font-bold tabular-nums ' +
+                styles[pos] +
+                '" title="' +
+                escapeHtml(gfpT("dash.metas.rankAlert").replace("{n}", String(pos + 1))) +
+                '">' +
+                labels[pos] +
+                "</span>"
+              );
+            };
             const msgs = [];
             byRisk.forEach((r) => {
               if (r.meta <= 0) return;
               if (r.s.level === "danger") {
-                msgs.push(
-                  '<div class="rounded-xl border border-rose-400/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-100"><strong>' +
+                msgs.push({
+                  level: "danger",
+                  html:
+                    '<strong>' +
                     escapeHtml(r.nome) +
                     "</strong> " +
                     gfpT("dash.metas.alertEstourou") +
@@ -10515,19 +10534,37 @@
                     formatMoney(r.gasto) +
                     " / " +
                     formatMoney(r.meta) +
-                    ")</div>"
-                );
+                    ")",
+                });
               } else if (r.s.level === "warn") {
-                msgs.push(
-                  '<div class="rounded-xl border border-amber-400/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-100"><strong>' +
+                msgs.push({
+                  level: "warn",
+                  html:
+                    '<strong>' +
                     escapeHtml(r.nome) +
                     "</strong> " +
-                    gfpT("dash.metas.alertAtencao").replace("{pct}", r.s.pct.toFixed(0)) +
-                    "</div>"
-                );
+                    gfpT("dash.metas.alertAtencao").replace("{pct}", r.s.pct.toFixed(0)),
+                });
               }
             });
-            alertsBox.innerHTML = msgs.slice(0, 3).join("");
+            alertsBox.innerHTML = msgs
+              .slice(0, 3)
+              .map((m, i) => {
+                const wrap =
+                  m.level === "danger"
+                    ? "rounded-xl border border-rose-400/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-100"
+                    : "rounded-xl border border-amber-400/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-100";
+                return (
+                  '<div class="flex items-center gap-2.5 ' +
+                  wrap +
+                  '">' +
+                  rankBadge(i) +
+                  '<span class="min-w-0">' +
+                  m.html +
+                  "</span></div>"
+                );
+              })
+              .join("");
           }
 
           const focus = rows[metasFocusIdx] || rows[0];
