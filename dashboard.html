@@ -10425,7 +10425,8 @@
           const fill = Math.max(0, Math.min(100, pct));
           let level = "ok";
           if (meta <= 0) level = gasto > 0 ? "warn" : "empty";
-          else if (pct >= 100) level = "danger";
+          else if (pct > 100.005) level = "danger";
+          else if (pct >= 99.995 || Math.abs(gasto - meta) < 0.005) level = "hit";
           else if (pct >= 80) level = "warn";
           else if (pct <= 0) level = "empty";
           return { pct, resto, fill, level };
@@ -10433,8 +10434,22 @@
 
         function metaBarClass(level, extra) {
           const tone =
-            level === "danger" ? "danger" : level === "warn" ? "warn" : level === "empty" ? "empty" : "ok";
+            level === "danger" || level === "hit"
+              ? "danger"
+              : level === "warn"
+              ? "warn"
+              : level === "empty"
+              ? "empty"
+              : "ok";
           return (extra || "meta-bar") + " " + tone;
+        }
+
+        function metaNivelAlerta(level) {
+          return level === "warn" || level === "danger" || level === "hit";
+        }
+
+        function metaNivelCritico(level) {
+          return level === "danger" || level === "hit";
         }
 
         function syncMetasMesAnoSelects() {
@@ -10487,7 +10502,7 @@
           const byRisk = rows.slice().sort((a, b) => b.s.pct - a.s.pct);
           const gastoTotal = rows.reduce((a, r) => a + r.gasto, 0);
           const metaTotal = rows.reduce((a, r) => a + r.meta, 0);
-          const alerts = rows.filter((r) => r.meta > 0 && (r.s.level === "warn" || r.s.level === "danger")).length;
+          const alerts = rows.filter((r) => r.meta > 0 && metaNivelAlerta(r.s.level)).length;
           const renda = valorRendaMesComSomaPartes(dashboardGastosAno, dashboardGastosMesIdx);
           const mesNome = (MESES_CONTAS_PAGAR[dashboardGastosMesIdx] || "") + " " + dashboardGastosAno;
 
@@ -10536,6 +10551,20 @@
                     formatMoney(r.meta) +
                     ")",
                 });
+              } else if (r.s.level === "hit") {
+                msgs.push({
+                  level: "hit",
+                  html:
+                    '<strong>' +
+                    escapeHtml(r.nome) +
+                    "</strong> " +
+                    gfpT("dash.metas.alertAtingiu") +
+                    " (" +
+                    formatMoney(r.gasto) +
+                    " / " +
+                    formatMoney(r.meta) +
+                    ")",
+                });
               } else if (r.s.level === "warn") {
                 msgs.push({
                   level: "warn",
@@ -10553,6 +10582,8 @@
                 const wrap =
                   m.level === "danger"
                     ? "rounded-xl border border-rose-400/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-100"
+                    : m.level === "hit"
+                    ? "rounded-xl border border-violet-400/35 bg-violet-500/10 px-3 py-2 text-xs text-violet-100"
                     : "rounded-xl border border-amber-400/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-100";
                 return (
                   '<div class="flex items-center gap-2.5 ' +
@@ -10603,6 +10634,9 @@
               } else if (focus.s.level === "danger") {
                 statusEl.textContent = gfpT("dash.metas.statusEstourou");
                 statusEl.className = "mt-4 text-center text-xs font-medium text-rose-300";
+              } else if (focus.s.level === "hit") {
+                statusEl.textContent = gfpT("dash.metas.statusAtingiu");
+                statusEl.className = "mt-4 text-center text-xs font-medium text-violet-200";
               } else if (focus.s.level === "warn") {
                 statusEl.textContent = gfpT("dash.metas.statusPerto");
                 statusEl.className = "mt-4 text-center text-xs font-medium text-amber-200";
@@ -10637,6 +10671,8 @@
                   '</span><span class="tabular-nums text-[11px] ' +
                   (r.s.level === "danger"
                     ? "text-rose-300"
+                    : r.s.level === "hit"
+                    ? "text-violet-200"
                     : r.s.level === "warn"
                     ? "text-amber-200"
                     : "text-bank-muted") +
