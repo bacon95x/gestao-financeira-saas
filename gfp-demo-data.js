@@ -73,6 +73,14 @@
     return d.toISOString().slice(0, 10);
   }
 
+  /** Dia civil no mês corrente (respeita o último dia do mês). */
+  function diaNoMesAtual(dia) {
+    var d = new Date();
+    var dim = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+    d.setDate(Math.min(Math.max(1, dia), dim));
+    return d.toISOString().slice(0, 10);
+  }
+
   /** Snapshot localStorage com dados fáceis de entender (gastos do dia a dia). */
   function buildDemoSnapshot() {
     var hoje = hoyISO();
@@ -99,6 +107,15 @@
       vencimentoAnual: null,
       diaFechamentoFatura: 8,
     };
+    var catItau = {
+      id: "demo-card-itau",
+      nome: "Itaú",
+      matches: ["Itaú"],
+      diaVencimento: null,
+      matchCategorias: [],
+      vencimentoAnual: null,
+      diaFechamentoFatura: null,
+    };
 
     var renda1 = 5500;
     var renda2 = 1200;
@@ -117,6 +134,10 @@
       return { id: p.id, label: p.label, valor: p.valor };
     });
 
+    // Crédito: datas antes do fechamento do mês (Nubank dia 3, Inter dia 8)
+    // para a fatura do mês atual receber o gasto — mesmo padrão do app real.
+    var gastoNetflix = 55.9;
+    var gastoFarmacia = 189.9;
     var gastos = [
       {
         id: id("g"),
@@ -147,8 +168,8 @@
       },
       {
         id: id("g"),
-        data: diasAtras(3),
-        valor: 55.9,
+        data: diaNoMesAtual(1),
+        valor: gastoNetflix,
         descricao: "Netflix",
         categoria: "Lazer",
         meioPagamento: "Crédito",
@@ -157,8 +178,8 @@
       },
       {
         id: id("g"),
-        data: diasAtras(6),
-        valor: 189.9,
+        data: diaNoMesAtual(2),
+        valor: gastoFarmacia,
         descricao: "Farmácia e remédios",
         categoria: "Mercado",
         meioPagamento: "Crédito",
@@ -167,25 +188,39 @@
       },
     ];
 
+    // Estrutura correta: ano → mês → id da conta (igual ao dashboard).
     var contasPagarAnual = {};
     contasPagarAnual[year] = {};
-    contasPagarAnual[year][catNubank.id] = {};
-    contasPagarAnual[year][catNubank.id][monthIdx] = {
-      gastoAtual: 55.9,
+    contasPagarAnual[year][monthIdx] = {};
+    contasPagarAnual[year][monthIdx][catNubank.id] = {
+      gastoAtual: gastoNetflix,
       ultimaAtualizacao: hoje,
       vencimento: String(catNubank.diaVencimento),
       valorPago: null,
       dataPago: "",
       diaFechamentoFatura: catNubank.diaFechamentoFatura,
+      gastoCongelado: false,
+      gastoFaturaManual: null,
     };
-    contasPagarAnual[year][catInter.id] = {};
-    contasPagarAnual[year][catInter.id][monthIdx] = {
-      gastoAtual: 189.9,
+    contasPagarAnual[year][monthIdx][catInter.id] = {
+      gastoAtual: gastoFarmacia,
       ultimaAtualizacao: hoje,
       vencimento: String(catInter.diaVencimento),
       valorPago: null,
       dataPago: "",
       diaFechamentoFatura: catInter.diaFechamentoFatura,
+      gastoCongelado: false,
+      gastoFaturaManual: null,
+    };
+    contasPagarAnual[year][monthIdx][catItau.id] = {
+      gastoAtual: 0,
+      ultimaAtualizacao: "",
+      vencimento: "",
+      valorPago: null,
+      dataPago: "",
+      diaFechamentoFatura: null,
+      gastoCongelado: false,
+      gastoFaturaManual: null,
     };
 
     var calendarioJuros = {};
@@ -200,7 +235,7 @@
       },
     ];
 
-    // Contas fixas: Aluguel (Pix) e uma assinatura no crédito (Spotify).
+    // Contas fixas: Aluguel R$ 1.000 (Pix) e Spotify R$ 50 (crédito Nubank).
     var fixaAluguel = {
       id: "demo-fixa-aluguel",
       nome: "Aluguel",
@@ -223,21 +258,30 @@
 
     var contasFixasAnual = {};
     contasFixasAnual[year] = {};
-    contasFixasAnual[year][fixaAluguel.id] = {};
-    contasFixasAnual[year][fixaAluguel.id][monthIdx] = {
-      gastoAtual: 1500,
+    contasFixasAnual[year][monthIdx] = {};
+    contasFixasAnual[year][monthIdx][fixaAluguel.id] = {
+      gastoAtual: 1000,
       ultimaAtualizacao: hoje,
       vencimento: String(fixaAluguel.diaVencimento),
-      valorPago: 1500,
-      dataPago: hoje,
+      valorPago: null,
+      dataPago: "",
+      gastoCongelado: false,
     };
-    contasFixasAnual[year][fixaSpotify.id] = {};
-    contasFixasAnual[year][fixaSpotify.id][monthIdx] = {
-      gastoAtual: 21.9,
+    contasFixasAnual[year][monthIdx][fixaSpotify.id] = {
+      gastoAtual: 50,
       ultimaAtualizacao: hoje,
       vencimento: String(fixaSpotify.diaVencimento),
       valorPago: null,
       dataPago: "",
+      gastoCongelado: false,
+    };
+
+    // Metas de gasto por categoria (já preenchidas na demo).
+    var metasPorCategoria = {
+      Mercado: 800,
+      Transporte: 250,
+      Lazer: 400,
+      outros: 1500,
     };
 
     var compraPetr = {
@@ -376,10 +420,11 @@
       gfp_renda_dashboard_mes_idx_v1: String(now.getMonth()),
       gfp_renda_dashboard_ref_v1: JSON.stringify({ y: now.getFullYear(), m: now.getMonth() }),
       gfp_dashboard_gastos_ref_v1: JSON.stringify({ y: now.getFullYear(), m: now.getMonth() }),
-      gfp_contas_pagar_catalog_v1: JSON.stringify([catNubank, catInter]),
+      gfp_contas_pagar_catalog_v1: JSON.stringify([catNubank, catInter, catItau]),
       gfp_contas_pagar_anual_v1: JSON.stringify(contasPagarAnual),
       gfp_contas_fixas_catalog_v1: JSON.stringify(contasFixasCatalog),
       gfp_contas_fixas_anual_v1: JSON.stringify(contasFixasAnual),
+      gfp_metas_v1: JSON.stringify(metasPorCategoria),
       gfp_migracao_contas_fixas_v1: "1",
       gfp_calendario_juros_v1: JSON.stringify(calendarioJuros),
       gfp_calendario_origens_ordem_v1: "lancamentos",
