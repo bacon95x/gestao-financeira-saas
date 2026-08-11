@@ -10726,7 +10726,7 @@
             withMeta.map((x) => x.nome),
             withMeta.map((x) => x.meta),
             withMeta.map((x) => METAS_PIE_COLORS[x.i % METAS_PIE_COLORS.length]),
-            { hideLegend: true, doughnut: true, cutout: "58%", fillContainer: true, dimCenterEl: "#metas-pie-center", tooltipInlineLabel: true }
+            { hideLegend: true, doughnut: true, cutout: "58%", fillContainer: true, dimCenterEl: "#metas-pie-center", externalTooltip: true }
           );
 
           const listEl = document.getElementById("metas-breakdown-list");
@@ -11261,6 +11261,82 @@
           });
         }
 
+        function ocultarTooltipPizzaExterno() {
+          const el = document.getElementById("gfp-chartjs-tooltip");
+          if (el) {
+            el.style.opacity = "0";
+            el.style.visibility = "hidden";
+          }
+        }
+
+        /** Tooltip HTML fora do canvas — evita cortar valor/nome nas pizzas pequenas. */
+        function tooltipPizzaExterno(context) {
+          const { chart, tooltip } = context;
+          let el = document.getElementById("gfp-chartjs-tooltip");
+          if (!el) {
+            el = document.createElement("div");
+            el.id = "gfp-chartjs-tooltip";
+            el.setAttribute("role", "tooltip");
+            el.style.cssText =
+              "position:fixed;z-index:10050;pointer-events:none;opacity:0;visibility:hidden;" +
+              "max-width:min(18rem,calc(100vw - 1.5rem));padding:0.55rem 0.75rem;border-radius:0.65rem;" +
+              "border:1px solid rgba(167,139,250,0.45);background:rgba(9,9,14,0.97);" +
+              "box-shadow:0 10px 28px rgba(0,0,0,0.45);font-family:'DM Sans',system-ui,sans-serif;" +
+              "font-size:12px;line-height:1.35;color:#f4f4f5;transition:opacity .12s ease;" +
+              "white-space:normal;word-break:break-word;";
+            document.body.appendChild(el);
+          }
+          if (!tooltip || tooltip.opacity === 0 || !tooltip.dataPoints || !tooltip.dataPoints.length) {
+            ocultarTooltipPizzaExterno();
+            return;
+          }
+          const dp = tooltip.dataPoints[0];
+          const label = String(dp.label || "");
+          const v = dp.raw;
+          const dataArr = dp.dataset && Array.isArray(dp.dataset.data) ? dp.dataset.data : [];
+          const sum = dataArr.reduce((a, b) => a + Number(b || 0), 0);
+          const pct = sum ? ((Number(v) / sum) * 100).toFixed(1) : "0.0";
+          const cor =
+            (Array.isArray(dp.element && dp.element.options && dp.element.options.backgroundColor)
+              ? null
+              : dp.element && dp.element.options && dp.element.options.backgroundColor) ||
+            (dp.dataset &&
+              Array.isArray(dp.dataset.backgroundColor) &&
+              dp.dataset.backgroundColor[dp.dataIndex]) ||
+            "#a78bfa";
+          el.innerHTML =
+            '<div style="display:flex;align-items:flex-start;gap:0.5rem">' +
+            '<span style="margin-top:0.2rem;width:0.55rem;height:0.55rem;border-radius:0.15rem;flex-shrink:0;background:' +
+            String(cor) +
+            '"></span>' +
+            '<div style="min-width:0">' +
+            '<div style="font-weight:600;color:#fafafa">' +
+            escapeHtml(label) +
+            "</div>" +
+            '<div style="margin-top:0.15rem;color:#d4d4d8;font-variant-numeric:tabular-nums">' +
+            escapeHtml(formatMoney(v) + " (" + pct + "%)") +
+            "</div></div></div>";
+
+          const canvasRect = chart.canvas.getBoundingClientRect();
+          el.style.visibility = "hidden";
+          el.style.opacity = "0";
+          el.style.left = "0px";
+          el.style.top = "0px";
+          el.style.visibility = "visible";
+          const tipW = el.offsetWidth || 160;
+          const tipH = el.offsetHeight || 48;
+          let left = canvasRect.left + tooltip.caretX + 12;
+          let top = canvasRect.top + tooltip.caretY - tipH / 2;
+          const pad = 8;
+          if (left + tipW > window.innerWidth - pad) left = canvasRect.left + tooltip.caretX - tipW - 12;
+          if (left < pad) left = pad;
+          if (top < pad) top = pad;
+          if (top + tipH > window.innerHeight - pad) top = window.innerHeight - tipH - pad;
+          el.style.left = Math.round(left) + "px";
+          el.style.top = Math.round(top) + "px";
+          el.style.opacity = "1";
+        }
+
         function criarOuAtualizarPizza(canvas, emptyEl, chartRef, labels, data, cores, pieOpts) {
           pieOpts = pieOpts || {};
           if (!canvas) return;
@@ -11274,6 +11350,7 @@
               chartRef.current.destroy();
               chartRef.current = null;
             }
+            ocultarTooltipPizzaExterno();
             return;
           }
           canvas.classList.remove("hidden");
@@ -11288,6 +11365,7 @@
           const legendColor = light ? "#52525b" : "#a1a1aa";
           if (chartRef.current) chartRef.current.destroy();
           const isDoughnut = !!pieOpts.doughnut;
+          const useExternalTip = !!pieOpts.externalTooltip;
           const centerEl =
             typeof pieOpts.dimCenterEl === "string"
               ? document.querySelector(pieOpts.dimCenterEl)
@@ -11326,38 +11404,39 @@
                     font: { family: "'DM Sans', sans-serif", size: 11 },
                   },
                 },
-                tooltip: {
-                  backgroundColor: light ? "rgba(24, 24, 27, 0.95)" : "rgba(9, 9, 14, 0.96)",
-                  titleColor: "#fafafa",
-                  bodyColor: "#e4e4e7",
-                  borderColor: light ? "rgba(113,113,122,0.45)" : "rgba(167,139,250,0.45)",
-                  borderWidth: 1,
-                  padding: 10,
-                  caretPadding: 8,
-                  displayColors: true,
-                  callbacks: {
-                    title(items) {
-                      if (pieOpts.tooltipInlineLabel) return "";
-                      return items && items[0] ? String(items[0].label || "") : "";
+                tooltip: useExternalTip
+                  ? {
+                      enabled: false,
+                      external: tooltipPizzaExterno,
+                    }
+                  : {
+                      backgroundColor: light ? "rgba(24, 24, 27, 0.95)" : "rgba(9, 9, 14, 0.96)",
+                      titleColor: "#fafafa",
+                      bodyColor: "#e4e4e7",
+                      borderColor: light ? "rgba(113,113,122,0.45)" : "rgba(167,139,250,0.45)",
+                      borderWidth: 1,
+                      padding: 10,
+                      caretPadding: 8,
+                      displayColors: true,
+                      callbacks: {
+                        title(items) {
+                          return items && items[0] ? String(items[0].label || "") : "";
+                        },
+                        label(ctx) {
+                          const v = ctx.raw;
+                          const sum = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                          const pct = sum ? ((v / sum) * 100).toFixed(1) : "0.0";
+                          return " " + formatMoney(v) + " (" + pct + "%)";
+                        },
+                      },
                     },
-                    label(ctx) {
-                      const v = ctx.raw;
-                      const sum = ctx.dataset.data.reduce((a, b) => a + b, 0);
-                      const pct = sum ? ((v / sum) * 100).toFixed(1) : "0.0";
-                      const moneyPct = formatMoney(v) + " (" + pct + "%)";
-                      if (pieOpts.tooltipInlineLabel) {
-                        return " " + (ctx.label || "") + " · " + moneyPct;
-                      }
-                      return " " + moneyPct;
-                    },
-                  },
-                },
               },
             },
           });
           if (canvas._gfpPieLeave) canvas.removeEventListener("mouseleave", canvas._gfpPieLeave);
           canvas._gfpPieLeave = function () {
             setCenterDim(false);
+            ocultarTooltipPizzaExterno();
           };
           canvas.addEventListener("mouseleave", canvas._gfpPieLeave);
         }
