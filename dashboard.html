@@ -3251,13 +3251,18 @@
                   Total: R$ 0,00
                 </p>
               </div>
-              <div class="mx-auto max-w-md">
+              <div class="relative mx-auto h-[min(16rem,42vw)] w-full min-h-[14rem] max-w-md">
                 <canvas
                   id="chart-patrimonio-pizza"
-                  height="280"
+                  class="!h-full !w-full"
                   aria-label="Gráfico de pizza: percentual de cada investimento no patrimônio"
                 ></canvas>
               </div>
+              <div
+                id="chart-patrimonio-legenda"
+                class="mx-auto mt-4 hidden max-w-md grid grid-cols-3 gap-x-3 gap-y-2 sm:gap-x-4"
+                aria-hidden="true"
+              ></div>
               <p
                 id="chart-patrimonio-empty"
                 class="hidden py-12 text-center text-sm text-bank-muted"
@@ -9360,6 +9365,7 @@
             labels.push(patrimonioLabelGrafico(it.descricao));
             data.push(t);
           });
+          const cores = labels.map((_, i) => CORES_CATEGORIA[i % CORES_CATEGORIA.length]);
           const ref = {
             get current() {
               return chartPatrimonio;
@@ -9368,7 +9374,12 @@
               chartPatrimonio = c;
             },
           };
-          criarOuAtualizarPizza(canvas, emptyEl, ref, labels, data, CORES_CATEGORIA);
+          criarOuAtualizarPizza(canvas, emptyEl, ref, labels, data, CORES_CATEGORIA, {
+            hideLegend: true,
+            fillContainer: true,
+            externalTooltip: true,
+          });
+          renderLegendaPizzaGrid("chart-patrimonio-legenda", labels, cores);
         }
 
         let patrimonioEvolucaoSelectsPreenchidos = false;
@@ -11363,7 +11374,10 @@
             document.documentElement.getAttribute("data-appearance") === "light";
           const pieBorder = light ? "#e4e4e7" : "#12121a";
           const legendColor = light ? "#52525b" : "#a1a1aa";
-          if (chartRef.current) chartRef.current.destroy();
+          if (chartRef.current) {
+            ocultarTooltipPizzaExterno();
+            chartRef.current.destroy();
+          }
           const isDoughnut = !!pieOpts.doughnut;
           const useExternalTip = !!pieOpts.externalTooltip;
           const centerEl =
