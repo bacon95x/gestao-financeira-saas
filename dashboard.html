@@ -3215,11 +3215,10 @@
                   </label>
                 </div>
               </div>
-              <div class="relative min-h-[220px] w-full">
+              <div class="relative h-[min(20rem,52vw)] w-full min-h-[16rem]">
                 <canvas
                   id="chart-patrimonio-linha"
-                  height="220"
-                  class="max-h-[280px]"
+                  class="!h-full !w-full"
                   aria-label="Gráfico de linha: evolução do patrimônio acumulado por mês"
                 ></canvas>
                 <p
@@ -9579,17 +9578,27 @@
             },
             options: {
               responsive: true,
-              maintainAspectRatio: true,
+              maintainAspectRatio: false,
               interaction: { mode: "index", intersect: false },
+              layout: { padding: { top: 4, right: 6, bottom: 2, left: 2 } },
               scales: {
                 x: {
                   grid: { color: gridColor },
-                  ticks: { color: tickColor, maxRotation: 50, minRotation: 0, autoSkip: true, maxTicksLimit: 18 },
+                  ticks: {
+                    color: tickColor,
+                    font: { family: "'DM Sans', sans-serif", size: 11 },
+                    maxRotation: 45,
+                    minRotation: 0,
+                    autoSkip: true,
+                    maxTicksLimit: 14,
+                  },
                 },
                 y: {
                   grid: { color: gridColor },
                   ticks: {
                     color: tickColor,
+                    font: { family: "'DM Sans', sans-serif", size: 11 },
+                    padding: 6,
                     callback(v) {
                       return formatMoney(v);
                     },
@@ -9599,7 +9608,15 @@
               plugins: {
                 legend: {
                   display: true,
-                  labels: { color: tickColor, font: { family: "'DM Sans', sans-serif", size: 11 } },
+                  position: "top",
+                  align: "start",
+                  labels: {
+                    color: tickColor,
+                    boxWidth: 12,
+                    boxHeight: 12,
+                    padding: 10,
+                    font: { family: "'DM Sans', sans-serif", size: 11 },
+                  },
                 },
                 tooltip: {
                   callbacks: {
